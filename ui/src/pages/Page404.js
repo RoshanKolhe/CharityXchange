@@ -1,54 +1,52 @@
-import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { Link as RouterLink } from 'react-router-dom';
-// material
+// @mui
 import { styled } from '@mui/material/styles';
-import { Box, Button, Typography, Container } from '@mui/material';
-// components
-import { MotionContainer, varBounceIn } from '../components/animate';
-import Page from '../components/Page';
+import { Button, Typography, Container, Box } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
-const RootStyle = styled(Page)(({ theme }) => ({
+const StyledContent = styled('div')(({ theme }) => ({
+  maxWidth: 480,
+  margin: 'auto',
+  minHeight: '100vh',
   display: 'flex',
-  minHeight: '100%',
-  alignItems: 'center',
-  paddingTop: theme.spacing(15),
-  paddingBottom: theme.spacing(10)
+  justifyContent: 'center',
+  flexDirection: 'column',
+  padding: theme.spacing(12, 0),
 }));
 
 // ----------------------------------------------------------------------
 
 export default function Page404() {
   return (
-    <RootStyle title="404 Page Not Found | Nexus App">
+    <>
+      <Helmet>
+        <title> 404 Page Not Found | Minimal UI </title>
+      </Helmet>
+
       <Container>
-        <MotionContainer initial="initial" open>
-          <Box sx={{ maxWidth: 480, margin: 'auto', textAlign: 'center' }}>
-            <motion.div variants={varBounceIn}>
-              <Typography variant="h3" paragraph>
-                Sorry, page not found!
-              </Typography>
-            </motion.div>
-            <Typography sx={{ color: 'text.secondary' }}>
-              Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL?
-              Be sure to check your spelling.
-            </Typography>
+        <StyledContent sx={{ textAlign: 'center', alignItems: 'center' }}>
+          <Typography variant="h3" paragraph>
+            Sorry, page not found!
+          </Typography>
 
-            <motion.div variants={varBounceIn}>
-              <Box
-                component="img"
-                src="/static/illustrations/illustration_404.svg"
-                sx={{ height: 260, mx: 'auto', my: { xs: 5, sm: 10 } }}
-              />
-            </motion.div>
+          <Typography sx={{ color: 'text.secondary' }}>
+            Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL? Be sure to check your
+            spelling.
+          </Typography>
 
-            <Button to="/" size="large" variant="contained" component={RouterLink}>
-              Go to Home
-            </Button>
-          </Box>
-        </MotionContainer>
+          <Box
+            component="img"
+            src="/assets/illustrations/illustration_404.svg"
+            sx={{ height: 260, mx: 'auto', my: { xs: 5, sm: 10 } }}
+          />
+
+          <Button to="/" size="large" variant="contained" component={RouterLink}>
+            Go to Home
+          </Button>
+        </StyledContent>
       </Container>
-    </RootStyle>
+    </>
   );
 }

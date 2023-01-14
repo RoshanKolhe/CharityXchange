@@ -1,48 +1,47 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 // layouts
 import DashboardLayout from './layouts/dashboard';
-import LogoOnlyLayout from './layouts/LogoOnlyLayout';
+import SimpleLayout from './layouts/simple';
 //
-import Login from './pages/Login';
-import Register from './pages/Register';
-import DashboardApp from './pages/DashboardApp';
-import NotFound from './pages/Page404';
-import Company from './pages/Company';
-import User from './pages/Users';
+import BlogPage from './pages/BlogPage';
+import UserPage from './pages/UserPage';
+import LoginPage from './pages/LoginPage';
+import Page404 from './pages/Page404';
+import ProductsPage from './pages/ProductsPage';
+import DashboardAppPage from './pages/DashboardAppPage';
 
 // ----------------------------------------------------------------------
 
-export default function Router({ isLoggedIn }) {
-  console.log(
-    '%cMyProject%cline:16%cisLoggedIn',
-    'color:#fff;background:#ee6f57;padding:3px;border-radius:2px',
-    'color:#fff;background:#1f3c88;padding:3px;border-radius:2px',
-    'color:#fff;background:rgb(39, 72, 98);padding:3px;border-radius:2px',
-    isLoggedIn
-  );
-  return useRoutes([
+export default function Router() {
+  const routes = useRoutes([
     {
       path: '/dashboard',
-      element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" />,
+      element: <DashboardLayout />,
       children: [
-        { element: <Navigate to="/dashboard/app" replace /> },
-        { path: 'app', element: <DashboardApp /> },
-        { path: 'company', element: <Company /> },
-        { path: 'users', element: <User /> }
-      ]
+        { element: <Navigate to="/dashboard/app" />, index: true },
+        { path: 'app', element: <DashboardAppPage /> },
+        { path: 'user', element: <UserPage /> },
+        { path: 'products', element: <ProductsPage /> },
+        { path: 'blog', element: <BlogPage /> },
+      ],
     },
-
     {
-      path: '/',
-      element: <LogoOnlyLayout />,
-      children: [
-        { path: 'login', element: <Login /> },
-        { path: 'register', element: <Register /> },
-        { path: '404', element: <NotFound /> },
-        { path: '/', element: <Navigate to="/dashboard" /> },
-        { path: '*', element: <Navigate to="/404" /> }
-      ]
+      path: 'login',
+      element: <LoginPage />,
     },
-    { path: '*', element: <Navigate to="/404" replace /> }
+    {
+      element: <SimpleLayout />,
+      children: [
+        { element: <Navigate to="/dashboard/app" />, index: true },
+        { path: '404', element: <Page404 /> },
+        { path: '*', element: <Navigate to="/404" /> },
+      ],
+    },
+    {
+      path: '*',
+      element: <Navigate to="/404" replace />,
+    },
   ]);
+
+  return routes;
 }

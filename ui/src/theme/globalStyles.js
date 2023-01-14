@@ -1,75 +1,56 @@
-// material
-import { useTheme } from '@mui/material/styles';
-import { GlobalStyles as GlobalThemeStyles } from '@mui/material';
+// @mui
+import { GlobalStyles as MUIGlobalStyles } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
 export default function GlobalStyles() {
-  const theme = useTheme();
-
-  return (
-    <GlobalThemeStyles
+  const inputGlobalStyles = (
+    <MUIGlobalStyles
       styles={{
         '*': {
-          margin: 0,
-          padding: 0,
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
         },
         html: {
+          margin: 0,
+          padding: 0,
           width: '100%',
           height: '100%',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
         },
         body: {
+          margin: 0,
+          padding: 0,
           width: '100%',
-          height: '100%'
+          height: '100%',
         },
         '#root': {
           width: '100%',
-          height: '100%'
+          height: '100%',
         },
         input: {
           '&[type=number]': {
             MozAppearance: 'textfield',
             '&::-webkit-outer-spin-button': {
               margin: 0,
-              WebkitAppearance: 'none'
+              WebkitAppearance: 'none',
             },
             '&::-webkit-inner-spin-button': {
               margin: 0,
-              WebkitAppearance: 'none'
-            }
-          }
-        },
-        textarea: {
-          '&::-webkit-input-placeholder': {
-            color: theme.palette.text.disabled
+              WebkitAppearance: 'none',
+            },
           },
-          '&::-moz-placeholder': {
-            opacity: 1,
-            color: theme.palette.text.disabled
-          },
-          '&:-ms-input-placeholder': {
-            color: theme.palette.text.disabled
-          },
-          '&::placeholder': {
-            color: theme.palette.text.disabled
-          }
         },
-
-        img: { display: 'block', maxWidth: '100%' },
-
-        // Lazy Load Img
-        '.blur-up': {
-          WebkitFilter: 'blur(5px)',
-          filter: 'blur(5px)',
-          transition: 'filter 400ms, -webkit-filter 400ms'
+        img: {
+          display: 'block',
+          maxWidth: '100%',
         },
-        '.blur-up.lazyloaded ': {
-          WebkitFilter: 'blur(0)',
-          filter: 'blur(0)'
-        }
+        ul: {
+          margin: 0,
+          padding: 0,
+        },
       }}
     />
   );
+
+  return inputGlobalStyles;
 }
