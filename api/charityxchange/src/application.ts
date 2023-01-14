@@ -9,6 +9,11 @@ import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
+import { BcryptHasher } from './services/hash.password.bcrypt';
+import { MyUserService } from './services/user-service';
+import { JWTService } from './services/jwt-service';
+import { AuthenticationComponent, registerAuthenticationStrategy } from '@loopback/authentication';
+import { JWTStrategy } from './authentication-strategy/jwt-strategy';
 
 export {ApplicationConfig};
 
@@ -20,6 +25,12 @@ export class CharityxchangeApplication extends BootMixin(
 
     // Set up the custom sequence
     this.sequence(MySequence);
+
+    //set up bindings
+    this.setUpBinding();
+
+    this.component(AuthenticationComponent);
+    registerAuthenticationStrategy(this, JWTStrategy);
 
     // Set up default home page
     this.static('/', path.join(__dirname, '../public'));
@@ -40,5 +51,10 @@ export class CharityxchangeApplication extends BootMixin(
         nested: true,
       },
     };
+  }
+  setUpBinding(): void {
+    this.bind('service.hasher').toClass(BcryptHasher);
+    this.bind('service.user.service').toClass(MyUserService);
+    this.bind('service.jwt.service').toClass(JWTService);
   }
 }
