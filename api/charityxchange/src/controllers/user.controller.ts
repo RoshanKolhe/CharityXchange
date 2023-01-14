@@ -1,7 +1,6 @@
-// Uncomment these imports to begin using these cool features!
-
-import {repository} from '@loopback/repository';
-import {getJsonSchemaRef, getModelSchemaRef, post, requestBody, response} from '@loopback/rest';
+import {securityId, UserProfile} from '@loopback/security';
+import {Filter, repository} from '@loopback/repository';
+import {get, getJsonSchemaRef, getModelSchemaRef, param, post, requestBody, response} from '@loopback/rest';
 import {User} from '../models';
 import {Credentials, UserRepository} from '../repositories';
 import * as _ from 'lodash';
@@ -11,6 +10,7 @@ import { BcryptHasher } from '../services/hash.password.bcrypt';
 import { CredentialsRequestBody } from './specs/user-controller-spec';
 import { MyUserService } from '../services/user-service';
 import { JWTService } from '../services/jwt-service';
+import { authenticate, AuthenticationBindings } from '@loopback/authentication';
 
 export class UserController {
   constructor(
@@ -83,5 +83,33 @@ export class UserController {
       token: token,
       user: userData,
     });
+  }
+
+  @get('/users/me')
+  @authenticate('jwt')
+  async whoAmI(
+    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
+  ): Promise<UserProfile> {
+    return Promise.resolve({
+      id: currnetUser.id,
+      name: currnetUser.name,
+      [securityId]: currnetUser.id,
+    });
+  }
+
+  @get('/users')
+  @response(200, {
+    description: 'Array of Users model instances',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'array',
+          items: getModelSchemaRef(User, {includeRelations: true}),
+        },
+      },
+    },
+  })
+  async find(@param.filter(User) filter?: Filter<User>): Promise<User[]> {
+    return this.userRepository.find(filter);
   }
 }
