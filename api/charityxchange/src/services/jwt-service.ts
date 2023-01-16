@@ -13,7 +13,7 @@ export class JWTService {
     }
     let token = '';
     try {
-      token = await signAsync(userProfile, '213dfdsas', {
+      token = await signAsync(userProfile, 'wolfizer', {
         expiresIn: '7h',
       });
     } catch (err) {
@@ -31,14 +31,14 @@ export class JWTService {
 
     let userProfile: UserProfile;
     try {
-      const decryptedToken = await verifyAsync(token, '213dfdsas');
-      console.log(decryptedToken);
+      const decryptedToken = await verifyAsync(token, 'wolfizer');
       userProfile = Object.assign(
-        {id: '', name: '', [securityId]: ''},
+        {id: '', name: '', [securityId]: '', permissions: ''},
         {
           id: decryptedToken.id,
           name: decryptedToken.name,
           [securityId]: decryptedToken.id,
+          permissions: decryptedToken.permissions,
         },
       );
     } catch (error) {

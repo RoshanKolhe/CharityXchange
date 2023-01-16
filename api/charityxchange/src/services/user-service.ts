@@ -41,6 +41,7 @@ export class MyUserService implements UserService<User, Credentials> {
       name: `${user.name}`,
       email: user.email,
       [securityId]: `${user.id}`,
+      permissions: user.permissions,
     };
   }
 }

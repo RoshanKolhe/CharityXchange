@@ -32,6 +32,11 @@ export class User extends Entity {
   })
   email_verified_at: string;
 
+  @property.array(String, {
+    name: 'permissions',
+  })
+  permissions: String[];
+
   @property({
     type: 'string',
   })
@@ -52,7 +57,6 @@ export class User extends Entity {
     required: true,
   })
   is_active: boolean;
-
 
   constructor(data?: Partial<User>) {
     super(data);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useFormik, Form, FormikProvider } from 'formik';
 // @mui
 import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -14,11 +15,39 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleClick = () => {
-    navigate('/dashboard', { replace: true });
+    // navigate('/dashboard', { replace: true });
   };
+
+  const LoginSchema = Yup.object().shape({
+    email: Yup.string().email('Email must be a valid email address').required('Email is required'),
+    password: Yup.string().required('Password is required')
+  });
+
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+      password: '',
+      remember: true
+    },
+    validationSchema: LoginSchema,
+    onSubmit: async (values) => {
+      console.log('values', values);
+      // navigate('/dashboard', { replace: true });
+      const result = await AuthService.login(values.email, values.password);
+
+      if (result) {
+        if (result) {
+          navigate('/dashboard/app', { replace: true });
+          values.isSubmitting = false;
+        }
+      }
+    }
+  });
 
   return (
     <>
+    <FormikProvider value={formik}>
+      <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
       <Stack spacing={3}>
         <TextField name="email" label="Email address" />
 
@@ -48,6 +77,8 @@ export default function LoginForm() {
       <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick}>
         Login
       </LoadingButton>
+      </Form>
+    </FormikProvider>
     </>
   );
 }

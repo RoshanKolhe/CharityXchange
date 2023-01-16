@@ -11,6 +11,7 @@ import { CredentialsRequestBody } from './specs/user-controller-spec';
 import { MyUserService } from '../services/user-service';
 import { JWTService } from '../services/jwt-service';
 import { authenticate, AuthenticationBindings } from '@loopback/authentication';
+import { PermissionKeys } from '../authorization/permission-keys';
 
 export class UserController {
   constructor(
@@ -47,6 +48,7 @@ export class UserController {
     userData: Omit<User, 'id'>,
   ) {
     validateCredentials(_.pick(userData, ['email', 'password']));
+    userData.permissions = [PermissionKeys.EMPLOYEE];
     userData.password = await this.hasher.hashPassword(userData.password);
     const savedUser = await this.userRepository.create(userData);
     const savedUserData = _.omit(savedUser, 'password')
@@ -96,7 +98,7 @@ export class UserController {
       [securityId]: currnetUser.id,
     });
   }
-
+  @authenticate({strategy: 'jwt', options: {required: [PermissionKeys.SUPER_ADMIN]}})
   @get('/users')
   @response(200, {
     description: 'Array of Users model instances',
