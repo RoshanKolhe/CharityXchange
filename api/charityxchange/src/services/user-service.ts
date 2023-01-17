@@ -22,7 +22,7 @@ export class MyUserService implements UserService<User, Credentials> {
       },
     });
     if (!getUser) {
-      throw new HttpErrors.NotFound('Email not found');
+      throw new HttpErrors.BadRequest('Email not found');
     }
 
     const passswordCheck = await this.hasher.comparePassword(
@@ -32,7 +32,7 @@ export class MyUserService implements UserService<User, Credentials> {
     if (passswordCheck) {
       return getUser;
     }
-    throw new HttpErrors.Unauthorized('password doesnt match');
+    throw new HttpErrors.BadRequest('password doesnt match');
   }
 
   convertToUserProfile(user: User): UserProfile {

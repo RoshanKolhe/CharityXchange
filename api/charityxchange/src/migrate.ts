@@ -6,7 +6,7 @@ export async function migrate(args: string[]) {
 
   const app = new CharityxchangeApplication();
   await app.boot();
-  await app.migrateSchema({existingSchema,models:['User']});
+  await app.migrateSchema({existingSchema,models:['User','UserProfile']});
 
   // Connectors usually keep a pool of opened connections,
   // this keeps the process running even after all work is done.

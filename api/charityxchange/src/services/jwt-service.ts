@@ -7,7 +7,7 @@ const verifyAsync = promisify(jwt.verify);
 export class JWTService {
   async generateToken(userProfile: UserProfile): Promise<string> {
     if (!userProfile) {
-      throw new HttpErrors.Unauthorized(
+      throw new HttpErrors.NotFound(
         'Error while generating token Userprofile is null',
       );
     }
@@ -24,7 +24,7 @@ export class JWTService {
 
   async verifyToken(token: string): Promise<UserProfile> {
     if (!token) {
-      throw new HttpErrors.Unauthorized(
+      throw new HttpErrors.BadRequest(
         "Error verifying token: 'token is null'",
       );
     }

@@ -51,20 +51,20 @@ export class AuthorizeInterceptor implements Provider<Interceptor> {
   ) {
     try {
       // Add pre-invocation logic here
+      if (this.metaData) {
+        if (!this.metaData[0]?.options?.required) return await next();
+      }
       if (!this.metaData) return await next();
-      const requiredPermissions = this.metaData[0].options.required;
-      console.log('requiredPermissions', requiredPermissions);
+      const requiredPermissions = this.metaData[0]?.options?.required;
       const currentUserData = await this.getCurrentUser();
       const results = intersection(
         currentUserData.permissions,
         requiredPermissions,
-      ).length;
+      );
       if (results !== requiredPermissions.length) {
         throw new HttpErrors.Forbidden('INVALID ACCESS');
       }
-
       const result = await next();
-
       // Add post-invocation logic here
       return result;
     } catch (err) {

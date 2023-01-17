@@ -57,7 +57,7 @@ export default function Header({ onOpenNav }) {
           <Iconify icon="eva:menu-2-fill" />
         </IconButton>
 
-        <Searchbar />
+        {/* <Searchbar /> */}
         <Box sx={{ flexGrow: 1 }} />
 
         <Stack
@@ -68,7 +68,7 @@ export default function Header({ onOpenNav }) {
             sm: 1,
           }}
         >
-          <LanguagePopover />
+          {/* <LanguagePopover /> */}
           <NotificationsPopover />
           <AccountPopover />
         </Stack>

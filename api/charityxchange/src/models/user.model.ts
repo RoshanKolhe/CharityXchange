@@ -1,4 +1,5 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, hasOne, model, property} from '@loopback/repository';
+import {UserProfile, UserProfileWithRelations} from './user-profile.model';
 
 @model()
 export class User extends Entity {
@@ -58,6 +59,9 @@ export class User extends Entity {
   })
   is_active: boolean;
 
+  @hasOne(() => UserProfile)
+  userProfile: UserProfile;
+
   constructor(data?: Partial<User>) {
     super(data);
   }
@@ -65,6 +69,7 @@ export class User extends Entity {
 
 export interface UserRelations {
   // describe navigational properties here
+  userProfile?: UserProfileWithRelations;
 }
 
 export type UserWithRelations = User & UserRelations;

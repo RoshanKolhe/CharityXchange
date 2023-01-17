@@ -17,18 +17,18 @@ export class JWTStrategy implements AuthenticationStrategy {
   }
   extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
-      throw new HttpErrors.Unauthorized('Autherization header is missing');
+      throw new HttpErrors.NotFound('Autherization header is missing');
     }
     const authHeaderValue = request.headers.authorization;
     if (!authHeaderValue.startsWith('Bearer')) {
-      throw new HttpErrors.Unauthorized(
+      throw new HttpErrors.BadRequest(
         'Autherization header is not type of bearer',
       );
     }
 
     const parts = authHeaderValue.split(' ');
     if (parts.length !== 2) {
-      throw new HttpErrors.Unauthorized(
+      throw new HttpErrors.BadRequest(
         `Autherization header has to many parts it must follow this pattern 'Bearer xx.yy.zz'`,
       );
     }
