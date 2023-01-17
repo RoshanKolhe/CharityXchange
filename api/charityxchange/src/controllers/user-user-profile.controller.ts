@@ -1,3 +1,5 @@
+import {authenticate} from '@loopback/authentication';
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -10,21 +12,22 @@ import {
   get,
   getModelSchemaRef,
   getWhereSchemaFor,
+  HttpErrors,
   param,
   patch,
   post,
   requestBody,
+  RequestContext,
+  RestBindings,
 } from '@loopback/rest';
-import {
-  User,
-  UserProfile,
-} from '../models';
+import {omit, pick} from 'lodash';
+import {User, UserProfile} from '../models';
 import {UserRepository} from '../repositories';
 
 export class UserUserProfileController {
   constructor(
     @repository(UserRepository) protected userRepository: UserRepository,
-  ) { }
+  ) {}
 
   @get('/users/{id}/user-profile', {
     responses: {
@@ -38,6 +41,7 @@ export class UserUserProfileController {
       },
     },
   })
+  @authenticate('jwt')
   async get(
     @param.path.number('id') id: number,
     @param.query.object('filter') filter?: Filter<UserProfile>,
@@ -53,6 +57,7 @@ export class UserUserProfileController {
       },
     },
   })
+  @authenticate('jwt')
   async create(
     @param.path.number('id') id: typeof User.prototype.id,
     @requestBody({
@@ -61,36 +66,53 @@ export class UserUserProfileController {
           schema: getModelSchemaRef(UserProfile, {
             title: 'NewUserProfileInUser',
             exclude: ['id'],
-            optional: ['userId']
+            optional: ['userId'],
           }),
         },
       },
-    }) userProfile: Omit<UserProfile, 'id'>,
+    })
+    userProfile: Omit<UserProfile, 'id'>,
   ): Promise<UserProfile> {
     return this.userRepository.userProfile(id).create(userProfile);
   }
 
-  @patch('/users/{id}/user-profile', {
-    responses: {
-      '200': {
-        description: 'User.UserProfile PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
+  @patch('/users/{id}/user-profile')
+  @authenticate('jwt')
   async patch(
     @param.path.number('id') id: number,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(UserProfile, {partial: true}),
-        },
-      },
-    })
-    userProfile: Partial<UserProfile>,
-    @param.query.object('where', getWhereSchemaFor(UserProfile)) where?: Where<UserProfile>,
-  ): Promise<Count> {
-    return this.userRepository.userProfile(id).patch(userProfile, where);
+    @requestBody({})
+    userProfile: any,
+  ): Promise<{}> {
+    try {
+      const userProfilePoccessabelData = userProfile;
+      console.log(userProfilePoccessabelData);
+      await this.userRepository.updateById(
+        id,
+        omit(userProfile, 'userProfile'),
+      );
+
+      if (userProfilePoccessabelData.userProfile.hasOwnProperty('id')) {
+        await this.userRepository
+          .userProfile(id)
+          .patch(userProfilePoccessabelData.userProfile);
+      } else {
+        const data = await this.userRepository.userProfile(id).get();
+        if (!data) {
+          await this.userRepository
+            .userProfile(id)
+            .create(userProfilePoccessabelData.userProfile);
+        } else {
+          await this.userRepository
+            .userProfile(id)
+            .patch(userProfilePoccessabelData.userProfile);
+        }
+      }
+      return Promise.resolve({
+        ...userProfile,
+      });
+    } catch (err) {
+      throw new HttpErrors.UnprocessableEntity(`error updatin profile${err}`);
+    }
   }
 
   @del('/users/{id}/user-profile', {
@@ -101,9 +123,11 @@ export class UserUserProfileController {
       },
     },
   })
+  @authenticate('jwt')
   async delete(
     @param.path.number('id') id: number,
-    @param.query.object('where', getWhereSchemaFor(UserProfile)) where?: Where<UserProfile>,
+    @param.query.object('where', getWhereSchemaFor(UserProfile))
+    where?: Where<UserProfile>,
   ): Promise<Count> {
     return this.userRepository.userProfile(id).delete(where);
   }

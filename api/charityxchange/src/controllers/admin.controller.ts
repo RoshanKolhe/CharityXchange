@@ -1,7 +1,7 @@
 // Uncomment these imports to begin using these cool features!
 
-import { inject } from '@loopback/core';
-import { repository } from '@loopback/repository';
+import {inject} from '@loopback/core';
+import {repository} from '@loopback/repository';
 import * as _ from 'lodash';
 import {
   getJsonSchemaRef,
@@ -10,10 +10,10 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {User} from '../models';
-import { UserRepository } from '../repositories';
-import { BcryptHasher } from '../services/hash.password.bcrypt';
+import {UserRepository} from '../repositories';
+import {BcryptHasher} from '../services/hash.password.bcrypt';
 import {validateCredentials} from '../services/validator';
-import { PermissionKeys } from '../authorization/permission-keys';
+import {PermissionKeys} from '../authorization/permission-keys';
 
 // import {inject} from '@loopback/core';
 
@@ -48,10 +48,19 @@ export class AdminController {
     adminData: Omit<User, 'id'>,
   ) {
     validateCredentials(_.pick(adminData, ['email', 'password']));
-    adminData.permissions = [PermissionKeys.SUPER_ADMIN,PermissionKeys.EMPLOYEE];
+    adminData.permissions = [
+      PermissionKeys.SUPER_ADMIN,
+      PermissionKeys.EMPLOYEE,
+    ];
     adminData.password = await this.hasher.hashPassword(adminData.password);
     const savedUser = await this.userRepository.create(adminData);
     const savedUserData = _.omit(savedUser, 'password');
+    const useProfileData: any = {
+      userId: savedUserData.id,
+    };
+    await this.userRepository
+      .userProfile(savedUserData.id)
+      .create(useProfileData);
     return savedUserData;
   }
 }
