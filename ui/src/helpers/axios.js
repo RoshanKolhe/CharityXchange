@@ -31,8 +31,8 @@ axiosInstance.interceptors.response.use(
       // place your reentry code
       authService.logout();
       localStorage.setItem('isAuthenticated', false);
-
       history.push('/login', { replace: true });
+      window.location.reload();
     }
     return Promise.reject(error);
   }

@@ -17,7 +17,7 @@ export class JWTStrategy implements AuthenticationStrategy {
   }
   extractCredentials(request: Request): string {
     if (!request.headers.authorization) {
-      throw new HttpErrors.NotFound('Autherization header is missing');
+      throw new HttpErrors.Unauthorized('Autherization header is missing');
     }
     const authHeaderValue = request.headers.authorization;
     if (!authHeaderValue.startsWith('Bearer')) {

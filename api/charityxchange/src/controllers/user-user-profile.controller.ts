@@ -85,23 +85,28 @@ export class UserUserProfileController {
   ): Promise<{}> {
     try {
       const userProfilePoccessabelData = userProfile;
-      console.log(userProfilePoccessabelData);
       await this.userRepository.updateById(
         id,
         omit(userProfile, 'userProfile'),
       );
 
       if (userProfilePoccessabelData.userProfile.hasOwnProperty('id')) {
+        console.log('here');
         await this.userRepository
           .userProfile(id)
           .patch(userProfilePoccessabelData.userProfile);
       } else {
-        const data = await this.userRepository.userProfile(id).get();
+        const data = await this.userRepository.userProfile(id).get().catch((res)=>{
+          console.log(res);
+        });
+
         if (!data) {
+          console.log('here2');
           await this.userRepository
             .userProfile(id)
             .create(userProfilePoccessabelData.userProfile);
         } else {
+          console.log('here1');
           await this.userRepository
             .userProfile(id)
             .patch(userProfilePoccessabelData.userProfile);

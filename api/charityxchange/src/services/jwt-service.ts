@@ -24,7 +24,7 @@ export class JWTService {
 
   async verifyToken(token: string): Promise<UserProfile> {
     if (!token) {
-      throw new HttpErrors.BadRequest(
+      throw new HttpErrors.Unauthorized(
         "Error verifying token: 'token is null'",
       );
     }

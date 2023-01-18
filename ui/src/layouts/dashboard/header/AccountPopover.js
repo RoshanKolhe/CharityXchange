@@ -11,16 +11,14 @@ import account from '../../../_mock/account';
 
 const MENU_OPTIONS = [
   {
-    label: 'Home',
-    icon: 'eva:home-fill',
-  },
-  {
     label: 'Profile',
     icon: 'eva:person-fill',
+    path: '/profile',
   },
   {
     label: 'Settings',
     icon: 'eva:settings-2-fill',
+    path: '/dashboard/profile',
   },
 ];
 
@@ -29,6 +27,7 @@ const MENU_OPTIONS = [
 export default function AccountPopover() {
   const [open, setOpen] = useState(null);
   const navigate = useNavigate();
+
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
@@ -40,6 +39,10 @@ export default function AccountPopover() {
     authService.logout();
     navigate('/login', { replace: true });
   }
+  const handleNavigate = (url) => {
+    navigate(url, { replace: true });
+    setOpen(null);
+  };
 
   return (
     <>
@@ -95,7 +98,12 @@ export default function AccountPopover() {
 
         <Stack sx={{ p: 1 }}>
           {MENU_OPTIONS.map((option) => (
-            <MenuItem key={option.label} onClick={handleClose}>
+            <MenuItem
+              key={option.label}
+              onClick={() => {
+                handleNavigate(option.path);
+              }}
+            >
               {option.label}
             </MenuItem>
           ))}
