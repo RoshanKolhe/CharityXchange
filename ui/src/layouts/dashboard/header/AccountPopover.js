@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../../../helpers/axios';
 import authService from '../../../services/auth.service';
 // mocks_
 import account from '../../../_mock/account';
@@ -24,10 +25,9 @@ const MENU_OPTIONS = [
 
 // ----------------------------------------------------------------------
 
-export default function AccountPopover() {
+export default function AccountPopover({ userProfile }) {
   const [open, setOpen] = useState(null);
   const navigate = useNavigate();
-
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
@@ -63,7 +63,14 @@ export default function AccountPopover() {
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
+        <Avatar
+          src={
+            userProfile?.userProfile?.avatar?.originalname
+              ? `${process.env.REACT_APP_API_ENDPOINT}/files/${userProfile?.userProfile?.avatar?.originalname}`
+              : account.photoURL
+          }
+          alt="photoURL"
+        />
       </IconButton>
 
       <Popover
@@ -87,10 +94,10 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+            {userProfile?.name ?? account.name}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+            {userProfile?.email ?? account.email}
           </Typography>
         </Box>
 

@@ -34,7 +34,7 @@ Nav.propTypes = {
   onCloseNav: PropTypes.func,
 };
 
-export default function Nav({ openNav, onCloseNav }) {
+export default function Nav({ openNav, onCloseNav, userProfile }) {
   const { pathname } = useLocation();
 
   const isDesktop = useResponsive('up', 'lg');
@@ -60,15 +60,26 @@ export default function Nav({ openNav, onCloseNav }) {
       <Box sx={{ mb: 5, mx: 2.5 }}>
         <Link underline="none">
           <StyledAccount>
-            <Avatar src={account.photoURL} alt="photoURL" />
+            <Avatar
+              src={
+                userProfile?.userProfile?.avatar?.originalname
+                  ? `${process.env.REACT_APP_API_ENDPOINT}/files/${userProfile?.userProfile?.avatar?.originalname}`
+                  : account.photoURL
+              }
+              alt="photoURL"
+            />
 
             <Box sx={{ ml: 2 }}>
               <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                {account.displayName}
+                {userProfile?.name ?? account.displayName}
               </Typography>
 
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {account.role}
+                {userProfile?.permissions
+                  ? userProfile?.permissions.includes('super_admin')
+                    ? 'Admin'
+                    : 'Employee'
+                  : account.role}
               </Typography>
             </Box>
           </StyledAccount>

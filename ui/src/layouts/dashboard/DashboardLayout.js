@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 // @mui
 import { styled } from '@mui/material/styles';
 //
+import axiosInstance from '../../helpers/axios';
 import Header from './header';
 import Nav from './nav';
 
@@ -34,12 +35,18 @@ const Main = styled('div')(({ theme }) => ({
 
 export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState();
 
+  useEffect(() => {
+    axiosInstance.get('users/me').then((res) => {
+      setUserProfile(res.data);
+    });
+  }, []);
   return (
     <StyledRoot>
-      <Header onOpenNav={() => setOpen(true)} />
+      <Header onOpenNav={() => setOpen(true)} userProfile={userProfile} />
 
-      <Nav openNav={open} onCloseNav={() => setOpen(false)} />
+      <Nav openNav={open} onCloseNav={() => setOpen(false)} userProfile={userProfile} />
 
       <Main>
         <Outlet />

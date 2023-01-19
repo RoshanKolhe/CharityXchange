@@ -1,5 +1,6 @@
 import { Navigate, useNavigate, useRoutes } from 'react-router-dom';
 // layouts
+import { useEffect } from 'react';
 import DashboardLayout from '../layouts/dashboard';
 //
 import BlogPage from '../pages/BlogPage';
@@ -16,10 +17,13 @@ import ProtectedRoute from './PrivateRoute';
 export default function Router({ role }) {
   console.log(role);
   const navigate = useNavigate();
-  const isAuthenticated = localStorage.getItem('isAuthenticated');
-  if (!isAuthenticated) {
-    navigate('/login');
-  }
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated');
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, []);
+
   const routes = useRoutes([
     {
       path: '/',

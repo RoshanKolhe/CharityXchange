@@ -47,6 +47,7 @@ const ProfileForm = ({ initialValues }) => {
         id: initialValues?.userProfile?.id,
         contact: initialValues?.userProfile?.contact || '',
         bio: initialValues?.userProfile?.bio || '',
+        avatar: initialValues?.userProfile?.avatar || '',
       },
       email: initialValues.email || '',
     },
@@ -65,8 +66,6 @@ const ProfileForm = ({ initialValues }) => {
   const [fileName, setFileName] = useState();
   const [src, setSrc] = useState();
   const [file, setFile] = useState();
-  console.log('file', file);
-  console.log('src', src);
 
   const handleFileUpload = (event) => {
     const reader = new FileReader();
@@ -79,13 +78,16 @@ const ProfileForm = ({ initialValues }) => {
         setFile(file);
       }
       const formData = new FormData();
-      formData.append('avatar', file, file.name);
-      axiosInstance.post('attachment', formData).then((res) => {
-        console.log(res);
+      formData.append('userProfile.avatar', file, file.name);
+      axiosInstance.post('files', formData).then((res) => {
+        formik.setFieldValue('userProfile.avatar', res?.data?.files[0]);
       });
     }
   };
-
+  console.log(
+    'formikvalue',
+    `${process.env.REACT_APP_API_ENDPOINT}/files/${formik?.values?.userProfile?.avatar?.originalname}`
+  );
   return (
     <div>
       <Box
@@ -111,14 +113,18 @@ const ProfileForm = ({ initialValues }) => {
             <IconButton onClick={() => fileInput.current.click()}>
               <Avatar
                 sx={{ width: 130, height: 130 }}
-                src={'http://localhost:3002/files/E200018_2.webp' ?? account.photoURL}
+                src={
+                  formik?.values?.userProfile.avatar?.originalname
+                    ? `${process.env.REACT_APP_API_ENDPOINT}/files/${formik?.values?.userProfile.avatar?.originalname}`
+                    : account.photoURL
+                }
                 alt="photoURL"
               />
             </IconButton>
             <input
               type="file"
               accept="image/*"
-              name="avatar"
+              name="userProfile.avatar"
               onChange={(event) => {
                 handleFileUpload(event);
               }}
