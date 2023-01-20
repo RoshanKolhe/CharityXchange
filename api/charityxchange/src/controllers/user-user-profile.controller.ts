@@ -85,20 +85,23 @@ export class UserUserProfileController {
   ): Promise<{}> {
     try {
       const userProfilePoccessabelData = userProfile;
+      console.log('userProfilePoccessabelData', userProfilePoccessabelData);
       await this.userRepository.updateById(
         id,
         omit(userProfile, 'userProfile'),
       );
 
       if (userProfilePoccessabelData.userProfile.hasOwnProperty('id')) {
-        console.log('here');
         await this.userRepository
           .userProfile(id)
           .patch(userProfilePoccessabelData.userProfile);
       } else {
-        const data = await this.userRepository.userProfile(id).get().catch((res)=>{
-          console.log(res);
-        });
+        const data = await this.userRepository
+          .userProfile(id)
+          .get()
+          .catch(res => {
+            console.log(res);
+          });
 
         if (!data) {
           console.log('here2');
@@ -112,6 +115,30 @@ export class UserUserProfileController {
             .patch(userProfilePoccessabelData.userProfile);
         }
       }
+
+      if (userProfilePoccessabelData.balances.hasOwnProperty('id')) {
+        await this.userRepository
+          .balance_user(id)
+          .patch(userProfilePoccessabelData.balances);
+      } else {
+        const data = await this.userRepository
+          .balance_user(id)
+          .get()
+          .catch(res => {
+            console.log(res);
+          });
+
+        if (!data) {
+          await this.userRepository
+            .balance_user(id)
+            .create(userProfilePoccessabelData.balances);
+        } else {
+          await this.userRepository
+            .balance_user(id)
+            .patch(userProfilePoccessabelData.balances);
+        }
+      }
+
       return Promise.resolve({
         ...userProfile,
       });

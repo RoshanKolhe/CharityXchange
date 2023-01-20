@@ -18,7 +18,7 @@ export default function LoginForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [openSnackBar, setOpenSnackBar] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
 

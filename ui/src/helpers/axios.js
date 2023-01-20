@@ -30,7 +30,7 @@ axiosInstance.interceptors.response.use(
     if (error?.response?.status === 401) {
       // place your reentry code
       authService.logout();
-      localStorage.setItem('isAuthenticated', false);
+      // localStorage.setItem('isAuthenticated', false);
       history.push('/login', { replace: true });
       window.location.reload();
     }

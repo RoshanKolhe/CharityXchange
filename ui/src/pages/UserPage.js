@@ -1,7 +1,8 @@
+/* eslint-disable camelcase */
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -29,15 +30,14 @@ import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
-import USERLIST from '../_mock/user';
+import axiosInstance from '../helpers/axios';
+import account from '../_mock/account';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
 ];
@@ -76,6 +76,8 @@ function applySortFilter(array, comparator, query) {
 export default function UserPage() {
   const [open, setOpen] = useState(null);
 
+  const [memberList, setMemberList] = useState([]);
+
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
@@ -104,7 +106,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = memberList.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -112,10 +114,13 @@ export default function UserPage() {
   };
 
   const handleClick = (event, name) => {
+    console.log('name', name);
     const selectedIndex = selected.indexOf(name);
+
     let newSelected = [];
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, name);
+      console.log('newSelected', newSelected);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -140,25 +145,31 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - memberList.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(memberList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
+
+  useEffect(() => {
+    axiosInstance.get('users?filter[include][]=userProfile').then((res) => {
+      setMemberList(res.data);
+    });
+  }, []);
 
   return (
     <>
       <Helmet>
-        <title> User | Minimal UI </title>
+        <title> Members | CharityXchange </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            User
+            Members
           </Typography>
           <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
+            New Member
           </Button>
         </Stack>
 
@@ -172,39 +183,43 @@ export default function UserPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={memberList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const selectedUser = selected.indexOf(name) !== -1;
-
+                    const { id, name, permissions, is_active, userProfile } = row;
+                    const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, name)} />
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                         </TableCell>
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
+                            <Avatar
+                              alt={name}
+                              src={
+                                userProfile?.userProfile?.avatar?.originalname
+                                  ? userProfile?.userProfile?.avatar?.originalname
+                                  : account.photoURL
+                              }
+                            />
                             <Typography variant="subtitle2" noWrap>
                               {name}
                             </Typography>
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{company}</TableCell>
-
-                        <TableCell align="left">{role}</TableCell>
-
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
+                        <TableCell align="left">{permissions}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label>
+                          <Label color={(is_active === '0' && 'error') || 'success'}>
+                            {is_active === '0' ? 'InActive' : 'Active'}
+                          </Label>
                         </TableCell>
 
                         <TableCell align="right">
@@ -252,7 +267,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={memberList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

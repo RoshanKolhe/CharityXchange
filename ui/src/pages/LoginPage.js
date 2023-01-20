@@ -1,8 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 // @mui
 import { styled } from '@mui/material/styles';
-import {  Container, Typography } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 // hooks
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import useResponsive from '../hooks/useResponsive';
 // components
 import Logo from '../components/logo';
@@ -41,11 +43,21 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 export default function LoginPage() {
   const mdUp = useResponsive('up', 'md');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isAuthenticated = localStorage.getItem('isAuthenticated');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const { from } = location.state || { from: { pathname: '/dashboard' } };
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, location, navigate]);
 
   return (
     <>
       <Helmet>
-        <title> Login | Minimal UI </title>
+        <title> Login | CharityXchange </title>
       </Helmet>
 
       <StyledRoot>

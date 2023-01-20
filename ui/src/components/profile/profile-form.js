@@ -20,9 +20,21 @@ import {
 import { omit } from 'lodash';
 import axiosInstance from '../../helpers/axios';
 import account from '../../_mock/account';
+import CommonSnackBar from '../../common/CommonSnackBar';
 
 const ProfileForm = ({ initialValues }) => {
   const fileInput = React.useRef();
+
+  const [openSnackBar, setOpenSnackBar] = useState(false);
+  const [fileName, setFileName] = useState();
+  const [src, setSrc] = useState();
+  const [file, setFile] = useState();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const handleOpenSnackBar = () => setOpenSnackBar(true);
+  const handleCloseSnackBar = () => setOpenSnackBar(false);
+
   const profileFormValidationSchema = yup.object({
     name: yup
       .string('Enter name')
@@ -37,6 +49,16 @@ const ProfileForm = ({ initialValues }) => {
         return true;
       }),
     }),
+    balances: yup.object({
+      name: yup
+        .string('Enter name')
+        .required('name is required')
+        .test('len', 'Must be less than 20 characters', (val) => {
+          if (val) return val.toString().length < 20;
+          return true;
+        }),
+      wallet_address: yup.string('Enter Public Key').required('Public Key is required'),
+    }),
   });
 
   const formik = useFormik({
@@ -49,6 +71,13 @@ const ProfileForm = ({ initialValues }) => {
         bio: initialValues?.userProfile?.bio || '',
         avatar: initialValues?.userProfile?.avatar || '',
       },
+      balances: {
+        id: initialValues?.balances?.id || '',
+
+        payment_info: {
+          wallet_address: initialValues?.balances?.payment_info?.wallet_address || '',
+        },
+      },
       email: initialValues.email || '',
     },
     enableReinitialize: true,
@@ -58,14 +87,22 @@ const ProfileForm = ({ initialValues }) => {
       if (values.userProfile.id === undefined) {
         values = omit(values, 'userProfile.id');
       }
-      axiosInstance.patch(`/users/${values.id}/user-profile`, values).then((res) => {
-        console.log(res);
-      });
+      if (values.balances.id === undefined) {
+        values = omit(values, 'balances.id');
+      }
+      axiosInstance
+        .patch(`/users/${values.id}/user-profile`, values)
+        .then((res) => {
+          setErrorMessage('');
+          setSuccessMessage('Profile Updated Successfully');
+          handleOpenSnackBar();
+        })
+        .catch((err) => {
+          setErrorMessage(err.response.data.error.message);
+          handleOpenSnackBar();
+        });
     },
   });
-  const [fileName, setFileName] = useState();
-  const [src, setSrc] = useState();
-  const [file, setFile] = useState();
 
   const handleFileUpload = (event) => {
     const reader = new FileReader();
@@ -79,18 +116,21 @@ const ProfileForm = ({ initialValues }) => {
       }
       const formData = new FormData();
       formData.append('userProfile.avatar', file, file.name);
-      axiosInstance.post('files', formData).then((res) => {
-        formik.setFieldValue('userProfile.avatar', res?.data?.files[0]);
-      });
+      axiosInstance
+        .post('files', formData)
+        .then((res) => {
+          formik.setFieldValue('userProfile.avatar', res?.data?.files[0]);
+        })
+        .catch((err) => {
+          setErrorMessage(err.response.data.error.message);
+          handleOpenSnackBar();
+        });
     }
   };
-  console.log(
-    'formikvalue',
-    `${process.env.REACT_APP_API_ENDPOINT}/files/${formik?.values?.userProfile?.avatar?.originalname}`
-  );
+
   return (
     <div>
-      <Box
+      {/* <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -101,12 +141,8 @@ const ProfileForm = ({ initialValues }) => {
         <Typography variant="h6" gutterBottom>
           Profile
         </Typography>
-      </Box>
-      {/* <Grid container>
-        <Grid item xs={12}>
+      </Box> */}
 
-        </Grid>
-    </Grid> */}
       <form onSubmit={formik.handleSubmit} id="profileForm">
         <Grid container sx={{ height: 150 }}>
           <Grid item xs={12} lg={12} display="flex" justifyContent="center" marginLeft="110px">
@@ -115,7 +151,7 @@ const ProfileForm = ({ initialValues }) => {
                 sx={{ width: 130, height: 130 }}
                 src={
                   formik?.values?.userProfile.avatar?.originalname
-                    ? `${process.env.REACT_APP_API_ENDPOINT}/files/${formik?.values?.userProfile.avatar?.originalname}`
+                    ? formik?.values?.userProfile.avatar?.originalname
                     : account.photoURL
                 }
                 alt="photoURL"
@@ -133,6 +169,18 @@ const ProfileForm = ({ initialValues }) => {
             />
           </Grid>
         </Grid>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            p: 1,
+            m: 1,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Profile
+          </Typography>
+        </Box>
         <Grid container>
           <Grid item xs={12} lg={5} margin={2}>
             <TextField
@@ -196,67 +244,48 @@ const ProfileForm = ({ initialValues }) => {
             />
           </Grid>
         </Grid>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            p: 1,
+            m: 1,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Payment Info
+          </Typography>
+        </Box>
         <Grid container>
-          {/* <Grid item xs={12} lg={5} margin={2}>
+          <Grid item xs={12} lg={12} margin={2}>
             <TextField
               InputProps={{ disableUnderline: true }}
               fullWidth
-              id="email"
-              name="email"
-              label="Email"
+              id="balances.payment_info.name"
+              name="balances.payment_info.name"
+              label="Name"
               type="text"
-              disabled
-              value={formik.values.email}
+              value={formik.values?.balances?.payment_info?.name}
               onChange={formik.handleChange}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={formik?.touched?.balances?.payment_info?.name && Boolean(formik?.errors?.balances?.payment_info?.name)}
+              helperText={formik?.touched?.balances?.payment_info?.name && formik?.errors?.balances?.payment_info?.name}
             />
-          </Grid> */}
-          {/* <Grid item xs={12} lg={5} margin={2}>
+          </Grid>
+          <Grid item xs={12} lg={12} margin={2}>
             <TextField
               InputProps={{ disableUnderline: true }}
               fullWidth
-              id="naicsCode"
-              name="naicsCode"
-              label="Naics Code"
+              id="balances.payment_info.wallet_address"
+              name="balances.payment_info.wallet_address"
+              label="Wallet Address"
               type="text"
-              value={formik.values.naicsCode}
+              value={formik.values.balances.payment_info.wallet_address}
               onChange={formik.handleChange}
-              error={formik.touched.naicsCode && Boolean(formik.errors.naicsCode)}
-              helperText={formik.touched.naicsCode && formik.errors.naicsCode}
+              error={formik?.touched?.balances?.payment_info?.wallet_address && Boolean(formik?.errors?.balances?.payment_info?.wallet_address)}
+              helperText={formik?.touched?.balances?.payment_info?.wallet_address && formik?.errors?.balances?.payment_info?.wallet_address}
             />
-          </Grid> */}
+          </Grid>
         </Grid>
-        {/* <Grid container>
-          <Grid item xs={12} lg={5} margin={2}>
-            <TextField
-              InputProps={{ disableUnderline: true }}
-              fullWidth
-              id="yelpUrl"
-              name="yelpUrl"
-              label="Yelp URL"
-              type="text"
-              value={formik.values.yelpUrl}
-              onChange={formik.handleChange}
-              error={formik.touched.yelpUrl && Boolean(formik.errors.yelpUrl)}
-              helperText={formik.touched.yelpUrl && formik.errors.yelpUrl}
-            />
-          </Grid>
-          <Grid item xs={12} lg={5} margin={2}>
-            <TextField
-              InputProps={{ disableUnderline: true }}
-              fullWidth
-              id="g2CrowdUrl"
-              name="g2CrowdUrl"
-              label="G2Crowd URL"
-              type="text"
-              value={formik.values.g2CrowdUrl}
-              onChange={formik.handleChange}
-              error={formik.touched.g2CrowdUrl && Boolean(formik.errors.g2CrowdUrl)}
-              helperText={formik.touched.g2CrowdUrl && formik.errors.g2CrowdUrl}
-            />
-          </Grid>
-        </Grid> */}
         <Grid container>
           <Grid item margin={2}>
             <Button color="primary" variant="contained" fullWidth type="submit" form="profileForm">
@@ -264,6 +293,12 @@ const ProfileForm = ({ initialValues }) => {
             </Button>
           </Grid>
         </Grid>
+        <CommonSnackBar
+          openSnackBar={openSnackBar}
+          handleCloseSnackBar={handleCloseSnackBar}
+          msg={errorMessage !== '' ? errorMessage : successMessage}
+          severity={errorMessage !== '' ? 'error' : 'success'}
+        />
       </form>
     </div>
   );

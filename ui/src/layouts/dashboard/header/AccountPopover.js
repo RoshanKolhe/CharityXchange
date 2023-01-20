@@ -66,7 +66,7 @@ export default function AccountPopover({ userProfile }) {
         <Avatar
           src={
             userProfile?.userProfile?.avatar?.originalname
-              ? `${process.env.REACT_APP_API_ENDPOINT}/files/${userProfile?.userProfile?.avatar?.originalname}`
+              ? userProfile?.userProfile?.avatar?.originalname
               : account.photoURL
           }
           alt="photoURL"

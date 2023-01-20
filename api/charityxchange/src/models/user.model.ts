@@ -1,5 +1,6 @@
 import {Entity, hasOne, model, property} from '@loopback/repository';
 import {UserProfile, UserProfileWithRelations} from './user-profile.model';
+import {Balances} from './balances.model';
 
 @model()
 export class User extends Entity {
@@ -61,6 +62,9 @@ export class User extends Entity {
 
   @hasOne(() => UserProfile)
   userProfile: UserProfile;
+
+  @hasOne(() => Balances)
+  balance_user: Balances;
 
   constructor(data?: Partial<User>) {
     super(data);

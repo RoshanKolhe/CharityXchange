@@ -3,3 +3,4 @@ export * from './user.controller';
 export * from './admin.controller';
 export * from './user-user-profile.controller';
 export * from './user-profile-user.controller';
+export * from './user-balances.controller';

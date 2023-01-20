@@ -1,9 +1,14 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-export const PrivateRoutes = ({ children }) => {
+export const PrivateRoutes = () => {
+  const location = useLocation();
   const isAuthenticated = localStorage.getItem('isAuthenticated');
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  console.log('isAuthenticated', isAuthenticated);
+  if (isAuthenticated === undefined || isAuthenticated === null) {
+    return null; // or loading indicator/spinner/etc
+  }
+
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace state={{ from: location }} />;
 };
 
 export default PrivateRoutes;

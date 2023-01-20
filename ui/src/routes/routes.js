@@ -10,8 +10,9 @@ import Page404 from '../pages/Page404';
 import ProductsPage from '../pages/ProductsPage';
 import DashboardAppPage from '../pages/DashboardAppPage';
 import ProfilePage from '../pages/ProfilePage';
-import ProtectedRoute from './PrivateRoute';
-
+// eslint-disable-next-line import/no-named-as-default
+import PrivateRoutes from './PrivateRoute';
+import { RolesAuthRoute } from './RolesAuthRoute';
 // ----------------------------------------------------------------------
 
 export default function Router({ role }) {
@@ -27,19 +28,37 @@ export default function Router({ role }) {
   const routes = useRoutes([
     {
       path: '/',
-      element: <DashboardLayout />,
+      element: <PrivateRoutes />,
       children: [
-        { path: 'dashboard', element: <DashboardAppPage /> },
-        { path: 'user', element: <UserPage /> },
-        { path: 'profile', element: <ProfilePage /> },
-        { path: 'products', element: <ProductsPage /> },
-        { path: 'blog', element: <BlogPage /> },
+        {
+          path: '/',
+          element: <DashboardLayout />,
+          children: [
+            { path: '/dashboard', element: <DashboardAppPage /> },
+            {
+              path: 'members',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <UserPage />
+                </RolesAuthRoute>
+              ),
+            },
+            { path: 'profile', element: <ProfilePage /> },
+            { path: 'products', element: <ProductsPage /> },
+            { path: 'blog', element: <BlogPage /> },
+          ],
+        },
       ],
     },
     { path: '/login', element: <LoginPage /> },
-    { path: '/404', element: <Page404 /> },
-
-    { path: '*', element: <Navigate to="/404" replace /> },
+    {
+      path: '*',
+      element: <Page404 />,
+    },
+    {
+      path: '/404',
+      element: <Page404 />,
+    },
   ]);
 
   return routes;

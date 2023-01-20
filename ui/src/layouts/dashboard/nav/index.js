@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
 import { Box, Link, Drawer, Typography, Avatar } from '@mui/material';
@@ -14,6 +14,7 @@ import Scrollbar from '../../../components/scrollbar';
 import NavSection from '../../../components/nav-section';
 //
 import navConfig from './config';
+import authService from '../../../services/auth.service';
 
 // ----------------------------------------------------------------------
 
@@ -63,7 +64,7 @@ export default function Nav({ openNav, onCloseNav, userProfile }) {
             <Avatar
               src={
                 userProfile?.userProfile?.avatar?.originalname
-                  ? `${process.env.REACT_APP_API_ENDPOINT}/files/${userProfile?.userProfile?.avatar?.originalname}`
+                  ? userProfile?.userProfile?.avatar?.originalname
                   : account.photoURL
               }
               alt="photoURL"
@@ -78,7 +79,7 @@ export default function Nav({ openNav, onCloseNav, userProfile }) {
                 {userProfile?.permissions
                   ? userProfile?.permissions.includes('super_admin')
                     ? 'Admin'
-                    : 'Employee'
+                    : 'Member'
                   : account.role}
               </Typography>
             </Box>
@@ -86,7 +87,15 @@ export default function Nav({ openNav, onCloseNav, userProfile }) {
         </Link>
       </Box>
 
-      <NavSection data={navConfig} />
+      <NavSection
+        data={
+          userProfile?.permissions
+            ? userProfile?.permissions.includes('super_admin')
+              ? navConfig.sidebarLinks.admin
+              : navConfig.sidebarLinks.member
+            : []
+        }
+      />
 
       <Box sx={{ flexGrow: 1 }} />
     </Scrollbar>

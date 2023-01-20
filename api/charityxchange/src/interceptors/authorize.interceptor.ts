@@ -61,7 +61,7 @@ export class AuthorizeInterceptor implements Provider<Interceptor> {
         currentUserData.permissions,
         requiredPermissions,
       );
-      if (results !== requiredPermissions.length) {
+      if (results.length !== requiredPermissions.length) {
         throw new HttpErrors.Forbidden('INVALID ACCESS');
       }
       const result = await next();
