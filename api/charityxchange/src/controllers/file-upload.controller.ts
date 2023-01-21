@@ -118,7 +118,7 @@ export class FileUploadController {
     fs.readFile(file, function (err, data) {
       if (err) throw err; // Fail if the file can't be read.
       else {
-        response.writeHead(200, {'Content-Type': 'image/jpeg'});
+        response.writeHead(200);
         response.end(data); // Send the file data to the browser.
       }
     });
