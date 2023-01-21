@@ -10,6 +10,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import SITE_SETTINGS from '../utils/config';
 import {User, UserProfile as UserProfileData} from '../models';
 import {Credentials, UserRepository} from '../repositories';
 import * as _ from 'lodash';
@@ -21,6 +22,9 @@ import {MyUserService} from '../services/user-service';
 import {JWTService} from '../services/jwt-service';
 import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {PermissionKeys} from '../authorization/permission-keys';
+import {EmailManager} from '../services/email.service';
+import {EmailManagerBindings} from '../keys';
+import generateOtpTemplate from '../templates/otp.template';
 
 const UserLoginSchema = {
   type: 'object',
@@ -43,6 +47,8 @@ export class UserController {
     public userService: MyUserService,
     @inject('service.jwt.service')
     public jwtService: JWTService,
+    @inject(EmailManagerBindings.SEND_MAIL)
+    public emailManager: EmailManager,
   ) {}
 
   @post('/users/register', {
@@ -155,5 +161,78 @@ export class UserController {
   })
   async find(@param.filter(User) filter?: Filter<User>): Promise<User[]> {
     return this.userRepository.find(filter);
+  }
+
+  @post('/sendOtp')
+  async sendOtp(
+    @requestBody({})
+    userData: any,
+  ): Promise<object> {
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    const template = generateOtpTemplate({...userData, otp: otp || '0000'});
+    const user = await this.userRepository.findOne({
+      where: {
+        email: userData.email,
+      },
+    });
+    if (user) {
+      var now = new Date();
+      this.userRepository.updateById(user.id, {
+        otp: `${otp}`,
+        otp_expire_at: `${this.AddMinutesToDate(now, 5)}`,
+      });
+    } else {
+      throw new HttpErrors.BadRequest("Email Doesn't Exists");
+    }
+    const mailOptions = {
+      from: SITE_SETTINGS.fromMail,
+      to: userData.email,
+      subject: template.subject,
+      html: template.html,
+    };
+    const data = await this.emailManager
+      .sendMail(mailOptions)
+      .then(function (res: any) {
+        return Promise.resolve({
+          message: `Successfully sent reset mail to ${userData.email}`,
+        });
+      })
+      .catch(function (err: any) {
+        throw new HttpErrors.UnprocessableEntity(err);
+      });
+    return data;
+  }
+
+  @post('/verifyOtp')
+  async verifyOtp(
+    @requestBody({})
+    otpOptions: any,
+  ): Promise<object> {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: otpOptions.email,
+      },
+    });
+    if (user) {
+      var now = new Date();
+      var expire_date = new Date(user.otp_expire_at);
+      if (now <= expire_date && otpOptions.otp === user.otp) {
+        return {
+          success: 'true',
+          message: 'otp verification successfull',
+        };
+      } else {
+        return {
+          success: 'false',
+          error: 'otp verification failed',
+        };
+      }
+    } else {
+      throw new HttpErrors.BadRequest("Email Doesn't Exists");
+    }
+  }
+
+  AddMinutesToDate(date: any, minutes: any) {
+    return new Date(date.getTime() + minutes * 60000);
   }
 }

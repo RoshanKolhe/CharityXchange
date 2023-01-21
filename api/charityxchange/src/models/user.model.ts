@@ -60,6 +60,21 @@ export class User extends Entity {
   })
   is_active: boolean;
 
+  @property({
+    type: 'string',
+  })
+  otp?: string;
+
+  @property({
+    type: 'string',
+  })
+  otp_expire_at: string;
+
+  @property({
+    type: 'number',
+  })
+  parent_id?: number;
+
   @hasOne(() => UserProfile)
   userProfile: UserProfile;
 

@@ -1,27 +1,38 @@
 /* eslint-disable camelcase */
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
-import { sentenceCase } from 'change-case';
 import { useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import { Icon } from '@iconify/react';
+import plusFill from '@iconify/icons-eva/plus-fill';
+
 // @mui
 import {
   Card,
   Table,
+  TextField,
   Stack,
-  Paper,
-  Avatar,
+  Tooltip,
   Button,
-  Popover,
+  Autocomplete,
   Checkbox,
   TableRow,
-  MenuItem,
   TableBody,
   TableCell,
-  Container,
+  Link,
   Typography,
-  IconButton,
   TableContainer,
   TablePagination,
+  Container,
+  Modal,
+  Box,
+  Snackbar,
+  Alert,
+  Popover,
+  MenuItem,
+  Avatar,
+  IconButton,
+  Paper,
 } from '@mui/material';
 // components
 import Label from '../components/label';
@@ -32,6 +43,8 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // mock
 import axiosInstance from '../helpers/axios';
 import account from '../_mock/account';
+import NewMember from '../components/members/NewMember';
+import CustomBox from '../common/CustomBox';
 
 // ----------------------------------------------------------------------
 
@@ -74,6 +87,20 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function UserPage() {
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 600,
+    bgcolor: 'background.paper',
+    border: '2px solid #fff',
+    boxShadow: 24,
+    pt: 2,
+    px: 4,
+    pb: 3,
+  };
+
   const [open, setOpen] = useState(null);
 
   const [memberList, setMemberList] = useState([]);
@@ -89,6 +116,11 @@ export default function UserPage() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [openModal, setOpenMdal] = useState(false);
+
+  const handleOpen = () => setOpenMdal(true);
+  const handleClose = () => setOpenMdal(false);
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -168,7 +200,14 @@ export default function UserPage() {
           <Typography variant="h4" gutterBottom>
             Members
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
+
+          <Button
+            variant="contained"
+            component={RouterLink}
+            to="#"
+            startIcon={<Icon icon={plusFill} />}
+            onClick={handleOpen}
+          >
             New Member
           </Button>
         </Stack>
@@ -274,6 +313,21 @@ export default function UserPage() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
+        <Modal
+          open={openModal}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <CustomBox>
+            <NewMember
+              handleClose={handleClose}
+              onDataSubmit={() => {
+                handleClose();
+              }}
+            />
+          </CustomBox>
+        </Modal>
       </Container>
 
       <Popover

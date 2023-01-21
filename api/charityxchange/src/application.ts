@@ -10,7 +10,7 @@ import {RepositoryMixin} from '@loopback/repository';
 import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
-import {FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY} from './keys';
+import {EmailManagerBindings, FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY} from './keys';
 import {MySequence} from './sequence';
 import {BcryptHasher} from './services/hash.password.bcrypt';
 import {MyUserService} from './services/user-service';
@@ -20,6 +20,7 @@ import {
   registerAuthenticationStrategy,
 } from '@loopback/authentication';
 import {JWTStrategy} from './authentication-strategy/jwt-strategy';
+import { EmailService } from './services/email.service';
 
 export {ApplicationConfig};
 
@@ -63,6 +64,7 @@ export class CharityxchangeApplication extends BootMixin(
     this.bind('service.hasher').toClass(BcryptHasher);
     this.bind('service.user.service').toClass(MyUserService);
     this.bind('service.jwt.service').toClass(JWTService);
+    this.bind(EmailManagerBindings.SEND_MAIL).toClass(EmailService);
   }
   protected configureFileUpload(destination?: string) {
     // Upload files to `dist/.sandbox` by default
