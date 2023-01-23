@@ -2,7 +2,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import plusFill from '@iconify/icons-eva/plus-fill';
 
@@ -45,11 +45,13 @@ import axiosInstance from '../helpers/axios';
 import account from '../_mock/account';
 import NewMember from '../components/members/NewMember';
 import CustomBox from '../common/CustomBox';
+import CommonSnackBar from '../common/CommonSnackBar';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name', alignRight: false },
+  { id: 'email', label: 'Email', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
@@ -100,7 +102,7 @@ export default function UserPage() {
     px: 4,
     pb: 3,
   };
-
+  const navigate = useNavigate();
   const [open, setOpen] = useState(null);
 
   const [memberList, setMemberList] = useState([]);
@@ -111,6 +113,8 @@ export default function UserPage() {
 
   const [selected, setSelected] = useState([]);
 
+  const [editUserData, setEditUserData] = useState({});
+
   const [orderBy, setOrderBy] = useState('name');
 
   const [filterName, setFilterName] = useState('');
@@ -119,11 +123,22 @@ export default function UserPage() {
 
   const [openModal, setOpenMdal] = useState(false);
 
+  const [msg, setMsg] = useState('');
+  const [openSnackBar, setOpenSnackBar] = useState(false);
+
+  const handleOpenSnackBar = () => setOpenSnackBar(true);
+  const handleCloseSnackBar = () => setOpenSnackBar(false);
+
   const handleOpen = () => setOpenMdal(true);
   const handleClose = () => setOpenMdal(false);
 
-  const handleOpenMenu = (event) => {
+  const handleNavigate = (url) => {
+    navigate(url, { replace: true });
+  };
+
+  const handleOpenMenu = (event, row) => {
     setOpen(event.currentTarget);
+    setEditUserData(row);
   };
 
   const handleCloseMenu = () => {
@@ -138,7 +153,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = memberList.map((n) => n.name);
+      const newSelecteds = memberList.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -146,13 +161,11 @@ export default function UserPage() {
   };
 
   const handleClick = (event, name) => {
-    console.log('name', name);
     const selectedIndex = selected.indexOf(name);
 
     let newSelected = [];
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, name);
-      console.log('newSelected', newSelected);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -183,10 +196,14 @@ export default function UserPage() {
 
   const isNotFound = !filteredUsers.length && !!filterName;
 
-  useEffect(() => {
+  const fetchData = () => {
     axiosInstance.get('users?filter[include][]=userProfile').then((res) => {
       setMemberList(res.data);
     });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   return (
@@ -229,7 +246,7 @@ export default function UserPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, permissions, is_active, userProfile } = row;
+                    const { id, name, email, permissions, is_active, userProfile } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
@@ -253,16 +270,23 @@ export default function UserPage() {
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{permissions}</TableCell>
+                        <TableCell align="left">{email}</TableCell>
+                        <TableCell align="left">{permissions.toString()}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(is_active === '0' && 'error') || 'success'}>
-                            {is_active === '0' ? 'InActive' : 'Active'}
+                          <Label color={(is_active === false && 'error') || 'success'}>
+                            {is_active === false ? 'InActive' : 'Active'}
                           </Label>
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton
+                            size="large"
+                            color="inherit"
+                            onClick={(event) => {
+                              handleOpenMenu(event, row);
+                            }}
+                          >
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -324,12 +348,20 @@ export default function UserPage() {
               handleClose={handleClose}
               onDataSubmit={() => {
                 handleClose();
+                fetchData();
+                setMsg('Successfully Created New Member');
+                handleOpenSnackBar();
               }}
             />
           </CustomBox>
         </Modal>
       </Container>
-
+      <CommonSnackBar
+        openSnackBar={openSnackBar}
+        handleCloseSnackBar={handleCloseSnackBar}
+        msg={msg}
+        severity="success"
+      />
       <Popover
         open={Boolean(open)}
         anchorEl={open}
@@ -348,7 +380,11 @@ export default function UserPage() {
           },
         }}
       >
-        <MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleNavigate(`/users/${editUserData.id}`);
+          }}
+        >
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Edit
         </MenuItem>

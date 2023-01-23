@@ -136,7 +136,7 @@ export class UserController {
       where: {
         id: currnetUser.id,
       },
-      include: ['userProfile'],
+      include: ['userProfile','balance_user'],
     });
     return Promise.resolve({
       ...user,
@@ -234,5 +234,25 @@ export class UserController {
 
   AddMinutesToDate(date: any, minutes: any) {
     return new Date(date.getTime() + minutes * 60000);
+  }
+
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.SUPER_ADMIN]},
+  })
+  @get('/users/{id}', {
+    responses: {
+      '200': {
+        description: 'User Details',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(User),
+          },
+        },
+      },
+    },
+  })
+  async getSingleUser(@param.path.number('id') id: number): Promise<User> {
+    return this.userRepository.findById(id);
   }
 }

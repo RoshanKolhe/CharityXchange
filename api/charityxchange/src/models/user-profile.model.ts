@@ -9,7 +9,7 @@ export class UserProfile extends Entity {
     generated: true,
   })
   id?: number;
-  
+
   @property({
     type: 'object',
   })
@@ -31,6 +31,21 @@ export class UserProfile extends Entity {
   contact_verified_at?: string;
 
   @property({
+    type: 'object',
+  })
+  address?: object;
+
+  @property({
+    type: 'object',
+  })
+  addreesProof?: object;
+
+  @property({
+    type: 'object',
+  })
+  idProof?: object;
+
+  @property({
     type: 'date',
   })
   createdAt?: Date;
@@ -50,7 +65,7 @@ export class UserProfile extends Entity {
 
 export interface UserProfileRelations {
   // describe navigational properties here
-  user?:UserProfileWithRelations;
+  user?: UserProfileWithRelations;
 }
 
 export type UserProfileWithRelations = UserProfile & UserProfileRelations;

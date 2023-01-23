@@ -61,6 +61,12 @@ export class User extends Entity {
   is_active: boolean;
 
   @property({
+    type: 'boolean',
+    required: true,
+  })
+  is_kyc_completed: boolean;
+
+  @property({
     type: 'string',
   })
   otp?: string;

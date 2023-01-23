@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import {
+  FormHelperText,
   Button,
   TextField,
   Grid,
@@ -17,20 +19,46 @@ import {
   IconButton,
   Avatar,
 } from '@mui/material';
+
 import { omit } from 'lodash';
+import { makeStyles } from '@mui/styles';
 import axiosInstance from '../../helpers/axios';
 import account from '../../_mock/account';
 import CommonSnackBar from '../../common/CommonSnackBar';
+import zipPlaceholder from '../../assests/placeholders/zip.png';
+
+const useStyles = makeStyles((theme) => ({
+  gridContainer: {
+    marginTop: theme.spacing(3),
+  },
+  input: {
+    display: 'none',
+  },
+  uploadButton: {
+    marginTop: theme.spacing(2),
+  },
+  uploadIcon: {
+    marginRight: theme.spacing(1),
+  },
+  uploadedFile: {
+    marginTop: theme.spacing(2),
+  },
+}));
 
 const ProfileForm = ({ initialValues }) => {
   const fileInput = React.useRef();
-
+  const idProofInput = React.useRef();
+  const addressProofInput = React.useRef();
+  const classes = useStyles();
   const [openSnackBar, setOpenSnackBar] = useState(false);
   const [fileName, setFileName] = useState();
   const [src, setSrc] = useState();
   const [file, setFile] = useState();
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [idProof, setIdProof] = useState(null);
+  const [addressProof, setAddressProof] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
@@ -48,16 +76,21 @@ const ProfileForm = ({ initialValues }) => {
         if (val) return val.toString().length < 11;
         return true;
       }),
+      address: yup.object({
+        addressLine1: yup.string('Enter Address Line 1').required('Address Line 1 is required'),
+        addresLine2: yup.string('Enter Address Line 2'),
+        city: yup.string('Enter City').required('City is required'),
+        state: yup.string('Enter State').required('State is required'),
+        zipCode: yup.string('Enter Zip Code').required('Zip Code is required'),
+      }),
+      addreesProof: yup.object().required('Address Proof is required'),
+      idProof: yup.object().required('Id Proof is required'),
     }),
+
     balances: yup.object({
-      name: yup
-        .string('Enter name')
-        .required('name is required')
-        .test('len', 'Must be less than 20 characters', (val) => {
-          if (val) return val.toString().length < 20;
-          return true;
-        }),
-      wallet_address: yup.string('Enter Public Key').required('Public Key is required'),
+      payment_info: yup.object({
+        wallet_address: yup.string('Enter Public Key').required('Public Key is required'),
+      }),
     }),
   });
 
@@ -70,20 +103,28 @@ const ProfileForm = ({ initialValues }) => {
         contact: initialValues?.userProfile?.contact || '',
         bio: initialValues?.userProfile?.bio || '',
         avatar: initialValues?.userProfile?.avatar || '',
+        address: {
+          addressLine1: initialValues?.userProfile?.address?.addressLine1 || '',
+          addressLine2: initialValues?.userProfile?.address?.addressLine2 || '',
+          city: initialValues?.userProfile?.address?.city || '',
+          state: initialValues?.userProfile?.address?.state || '',
+          zipCode: initialValues?.userProfile?.address?.zipCode || '',
+        },
+        addreesProof: initialValues?.userProfile?.addreesProof || '',
+        idProof: initialValues?.userProfile?.idProof || '',
       },
       balances: {
-        id: initialValues?.balances?.id || '',
-
+        id: initialValues?.balance_user?.id || '',
         payment_info: {
-          wallet_address: initialValues?.balances?.payment_info?.wallet_address || '',
+          wallet_address: initialValues?.balance_user?.payment_info?.wallet_address || '',
         },
       },
+
       email: initialValues.email || '',
     },
     enableReinitialize: true,
-    profileFormValidationSchema,
+    validationSchema: profileFormValidationSchema,
     onSubmit: async (values) => {
-      console.log('values', values);
       if (values.userProfile.id === undefined) {
         values = omit(values, 'userProfile.id');
       }
@@ -104,7 +145,7 @@ const ProfileForm = ({ initialValues }) => {
     },
   });
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = (event, fileType) => {
     const reader = new FileReader();
     const file = event.target.files[0];
     if (file) {
@@ -115,11 +156,17 @@ const ProfileForm = ({ initialValues }) => {
         setFile(file);
       }
       const formData = new FormData();
-      formData.append('userProfile.avatar', file, file.name);
+      formData.append('file', file, file.name);
       axiosInstance
         .post('files', formData)
         .then((res) => {
-          formik.setFieldValue('userProfile.avatar', res?.data?.files[0]);
+          if (fileType === 'avatar') {
+            formik.setFieldValue('userProfile.avatar', res?.data?.files[0]);
+          } else if (fileType === 'addreesProof') {
+            formik.setFieldValue('userProfile.addreesProof', res?.data?.files[0]);
+          } else if (fileType === 'idProof') {
+            formik.setFieldValue('userProfile.idProof', res?.data?.files[0]);
+          }
         })
         .catch((err) => {
           setErrorMessage(err.response.data.error.message);
@@ -130,19 +177,6 @@ const ProfileForm = ({ initialValues }) => {
 
   return (
     <div>
-      {/* <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          p: 1,
-          m: 1,
-        }}
-      >
-        <Typography variant="h6" gutterBottom>
-          Profile
-        </Typography>
-      </Box> */}
-
       <form onSubmit={formik.handleSubmit} id="profileForm">
         <Grid container sx={{ height: 150 }}>
           <Grid item xs={12} lg={12} display="flex" justifyContent="center" marginLeft="110px">
@@ -162,7 +196,7 @@ const ProfileForm = ({ initialValues }) => {
               accept="image/*"
               name="userProfile.avatar"
               onChange={(event) => {
-                handleFileUpload(event);
+                handleFileUpload(event, 'avatar');
               }}
               ref={fileInput}
               style={{ visibility: 'hidden' }}
@@ -253,25 +287,113 @@ const ProfileForm = ({ initialValues }) => {
           }}
         >
           <Typography variant="h6" gutterBottom>
+            Address
+          </Typography>
+        </Box>
+        <Grid container>
+          <Grid item xs={12} lg={5} margin={2}>
+            <TextField
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+              id="userProfile.address.addressLine1"
+              name="userProfile.address.addressLine1"
+              label="Address Line 1"
+              type="text"
+              value={formik.values.userProfile.address.addressLine1}
+              onChange={formik.handleChange}
+              error={
+                formik?.touched?.userProfile?.address?.addressLine1 &&
+                Boolean(formik?.errors?.userProfile?.address?.addressLine1)
+              }
+              helperText={
+                formik?.touched?.userProfile?.address?.addressLine1 &&
+                formik?.errors?.userProfile?.address?.addressLine1
+              }
+            />
+          </Grid>
+          <Grid item xs={12} lg={5} margin={2}>
+            <TextField
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+              id="userProfile.address.addressLine2"
+              name="userProfile.address.addressLine2"
+              label="Address Line 2"
+              type="text"
+              value={formik.values.userProfile.address.addressLine2}
+              onChange={formik.handleChange}
+              error={
+                formik?.touched?.userProfile?.address?.addressLine2 &&
+                Boolean(formik?.errors?.userProfile?.address?.addressLine2)
+              }
+              helperText={
+                formik?.touched?.userProfile?.address?.addressLine2 &&
+                formik?.errors?.userProfile?.address?.addressLine2
+              }
+            />
+          </Grid>
+          <Grid item xs={12} lg={5} margin={2}>
+            <TextField
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+              id="userProfile.address.city"
+              name="userProfile.address.city"
+              label="City"
+              type="text"
+              value={formik.values.userProfile.address.city}
+              onChange={formik.handleChange}
+              error={formik?.touched?.userProfile?.address?.city && Boolean(formik?.errors?.userProfile?.address?.city)}
+              helperText={formik?.touched?.userProfile?.address?.city && formik?.errors?.userProfile?.address?.city}
+            />
+          </Grid>
+          <Grid item xs={12} lg={5} margin={2}>
+            <TextField
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+              id="userProfile.address.state"
+              name="userProfile.address.state"
+              label="State"
+              type="text"
+              value={formik.values.userProfile.address.state}
+              onChange={formik.handleChange}
+              error={
+                formik?.touched?.userProfile?.address?.state && Boolean(formik?.errors?.userProfile?.address?.state)
+              }
+              helperText={formik?.touched?.userProfile?.address?.state && formik?.errors?.userProfile?.address?.state}
+            />
+          </Grid>
+          <Grid item xs={12} lg={5} margin={2}>
+            <TextField
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+              id="userProfile.address.zipCode"
+              name="userProfile.address.zipCode"
+              label="Zip Code"
+              type="text"
+              value={formik.values.userProfile.address.zipCode}
+              onChange={formik.handleChange}
+              error={
+                formik?.touched?.userProfile?.address?.zipCode && Boolean(formik?.errors?.userProfile?.address?.zipCode)
+              }
+              helperText={
+                formik?.touched?.userProfile?.address?.zipCode && formik?.errors?.userProfile?.address?.zipCode
+              }
+            />
+          </Grid>
+        </Grid>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            p: 1,
+            m: 1,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
             Payment Info
           </Typography>
         </Box>
         <Grid container>
-          <Grid item xs={12} lg={12} margin={2}>
-            <TextField
-              InputProps={{ disableUnderline: true }}
-              fullWidth
-              id="balances.payment_info.name"
-              name="balances.payment_info.name"
-              label="Name"
-              type="text"
-              value={formik.values?.balances?.payment_info?.name}
-              onChange={formik.handleChange}
-              error={formik?.touched?.balances?.payment_info?.name && Boolean(formik?.errors?.balances?.payment_info?.name)}
-              helperText={formik?.touched?.balances?.payment_info?.name && formik?.errors?.balances?.payment_info?.name}
-            />
-          </Grid>
-          <Grid item xs={12} lg={12} margin={2}>
+          <Grid item xs={12} lg={5} margin={2}>
             <TextField
               InputProps={{ disableUnderline: true }}
               fullWidth
@@ -281,9 +403,115 @@ const ProfileForm = ({ initialValues }) => {
               type="text"
               value={formik.values.balances.payment_info.wallet_address}
               onChange={formik.handleChange}
-              error={formik?.touched?.balances?.payment_info?.wallet_address && Boolean(formik?.errors?.balances?.payment_info?.wallet_address)}
-              helperText={formik?.touched?.balances?.payment_info?.wallet_address && formik?.errors?.balances?.payment_info?.wallet_address}
+              error={
+                formik?.touched?.balances?.payment_info?.wallet_address &&
+                Boolean(formik?.errors?.balances?.payment_info?.wallet_address)
+              }
+              helperText={
+                formik?.touched?.balances?.payment_info?.wallet_address &&
+                formik?.errors?.balances?.payment_info?.wallet_address
+              }
             />
+          </Grid>
+        </Grid>
+        <Grid container className={classes.gridContainer}>
+          <Grid item xs={12} lg={5} margin={2}>
+            <input
+              accept="image/*,application/pdf"
+              className={classes.input}
+              name="userProfile.idProof"
+              id="id-proof"
+              type="file"
+              ref={idProofInput}
+              onChange={(event) => {
+                handleFileUpload(event, 'idProof');
+              }}
+            />
+
+            <Button
+              variant="contained"
+              color="primary"
+              component="span"
+              className={classes.uploadButton}
+              onClick={() => idProofInput.current.click()}
+              startIcon={<CloudUploadIcon className={classes.uploadIcon} />}
+            >
+              ID Proof
+            </Button>
+            <FormHelperText error>
+              {formik?.touched?.userProfile?.idProof && formik?.errors?.userProfile?.idProof}
+            </FormHelperText>
+            {formik.values?.userProfile?.idProof && (
+              <>
+                <Box
+                  component="img"
+                  onClick={() => window.open(formik.values?.userProfile?.idProof?.originalname, '_blank')}
+                  sx={{
+                    marginTop: 2,
+                    height: 200,
+                    width: 350,
+                    maxHeight: { xs: 233, md: 167 },
+                    maxWidth: { xs: 350, md: 250 },
+                    cursor: 'pointer',
+                  }}
+                  alt="placeholder"
+                  src={
+                    formik.values?.userProfile?.idProof?.mimetype === 'application/pdf'
+                      ? zipPlaceholder
+                      : formik.values?.userProfile?.idProof?.originalname
+                  }
+                />
+                <FormHelperText>{formik.values?.userProfile?.idProof?.fileName}</FormHelperText>
+              </>
+            )}
+          </Grid>
+          <Grid item xs={12} lg={5} margin={2}>
+            <input
+              accept="image/*,application/pdf"
+              className={classes.input}
+              id="address-proof"
+              type="file"
+              onChange={(event) => {
+                handleFileUpload(event, 'addreesProof');
+              }}
+              ref={addressProofInput}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              component="span"
+              className={classes.uploadButton}
+              onClick={() => addressProofInput.current.click()}
+              startIcon={<CloudUploadIcon className={classes.uploadIcon} />}
+            >
+              Address Proof
+            </Button>
+            <FormHelperText error>
+              {formik?.touched?.userProfile?.addreesProof && formik?.errors?.userProfile?.addreesProof}
+            </FormHelperText>
+            {formik.values?.userProfile?.addreesProof && (
+              <>
+                <Box
+                  component="img"
+                  onClick={() => window.open(formik.values?.userProfile?.addreesProof?.originalname, '_blank')}
+                  sx={{
+                    marginTop: 2,
+                    height: 200,
+                    width: 350,
+                    cursor: 'pointer',
+                    maxHeight: { xs: 233, md: 167 },
+                    maxWidth: { xs: 350, md: 250 },
+                  }}
+                  alt="placeholder"
+                  src={
+                    formik.values?.userProfile?.addreesProof?.mimetype === 'application/pdf'
+                      ? zipPlaceholder
+                      : formik.values?.userProfile?.addreesProof?.originalname
+                  }
+                />
+                <FormHelperText>{formik.values?.userProfile?.addreesProof?.fileName}</FormHelperText>
+              </>
+            )}
           </Grid>
         </Grid>
         <Grid container>

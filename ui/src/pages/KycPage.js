@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import {
+  Button,
+  TextField,
+  Grid,
+  Typography,
+  // MenuItem,
+  // FormHelperText,
+  // FormControl,
+  // InputLabel,
+  // Select,
+  Autocomplete,
+  Box,
+} from '@mui/material';
+import PropTypes from 'prop-types';
+import { omit } from 'lodash';
 import axiosInstance from '../helpers/axios';
 import ProfileForm from '../components/profile/profile-form';
 
-const ProfilePage = () => {
+const KycPage = () => {
   const [userProfileData, setUserProfileData] = useState({});
 
   useEffect(() => {
@@ -18,4 +35,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default KycPage;

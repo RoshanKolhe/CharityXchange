@@ -1,6 +1,7 @@
-import { Navigate, useNavigate, useRoutes } from 'react-router-dom';
+import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import MemberDetails from '../components/members/MemberDetails';
 import DashboardLayout from '../layouts/dashboard';
 //
 import BlogPage from '../pages/BlogPage';
@@ -18,6 +19,7 @@ import { RolesAuthRoute } from './RolesAuthRoute';
 export default function Router({ role }) {
   console.log(role);
   const navigate = useNavigate();
+  
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated');
     if (!isAuthenticated) {
@@ -46,10 +48,30 @@ export default function Router({ role }) {
             { path: 'profile', element: <ProfilePage /> },
             { path: 'products', element: <ProductsPage /> },
             { path: 'blog', element: <BlogPage /> },
+            {
+              name: 'userDetails',
+              path: 'users/:id',
+              element: (
+                <React.Suspense fallback={<>...</>}>
+                  <MemberDetails />
+                </React.Suspense>
+              ),
+            },
           ],
         },
       ],
     },
+    // {
+    //   path: '/',
+    //   element: <PrivateRoutes />,
+    //   children: [
+    //     {
+    //       path: '/',
+    //       element: <KycPage />,
+
+    //     },
+    //   ],
+    // },
     { path: '/login', element: <LoginPage /> },
     {
       path: '*',

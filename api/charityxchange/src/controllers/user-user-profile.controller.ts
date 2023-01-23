@@ -85,7 +85,6 @@ export class UserUserProfileController {
   ): Promise<{}> {
     try {
       const userProfilePoccessabelData = userProfile;
-      console.log('userProfilePoccessabelData', userProfilePoccessabelData);
       await this.userRepository.updateById(
         id,
         omit(userProfile, 'userProfile'),
@@ -104,12 +103,10 @@ export class UserUserProfileController {
           });
 
         if (!data) {
-          console.log('here2');
           await this.userRepository
             .userProfile(id)
             .create(userProfilePoccessabelData.userProfile);
         } else {
-          console.log('here1');
           await this.userRepository
             .userProfile(id)
             .patch(userProfilePoccessabelData.userProfile);

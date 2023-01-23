@@ -67,6 +67,7 @@ export class FileUploadController {
     const mapper = (f: globalThis.Express.Multer.File) => {
       return {
         fieldname: f.fieldname,
+        fileName: f.originalname,
         originalname: `${process.env.API_ENDPOINT}/files/${f.originalname}`,
         encoding: f.encoding,
         mimetype: f.mimetype,

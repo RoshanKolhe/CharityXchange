@@ -53,7 +53,11 @@ export default function LoginForm() {
             localStorage.setItem('permissions', data?.user?.permissions);
             localStorage.setItem('username', data?.user?.name);
             localStorage.setItem('email', data?.user?.email);
-            navigate('/dashboard', { replace: true });
+            if (data?.user?.is_kyc_completed) {
+              navigate('/dashboard', { replace: true });
+            } else {
+              navigate('/dashboard', { replace: true });
+            }
             values.isSubmitting = false;
           } else {
             setErrorMessage('User is inactive');
