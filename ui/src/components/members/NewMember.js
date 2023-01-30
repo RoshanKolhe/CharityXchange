@@ -1,8 +1,20 @@
 /* eslint-disable consistent-return */
+import eyeFill from '@iconify/icons-eva/eye-fill';
+import eyeOffFill from '@iconify/icons-eva/eye-off-fill';
 import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { Button, TextField, Grid, Typography, Box, Tooltip, IconButton, Autocomplete } from '@mui/material';
+import {
+  Button,
+  TextField,
+  Grid,
+  Typography,
+  Box,
+  Tooltip,
+  IconButton,
+  Autocomplete,
+  InputAdornment,
+} from '@mui/material';
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
 import closefill from '@iconify/icons-eva/close-fill';
@@ -14,6 +26,8 @@ const NewMember = (props) => {
     onDataSubmit: PropTypes.func,
     handleClose: PropTypes.func,
   };
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const validationSchema = yup.object({
     name: yup
@@ -50,6 +64,7 @@ const NewMember = (props) => {
         ...values,
         permissions: ['employee'],
         is_active: false,
+        is_kyc_completed: 0,
         parent_id: currentUser.id || null,
       };
       axiosInstance.post('users/register', inputValues).then((res) => {
@@ -57,6 +72,12 @@ const NewMember = (props) => {
       });
     },
   });
+  const { errors, touched, isSubmitting, handleSubmit, getFieldProps } = formik;
+
+  const handleShowPassword = () => {
+    setShowPassword((show) => !show);
+  };
+
   useEffect(() => {
     axiosInstance.get('users/me').then((res) => {
       setCurrentUser(res.data);
@@ -113,14 +134,25 @@ const NewMember = (props) => {
         <Grid item xs={12} margin={2}>
           <TextField
             fullWidth
-            id="password"
-            name="password"
+            autoComplete="new-password"
+            type={showPassword ? 'text' : 'password'}
             label="Password"
-            type="text"
-            value={formik.values.password}
-            onChange={formik.handleChange}
-            error={formik.touched.password && Boolean(formik.errors.password)}
-            helperText={formik.touched.password && formik.errors.password}
+            {...getFieldProps('password')}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleShowPassword} edge="end">
+                    <Icon icon={showPassword ? eyeFill : eyeOffFill} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+              disableUnderline: true,
+            }}
+            error={Boolean(touched.password && errors.password)}
+            helperText={touched.password && errors.password}
+            inputProps={{
+              'data-testid': 'password-input',
+            }}
           />
         </Grid>
 

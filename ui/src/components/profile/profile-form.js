@@ -22,10 +22,12 @@ import {
 
 import { omit } from 'lodash';
 import { makeStyles } from '@mui/styles';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../helpers/axios';
 import account from '../../_mock/account';
 import CommonSnackBar from '../../common/CommonSnackBar';
 import zipPlaceholder from '../../assests/placeholders/zip.png';
+import authService from '../../services/auth.service';
 
 const useStyles = makeStyles((theme) => ({
   gridContainer: {
@@ -50,6 +52,8 @@ const ProfileForm = ({ initialValues }) => {
   const idProofInput = React.useRef();
   const addressProofInput = React.useRef();
   const classes = useStyles();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [openSnackBar, setOpenSnackBar] = useState(false);
   const [fileName, setFileName] = useState();
   const [src, setSrc] = useState();
@@ -125,18 +129,34 @@ const ProfileForm = ({ initialValues }) => {
     enableReinitialize: true,
     validationSchema: profileFormValidationSchema,
     onSubmit: async (values) => {
-      if (values.userProfile.id === undefined) {
+      if (values.userProfile.id === undefined || values.userProfile.id === '') {
         values = omit(values, 'userProfile.id');
       }
-      if (values.balances.id === undefined) {
+      if (values.balances.id === undefined || values.balances.id === '') {
         values = omit(values, 'balances.id');
       }
+      if (location.pathname === '/kyc') {
+        values = {
+          ...values,
+          is_kyc_completed: 1,
+        };
+      }
+
       axiosInstance
         .patch(`/users/${values.id}/user-profile`, values)
         .then((res) => {
           setErrorMessage('');
-          setSuccessMessage('Profile Updated Successfully');
-          handleOpenSnackBar();
+          if (location.pathname === '/kyc') {
+            setSuccessMessage('KYC data submitted successfully you will be notified by email once the kyc is approved');
+            handleOpenSnackBar();
+            setTimeout(() => {
+              authService.logout();
+              navigate('/login', { replace: true });
+            }, 3000);
+          } else {
+            setSuccessMessage('Profile Updated Successfully');
+            handleOpenSnackBar();
+          }
         })
         .catch((err) => {
           setErrorMessage(err.response.data.error.message);
@@ -178,31 +198,34 @@ const ProfileForm = ({ initialValues }) => {
   return (
     <div>
       <form onSubmit={formik.handleSubmit} id="profileForm">
-        <Grid container sx={{ height: 150 }}>
-          <Grid item xs={12} lg={12} display="flex" justifyContent="center" marginLeft="110px">
-            <IconButton onClick={() => fileInput.current.click()}>
-              <Avatar
-                sx={{ width: 130, height: 130 }}
-                src={
-                  formik?.values?.userProfile.avatar?.originalname
-                    ? formik?.values?.userProfile.avatar?.originalname
-                    : account.photoURL
-                }
-                alt="photoURL"
+        {location.pathname === '/kyc' ? null : (
+          <Grid container sx={{ height: 150 }}>
+            <Grid item xs={12} lg={12} display="flex" justifyContent="center" marginLeft="110px">
+              <IconButton onClick={() => fileInput.current.click()}>
+                <Avatar
+                  sx={{ width: 130, height: 130 }}
+                  src={
+                    formik?.values?.userProfile.avatar?.originalname
+                      ? formik?.values?.userProfile.avatar?.originalname
+                      : account.photoURL
+                  }
+                  alt="photoURL"
+                />
+              </IconButton>
+              <input
+                type="file"
+                accept="image/*"
+                name="userProfile.avatar"
+                onChange={(event) => {
+                  handleFileUpload(event, 'avatar');
+                }}
+                ref={fileInput}
+                style={{ visibility: 'hidden' }}
               />
-            </IconButton>
-            <input
-              type="file"
-              accept="image/*"
-              name="userProfile.avatar"
-              onChange={(event) => {
-                handleFileUpload(event, 'avatar');
-              }}
-              ref={fileInput}
-              style={{ visibility: 'hidden' }}
-            />
+            </Grid>
           </Grid>
-        </Grid>
+        )}
+
         <Box
           sx={{
             display: 'flex',
@@ -393,7 +416,7 @@ const ProfileForm = ({ initialValues }) => {
           </Typography>
         </Box>
         <Grid container>
-          <Grid item xs={12} lg={5} margin={2}>
+          <Grid item xs={12} lg={11} margin={2}>
             <TextField
               InputProps={{ disableUnderline: true }}
               fullWidth
@@ -432,6 +455,7 @@ const ProfileForm = ({ initialValues }) => {
               variant="contained"
               color="primary"
               component="span"
+              disabled={location.pathname !== '/kyc'}
               className={classes.uploadButton}
               onClick={() => idProofInput.current.click()}
               startIcon={<CloudUploadIcon className={classes.uploadIcon} />}
@@ -453,6 +477,7 @@ const ProfileForm = ({ initialValues }) => {
                     maxHeight: { xs: 233, md: 167 },
                     maxWidth: { xs: 350, md: 250 },
                     cursor: 'pointer',
+                    objectFit: 'contain',
                   }}
                   alt="placeholder"
                   src={
@@ -480,6 +505,7 @@ const ProfileForm = ({ initialValues }) => {
               variant="contained"
               color="primary"
               component="span"
+              disabled={location.pathname !== '/kyc'}
               className={classes.uploadButton}
               onClick={() => addressProofInput.current.click()}
               startIcon={<CloudUploadIcon className={classes.uploadIcon} />}
@@ -501,6 +527,7 @@ const ProfileForm = ({ initialValues }) => {
                     cursor: 'pointer',
                     maxHeight: { xs: 233, md: 167 },
                     maxWidth: { xs: 350, md: 250 },
+                    objectFit: 'contain',
                   }}
                   alt="placeholder"
                   src={

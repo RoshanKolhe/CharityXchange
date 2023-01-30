@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { styled } from '@mui/material/styles';
 import { Container, Typography } from '@mui/material';
 // hooks
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import useResponsive from '../hooks/useResponsive';
 // components
@@ -46,9 +46,16 @@ export default function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = localStorage.getItem('isAuthenticated');
+  const isKycCompleted = localStorage.getItem('is_kyc_completed');
+  const permissions = localStorage.getItem('permissions');
+  console.log('isKycCompletedLogin', isKycCompleted);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (permissions && permissions.split(',').includes('super_admin')) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    if (isAuthenticated && isKycCompleted === '2') {
       const { from } = location.state || { from: { pathname: '/dashboard' } };
       navigate(from, { replace: true });
     }
@@ -85,29 +92,9 @@ export default function LoginPage() {
             </Typography>
 
             {/* <Typography variant="body2" sx={{ mb: 5 }}>
-              Don’t have an account? {''}
+              Forgot Password? {''}
               <Link variant="subtitle2">Get started</Link>
             </Typography> */}
-
-            {/* <Stack direction="row" spacing={2}>
-              <Button fullWidth size="large" color="inherit" variant="outlined">
-                <Iconify icon="eva:google-fill" color="#DF3E30" width={22} height={22} />
-              </Button>
-
-              <Button fullWidth size="large" color="inherit" variant="outlined">
-                <Iconify icon="eva:facebook-fill" color="#1877F2" width={22} height={22} />
-              </Button>
-
-              <Button fullWidth size="large" color="inherit" variant="outlined">
-                <Iconify icon="eva:twitter-fill" color="#1C9CEA" width={22} height={22} />
-              </Button>
-            </Stack>
-
-            <Divider sx={{ my: 3 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                OR
-              </Typography>
-            </Divider> */}
 
             <LoginForm />
           </StyledContent>

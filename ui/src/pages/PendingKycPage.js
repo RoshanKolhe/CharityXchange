@@ -39,13 +39,13 @@ import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
+import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 // mock
 import axiosInstance from '../helpers/axios';
 import account from '../_mock/account';
 import NewMember from '../components/members/NewMember';
 import CustomBox from '../common/CustomBox';
 import CommonSnackBar from '../common/CommonSnackBar';
-import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 
 // ----------------------------------------------------------------------
 
@@ -54,7 +54,8 @@ const TABLE_HEAD = [
   { id: 'email', label: 'Email', alignRight: false },
   { id: 'role', label: 'Role', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
-  { id: '' },
+  { id: 'addreesProof', label: 'addreesProof', alignRight: false },
+  { id: 'idProof', label: 'idProof', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -88,7 +89,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function UserPage() {
+export default function PendingKycPage() {
   const style = {
     position: 'absolute',
     top: '50%',
@@ -132,8 +133,11 @@ export default function UserPage() {
   const handleOpen = () => setOpenMdal(true);
   const handleClose = () => setOpenMdal(false);
 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
   const handleNavigate = (url) => {
-    navigate(url, { replace: true });
+    navigate(url);
   };
 
   const handleOpenMenu = (event, row) => {
@@ -197,9 +201,51 @@ export default function UserPage() {
   const isNotFound = !filteredUsers.length && !!filterName;
 
   const fetchData = () => {
-    axiosInstance.get('users?filter[include][]=userProfile').then((res) => {
+    axiosInstance.get('users?filter[include][]=userProfile&filter[where][is_kyc_completed]=1').then((res) => {
       setMemberList(res.data);
     });
+  };
+
+  const handleApproveClick = (userData) => {
+    userData = {
+      ...userData,
+      is_kyc_completed: 2,
+    };
+    axiosInstance
+      .patch(`/approveDisapproveKyc`, userData)
+      .then((res) => {
+        handleOpenSnackBar();
+        setErrorMessage('');
+        setSuccessMessage('KYC Approved Successfully');
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        handleOpenSnackBar();
+        setErrorMessage(err.response.data.error.message);
+        handleOpenSnackBar();
+      });
+  };
+
+  const handleDeclineClick = (userData) => {
+    userData = {
+      ...userData,
+      is_kyc_completed: 3,
+    };
+    axiosInstance
+      .patch(`/approveDisapproveKyc`, userData)
+      .then((res) => {
+        handleOpenSnackBar();
+        setErrorMessage('');
+        setSuccessMessage('KYC Declined Successfully');
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        handleOpenSnackBar();
+        setErrorMessage(err.response.data.error.message);
+        handleOpenSnackBar();
+      });
   };
 
   useEffect(() => {
@@ -209,15 +255,15 @@ export default function UserPage() {
   return (
     <>
       <Helmet>
-        <title> Members | CharityXchange </title>
+        <title> pendingKyc | CharityXchange </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Members
+            Pending Kyc's
           </Typography>
-
+          {/* 
           <Button
             variant="contained"
             component={RouterLink}
@@ -226,7 +272,7 @@ export default function UserPage() {
             onClick={handleOpen}
           >
             New Member
-          </Button>
+          </Button> */}
         </Stack>
 
         <Card>
@@ -276,6 +322,26 @@ export default function UserPage() {
                         <TableCell align="left">
                           <Label color={(is_active === false && 'error') || 'success'}>
                             {is_active === false ? 'InActive' : 'Active'}
+                          </Label>
+                        </TableCell>
+
+                        <TableCell align="left">
+                          <Label
+                            color="secondary"
+                            onClick={() => window.open(userProfile?.addreesProof?.originalname, '_blank')}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            View
+                          </Label>
+                        </TableCell>
+
+                        <TableCell align="left">
+                          <Label
+                            color="secondary"
+                            onClick={() => window.open(userProfile?.idProof?.originalname, '_blank')}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            View
                           </Label>
                         </TableCell>
 
@@ -349,7 +415,8 @@ export default function UserPage() {
               onDataSubmit={() => {
                 handleClose();
                 fetchData();
-                setMsg('Successfully Created New Member');
+                setErrorMessage('');
+                setSuccessMessage('Successfully Created New Member');
                 handleOpenSnackBar();
               }}
             />
@@ -359,8 +426,8 @@ export default function UserPage() {
       <CommonSnackBar
         openSnackBar={openSnackBar}
         handleCloseSnackBar={handleCloseSnackBar}
-        msg={msg}
-        severity="success"
+        msg={errorMessage !== '' ? errorMessage : successMessage}
+        severity={errorMessage !== '' ? 'error' : 'success'}
       />
       <Popover
         open={Boolean(open)}
@@ -381,17 +448,26 @@ export default function UserPage() {
         }}
       >
         <MenuItem
+          sx={{ color: 'seagreen' }}
+          onClick={() => {
+            handleApproveClick(editUserData);
+          }}
+        >
+          <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
+          Approve
+        </MenuItem>
+        <MenuItem sx={{ color: 'error.main' }}>
+          <Iconify icon={'system-uicons:cross'} sx={{ mr: 2 }} />
+          Decline
+        </MenuItem>
+
+        <MenuItem
           onClick={() => {
             handleNavigate(`/users/${editUserData.id}`);
           }}
         >
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Edit
-        </MenuItem>
-
-        <MenuItem sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Delete
+          View
         </MenuItem>
       </Popover>
     </>

@@ -19,6 +19,11 @@ const navConfig = {
         icon: icon('ic_user'),
       },
       {
+        title: 'Pending KYC',
+        path: '/pendingKyc',
+        icon: icon('account-check'),
+      },
+      {
         title: 'product',
         path: '/products',
         icon: icon('ic_cart'),

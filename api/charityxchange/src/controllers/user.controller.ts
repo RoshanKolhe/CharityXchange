@@ -25,6 +25,7 @@ import {PermissionKeys} from '../authorization/permission-keys';
 import {EmailManager} from '../services/email.service';
 import {EmailManagerBindings} from '../keys';
 import generateOtpTemplate from '../templates/otp.template';
+import generateEmailAndPasswordTemplate from '../templates/email-and-password.template';
 
 const UserLoginSchema = {
   type: 'object',
@@ -83,6 +84,7 @@ export class UserController {
     }
     validateCredentials(_.pick(userData, ['email', 'password']));
     userData.permissions = [PermissionKeys.EMPLOYEE];
+    const decryptedPassword = userData.password;
     userData.password = await this.hasher.hashPassword(userData.password);
     const savedUser = await this.userRepository.create(userData);
     const savedUserData = _.omit(savedUser, 'password');
@@ -92,7 +94,32 @@ export class UserController {
     await this.userRepository
       .userProfile(savedUserData.id)
       .create(useProfileData);
-    return savedUserData;
+    await this.userRepository
+      .balance_user(savedUserData.id)
+      .create(useProfileData);
+    const template = generateEmailAndPasswordTemplate({
+      ...userData,
+      password: decryptedPassword,
+    });
+
+    const mailOptions = {
+      from: SITE_SETTINGS.fromMail,
+      to: userData.email,
+      subject: template.subject,
+      html: template.html,
+    };
+    const data = await this.emailManager
+      .sendMail(mailOptions)
+      .then(function (res: any) {
+        return Promise.resolve({
+          success: true,
+          message: `Credentials created and Successfully sent  mail to ${userData.email}`,
+        });
+      })
+      .catch(function (err: any) {
+        throw new HttpErrors.UnprocessableEntity(err);
+      });
+    return data;
   }
 
   @post('/users/login', {
@@ -136,7 +163,7 @@ export class UserController {
       where: {
         id: currnetUser.id,
       },
-      include: ['userProfile','balance_user'],
+      include: ['userProfile', 'balance_user'],
     });
     return Promise.resolve({
       ...user,
@@ -179,7 +206,7 @@ export class UserController {
       var now = new Date();
       this.userRepository.updateById(user.id, {
         otp: `${otp}`,
-        otp_expire_at: `${this.AddMinutesToDate(now, 5)}`,
+        otp_expire_at: `${this.AddMinutesToDate(now, 10)}`,
       });
     } else {
       throw new HttpErrors.BadRequest("Email Doesn't Exists");
@@ -194,7 +221,8 @@ export class UserController {
       .sendMail(mailOptions)
       .then(function (res: any) {
         return Promise.resolve({
-          message: `Successfully sent reset mail to ${userData.email}`,
+          success: true,
+          message: `Successfully sent otp mail to ${userData.email}`,
         });
       })
       .catch(function (err: any) {
@@ -218,12 +246,12 @@ export class UserController {
       var expire_date = new Date(user.otp_expire_at);
       if (now <= expire_date && otpOptions.otp === user.otp) {
         return {
-          success: 'true',
+          success: true,
           message: 'otp verification successfull',
         };
       } else {
         return {
-          success: 'false',
+          success: false,
           error: 'otp verification failed',
         };
       }
@@ -252,7 +280,15 @@ export class UserController {
       },
     },
   })
-  async getSingleUser(@param.path.number('id') id: number): Promise<User> {
-    return this.userRepository.findById(id);
+  async getSingleUser(@param.path.number('id') id: number): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+      include: ['userProfile', 'balance_user'],
+    });
+    return Promise.resolve({
+      ...user,
+    });
   }
 }

@@ -18,7 +18,7 @@ export default function CommonSnackBar(props) {
       {' '}
       <Snackbar
         open={openSnackBar}
-        autoHideDuration={2000}
+        autoHideDuration={5000}
         onClose={handleCloseSnackBar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >

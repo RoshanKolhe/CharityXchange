@@ -144,6 +144,26 @@ export class UserUserProfileController {
     }
   }
 
+  @patch('/approveDisapproveKyc')
+  @authenticate('jwt')
+  async approveOrDisapproveUserKyc(
+    @requestBody({})
+    userProfile: any,
+  ): Promise<{}> {
+    try {
+      await this.userRepository.updateById(
+        userProfile.id,
+        omit(userProfile, 'userProfile'),
+      );
+
+      return Promise.resolve({
+        ...userProfile,
+      });
+    } catch (err) {
+      throw new HttpErrors.UnprocessableEntity(`error updatin profile${err}`);
+    }
+  }
+
   @del('/users/{id}/user-profile', {
     responses: {
       '200': {

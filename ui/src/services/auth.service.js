@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 
-import axiosInstance from "../helpers/axios";
+import axiosInstance from '../helpers/axios';
 
 class AuthService {
   // login = (email, password) => {};
@@ -11,6 +11,7 @@ class AuthService {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('email');
     localStorage.removeItem('username');
+    localStorage.removeItem('permissions');
   };
 
   register = (username, email, password, active) =>
@@ -18,7 +19,7 @@ class AuthService {
       username,
       email,
       password,
-      active
+      active,
     });
 
   getCurrentUser = () => JSON.parse(localStorage.getItem('user'));

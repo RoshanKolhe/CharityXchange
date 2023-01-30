@@ -61,10 +61,11 @@ export class User extends Entity {
   is_active: boolean;
 
   @property({
-    type: 'boolean',
+    type: 'number',
     required: true,
+    default: 0,
   })
-  is_kyc_completed: boolean;
+  is_kyc_completed: number;
 
   @property({
     type: 'string',

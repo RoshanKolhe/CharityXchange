@@ -1,6 +1,7 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import PendingKycPage from '../pages/PendingKycPage';
 import MemberDetails from '../components/members/MemberDetails';
 import DashboardLayout from '../layouts/dashboard';
 //
@@ -14,12 +15,12 @@ import ProfilePage from '../pages/ProfilePage';
 // eslint-disable-next-line import/no-named-as-default
 import PrivateRoutes from './PrivateRoute';
 import { RolesAuthRoute } from './RolesAuthRoute';
+import KycPage from '../pages/KycPage';
 // ----------------------------------------------------------------------
 
 export default function Router({ role }) {
-  console.log(role);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated');
     if (!isAuthenticated) {
@@ -45,6 +46,15 @@ export default function Router({ role }) {
                 </RolesAuthRoute>
               ),
             },
+            {
+              name: 'pendingKyc',
+              path: 'pendingKyc',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <PendingKycPage />
+                </RolesAuthRoute>
+              ),
+            },
             { path: 'profile', element: <ProfilePage /> },
             { path: 'products', element: <ProductsPage /> },
             { path: 'blog', element: <BlogPage /> },
@@ -52,26 +62,25 @@ export default function Router({ role }) {
               name: 'userDetails',
               path: 'users/:id',
               element: (
-                <React.Suspense fallback={<>...</>}>
+                <RolesAuthRoute roles={['super_admin']}>
                   <MemberDetails />
-                </React.Suspense>
+                </RolesAuthRoute>
               ),
             },
           ],
         },
       ],
     },
-    // {
-    //   path: '/',
-    //   element: <PrivateRoutes />,
-    //   children: [
-    //     {
-    //       path: '/',
-    //       element: <KycPage />,
-
-    //     },
-    //   ],
-    // },
+    {
+      path: '/',
+      element: <PrivateRoutes />,
+      children: [
+        {
+          path: '/kyc',
+          element: <KycPage />,
+        },
+      ],
+    },
     { path: '/login', element: <LoginPage /> },
     {
       path: '*',

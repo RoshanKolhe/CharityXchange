@@ -6,7 +6,6 @@ export function RolesAuthRoute({ children, roles }) {
   const userRoles = useUserRoles();
 
   const canAccess = userRoles.some((userRole) => roles.includes(userRole));
-  console.log('canAccess', canAccess);
 
   if (canAccess) return <>{children}</>;
 

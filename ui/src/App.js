@@ -12,13 +12,13 @@ import history from './helpers/history';
 
 export default function App() {
   // localStorage.setItem('isAuthenticated', false);
-  const role = localStorage.getItem('role');
+  const role = localStorage.getItem('permissions');
   return (
     <ThemeProvider>
       <ScrollToTop />
       <StyledChart />
       <Suspense fallback={<div>Loading...</div>}>
-        <Router  role={role} history={history} navigator={history} />
+        <Router role={role} history={history} navigator={history} />
       </Suspense>
     </ThemeProvider>
   );
