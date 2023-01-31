@@ -456,7 +456,12 @@ export default function PendingKycPage() {
           <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
           Approve
         </MenuItem>
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem
+          sx={{ color: 'error.main' }}
+          onClick={() => {
+            handleDeclineClick(editUserData); 
+          }}
+        >
           <Iconify icon={'system-uicons:cross'} sx={{ mr: 2 }} />
           Decline
         </MenuItem>
