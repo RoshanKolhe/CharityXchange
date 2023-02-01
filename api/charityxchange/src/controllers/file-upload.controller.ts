@@ -1,3 +1,4 @@
+import { authenticate } from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {
   get,
@@ -29,6 +30,8 @@ export class FileUploadController {
     @inject(FILE_UPLOAD_SERVICE) private handler: FileUploadHandler,
     @inject(STORAGE_DIRECTORY) private storageDirectory: string,
   ) {}
+
+  @authenticate('jwt')
   @post('/files', {
     responses: {
       200: {

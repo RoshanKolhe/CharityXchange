@@ -1,6 +1,8 @@
-import {Entity, hasOne, model, property} from '@loopback/repository';
+import {Entity, hasOne, model, property, hasMany} from '@loopback/repository';
 import {UserProfile, UserProfileWithRelations} from './user-profile.model';
 import {Balances} from './balances.model';
+import {AdminBalances} from './admin-balances.model';
+import {TokenRequests} from './token-requests.model';
 
 @model()
 export class User extends Entity {
@@ -87,6 +89,12 @@ export class User extends Entity {
 
   @hasOne(() => Balances)
   balance_user: Balances;
+
+  @hasOne(() => AdminBalances, {keyTo: 'adminId'})
+  adminBalances: AdminBalances;
+
+  @hasMany(() => TokenRequests)
+  tokenRequests: TokenRequests[];
 
   constructor(data?: Partial<User>) {
     super(data);

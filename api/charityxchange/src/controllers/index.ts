@@ -4,3 +4,7 @@ export * from './admin.controller';
 export * from './user-user-profile.controller';
 export * from './user-profile-user.controller';
 export * from './user-balances.controller';
+export * from './admin-balances.controller';
+export * from './user-admin-balances.controller';
+export * from './token-requests.controller';
+export * from './user-token-requests.controller';

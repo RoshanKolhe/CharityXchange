@@ -6,6 +6,7 @@ import * as _ from 'lodash';
 import {
   getJsonSchemaRef,
   getModelSchemaRef,
+  HttpErrors,
   post,
   requestBody,
 } from '@loopback/rest';
@@ -47,6 +48,14 @@ export class AdminController {
     })
     adminData: Omit<User, 'id'>,
   ) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: adminData.email,
+      },
+    });
+    if (user) {
+      throw new HttpErrors.BadRequest('Email Already Exists');
+    }
     validateCredentials(_.pick(adminData, ['email', 'password']));
     adminData.permissions = [
       PermissionKeys.SUPER_ADMIN,
@@ -58,9 +67,15 @@ export class AdminController {
     const useProfileData: any = {
       userId: savedUserData.id,
     };
+    const adminBalancesData: any = {
+      adminId: savedUserData.id,
+    };
     await this.userRepository
       .userProfile(savedUserData.id)
       .create(useProfileData);
+    await this.userRepository
+      .adminBalances(savedUserData.id)
+      .create(adminBalancesData);
     return savedUserData;
   }
 }
