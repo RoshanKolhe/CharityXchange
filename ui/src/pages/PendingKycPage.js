@@ -305,9 +305,7 @@ export default function PendingKycPage() {
                             <Avatar
                               alt={name}
                               src={
-                                userProfile?.userProfile?.avatar?.originalname
-                                  ? userProfile?.userProfile?.avatar?.originalname
-                                  : account.photoURL
+                                userProfile?.avatar?.originalname ? userProfile?.avatar?.originalname : account.photoURL
                               }
                             />
                             <Typography variant="subtitle2" noWrap>
@@ -459,7 +457,7 @@ export default function PendingKycPage() {
         <MenuItem
           sx={{ color: 'error.main' }}
           onClick={() => {
-            handleDeclineClick(editUserData); 
+            handleDeclineClick(editUserData);
           }}
         >
           <Iconify icon={'system-uicons:cross'} sx={{ mr: 2 }} />

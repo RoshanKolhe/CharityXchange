@@ -32,17 +32,22 @@ const PaymentForm = ({
   const paymentFormValidationSchema = yup.object({
     transaction_id: yup.string('Transaction Id').required('Transaction id is required'),
     payment_screen_shot: yup.object().required('Payment Screen Shot is required'),
+    amount: yup.number().required('Amount is required'),
   });
 
   const formik = useFormik({
     initialValues: {
       payment_screen_shot: '',
       transaction_id: '',
+      amount: '',
     },
     enableReinitialize: true,
     validationSchema: paymentFormValidationSchema,
     onSubmit: async (values) => {
-      console.log(values);
+      values = {
+        ...values,
+        amount: values?.amount || 0,
+      };
       axiosInstance
         .post(`users/${userProfile.id}/token-requests`, values)
         .then((res) => {
@@ -116,7 +121,20 @@ const PaymentForm = ({
       </Box>
       <form onSubmit={formik.handleSubmit} id="paymentForm">
         <Grid container>
-          <Grid item xs={12} lg={11} sx={{ marginTop: '10px' }}>
+          <Grid item xs={12} lg={11} sx={{ marginTop: '5px' }}>
+            <TextField
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+              id="amount"
+              name="amount"
+              label="Amount"
+              type="number"
+              sx={{marginY:'10px'}}
+              value={formik.values.amount}
+              onChange={formik.handleChange}
+              error={formik?.touched?.amount && Boolean(formik?.errors?.amount)}
+              helperText={formik?.touched?.amount && formik?.errors?.amount}
+            />
             <TextField
               InputProps={{ disableUnderline: true }}
               fullWidth
