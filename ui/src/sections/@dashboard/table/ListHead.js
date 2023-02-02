@@ -19,6 +19,7 @@ const visuallyHidden = {
 ListHead.propTypes = {
   order: PropTypes.oneOf(['asc', 'desc']),
   orderBy: PropTypes.string,
+  isChechbox: PropTypes.bool,
   rowCount: PropTypes.number,
   headLabel: PropTypes.array,
   numSelected: PropTypes.number,
@@ -32,6 +33,7 @@ export default function ListHead({
   rowCount,
   headLabel,
   numSelected,
+  isCheckbox,
   onRequestSort,
   onSelectAllClick,
 }) {
@@ -42,13 +44,12 @@ export default function ListHead({
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-          />
-        </TableCell>
+        {isCheckbox && (
+          <TableCell padding="checkbox">
+            <Checkbox indeterminate={numSelected > 0 && numSelected < rowCount} onChange={onSelectAllClick} />
+          </TableCell>
+        )}
+
         {headLabel.map((headCell) => (
           <TableCell
             key={headCell.id}

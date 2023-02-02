@@ -202,6 +202,10 @@ export default function UserPage() {
     });
   };
 
+  const handleReloadData = (event) => {
+    fetchData();
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -230,12 +234,18 @@ export default function UserPage() {
         </Stack>
 
         <Card>
-          <ListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          <ListToolbar
+            numSelected={selected.length}
+            filterName={filterName}
+            onFilterName={handleFilterByName}
+            onReload={handleReloadData}
+          />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
                 <ListHead
+                  isCheckbox
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}

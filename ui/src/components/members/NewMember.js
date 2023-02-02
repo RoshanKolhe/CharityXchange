@@ -63,7 +63,7 @@ const NewMember = (props) => {
       const inputValues = {
         ...values,
         permissions: ['employee'],
-        is_active: false,
+        is_active: true,
         is_kyc_completed: 0,
         parent_id: currentUser.id || null,
       };

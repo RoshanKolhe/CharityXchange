@@ -36,9 +36,10 @@ ListToolbar.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
+  onReload: PropTypes.func,
 };
 
-export default function ListToolbar({ numSelected, filterName, onFilterName }) {
+export default function ListToolbar({ numSelected, filterName, onFilterName, onReload }) {
   return (
     <StyledRoot
       sx={{
@@ -56,7 +57,7 @@ export default function ListToolbar({ numSelected, filterName, onFilterName }) {
         <StyledSearch
           value={filterName}
           onChange={onFilterName}
-          placeholder="Search user..."
+          placeholder="Search ..."
           startAdornment={
             <InputAdornment position="start">
               <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
@@ -66,15 +67,15 @@ export default function ListToolbar({ numSelected, filterName, onFilterName }) {
       )}
 
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
+        <Tooltip title="Approve Selected">
           <IconButton>
-            <Iconify icon="eva:trash-2-fill" />
+            <Iconify icon="material-symbols:order-approve" />
           </IconButton>
         </Tooltip>
       ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <Iconify icon="ic:round-filter-list" />
+        <Tooltip title="Reload">
+          <IconButton onClick={onReload}>
+            <Iconify icon="mdi:reload" />
           </IconButton>
         </Tooltip>
       )}

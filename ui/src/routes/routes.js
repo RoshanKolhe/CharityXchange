@@ -1,6 +1,8 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import TokenRequestsAdminPage from '../pages/TokenRequestsAdminPage';
+import TokenRequestsEmployeePage from '../pages/TokenRequestsEmployeePage';
 import PendingKycPage from '../pages/PendingKycPage';
 import MemberDetails from '../components/members/MemberDetails';
 import DashboardLayout from '../layouts/dashboard';
@@ -66,6 +68,16 @@ export default function Router({ role }) {
                   <MemberDetails />
                 </RolesAuthRoute>
               ),
+            },
+            {
+              name: 'tokenRequests',
+              path: 'tokenRequests/:id',
+              element: <TokenRequestsEmployeePage />,
+            },
+            {
+              name: 'tokenRequestsAdmin',
+              path: 'tokenRequests',
+              element: <TokenRequestsAdminPage />,
             },
           ],
         },

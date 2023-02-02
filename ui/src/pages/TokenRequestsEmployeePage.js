@@ -2,7 +2,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink, Navigate, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import plusFill from '@iconify/icons-eva/plus-fill';
 
@@ -35,27 +35,23 @@ import {
   Paper,
 } from '@mui/material';
 // components
+import { makeStyles } from '@mui/styles';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
-import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 // mock
 import axiosInstance from '../helpers/axios';
-import account from '../_mock/account';
-import NewMember from '../components/members/NewMember';
-import CustomBox from '../common/CustomBox';
 import CommonSnackBar from '../common/CommonSnackBar';
+import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'email', label: 'Email', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
+  { id: 'amount', label: 'Amount', alignRight: false },
+  { id: 'transaction_id', label: 'Transaction Id', alignRight: false },
+  { id: 'payment_screen_shot', label: 'Transaction Proof', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
-  { id: 'addreesProof', label: 'addreesProof', alignRight: false },
-  { id: 'idProof', label: 'idProof', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -89,7 +85,17 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function PendingKycPage() {
+const useStyles = makeStyles((theme) => ({
+  textContainer: {
+    display: 'block',
+    width: '250px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+}));
+
+export default function TokenRequestsEmployeePage() {
   const style = {
     position: 'absolute',
     top: '50%',
@@ -103,10 +109,13 @@ export default function PendingKycPage() {
     px: 4,
     pb: 3,
   };
+  const classes = useStyles();
+
   const navigate = useNavigate();
+  const params = useParams();
   const [open, setOpen] = useState(null);
 
-  const [memberList, setMemberList] = useState([]);
+  const [tokenRequests, setTokenRequests] = useState([]);
 
   const [page, setPage] = useState(0);
 
@@ -122,22 +131,14 @@ export default function PendingKycPage() {
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const [openModal, setOpenMdal] = useState(false);
-
   const [msg, setMsg] = useState('');
   const [openSnackBar, setOpenSnackBar] = useState(false);
 
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
 
-  const handleOpen = () => setOpenMdal(true);
-  const handleClose = () => setOpenMdal(false);
-
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-
   const handleNavigate = (url) => {
-    navigate(url);
+    navigate(url, { replace: true });
   };
 
   const handleOpenMenu = (event, row) => {
@@ -157,7 +158,7 @@ export default function PendingKycPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = memberList.map((n) => n.id);
+      const newSelecteds = tokenRequests.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -190,65 +191,25 @@ export default function PendingKycPage() {
   };
 
   const handleFilterByName = (event) => {
+    console.log('event', event);
     setPage(0);
     setFilterName(event.target.value);
   };
 
-  const handleReloadData = (event) => {
-    fetchData();
-  };
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tokenRequests.length) : 0;
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - memberList.length) : 0;
+  const filteredUsers = applySortFilter(tokenRequests, getComparator(order, orderBy), filterName);
 
-  const filteredUsers = applySortFilter(memberList, getComparator(order, orderBy), filterName);
-
-  const isNotFound = !filteredUsers.length && !!filterName;
+  const isNotFound = !filteredUsers.length;
 
   const fetchData = () => {
-    axiosInstance.get('users?filter[include][]=userProfile&filter[where][is_kyc_completed]=1').then((res) => {
-      setMemberList(res.data);
-    });
-  };
-
-  const handleApproveClick = (userData) => {
-    userData = {
-      ...userData,
-      is_kyc_completed: 2,
-    };
     axiosInstance
-      .patch(`/approveDisapproveKyc`, userData)
+      .get(`/users/${params.id}/token-requests?filter[order]=createdAt%20DESC`)
       .then((res) => {
-        handleOpenSnackBar();
-        setErrorMessage('');
-        setSuccessMessage('KYC Approved Successfully');
-        handleCloseMenu();
-        fetchData();
+        setTokenRequests(res.data);
       })
       .catch((err) => {
-        handleOpenSnackBar();
-        setErrorMessage(err.response.data.error.message);
-        handleOpenSnackBar();
-      });
-  };
-
-  const handleDeclineClick = (userData) => {
-    userData = {
-      ...userData,
-      is_kyc_completed: 3,
-    };
-    axiosInstance
-      .patch(`/approveDisapproveKyc`, userData)
-      .then((res) => {
-        handleOpenSnackBar();
-        setErrorMessage('');
-        setSuccessMessage('KYC Declined Successfully');
-        handleCloseMenu();
-        fetchData();
-      })
-      .catch((err) => {
-        handleOpenSnackBar();
-        setErrorMessage(err.response.data.error.message);
-        handleOpenSnackBar();
+        setTokenRequests([]);
       });
   };
 
@@ -259,110 +220,74 @@ export default function PendingKycPage() {
   return (
     <>
       <Helmet>
-        <title> pendingKyc | CharityXchange </title>
+        <title> Token Requests | CharityXchange </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Pending Kyc's
+            Token Requests
           </Typography>
-          {/* 
-          <Button
-            variant="contained"
-            component={RouterLink}
-            to="#"
-            startIcon={<Icon icon={plusFill} />}
-            onClick={handleOpen}
-          >
-            New Member
-          </Button> */}
         </Stack>
 
         <Card>
-          <ListToolbar
-            numSelected={selected.length}
-            filterName={filterName}
-            onFilterName={handleFilterByName}
-            onReload={handleReloadData}
-          />
+          {/* <ListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} /> */}
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
                 <ListHead
-                  isCheckbox
+                  isChechbox={false}
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={memberList.length}
+                  rowCount={tokenRequests.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, email, permissions, is_active, userProfile } = row;
+                    const { id, amount, transaction_id, payment_screen_shot, status } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
+                        {/* <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
-                        </TableCell>
-
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar
-                              alt={name}
-                              src={
-                                userProfile?.avatar?.originalname ? userProfile?.avatar?.originalname : account.photoURL
-                              }
-                            />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
-                        </TableCell>
-
-                        <TableCell align="left">{email}</TableCell>
-                        <TableCell align="left">{permissions.toString()}</TableCell>
+                        </TableCell> */}
 
                         <TableCell align="left">
-                          <Label color={(is_active === false && 'error') || 'success'}>
-                            {is_active === false ? 'InActive' : 'Active'}
-                          </Label>
+                          <Typography variant="subtitle2" noWrap>
+                            {amount}
+                          </Typography>
                         </TableCell>
-
-                        <TableCell align="left">
-                          <Label
-                            color="secondary"
-                            onClick={() => window.open(userProfile?.addreesProof?.originalname, '_blank')}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            View
-                          </Label>
-                        </TableCell>
-
-                        <TableCell align="left">
-                          <Label
-                            color="secondary"
-                            onClick={() => window.open(userProfile?.idProof?.originalname, '_blank')}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            View
-                          </Label>
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <IconButton
-                            size="large"
-                            color="inherit"
-                            onClick={(event) => {
-                              handleOpenMenu(event, row);
+                        <Tooltip placement="top" title={transaction_id}>
+                          <TableCell
+                            align="left"
+                            className={classes.textContainer}
+                            onClick={() => {
+                              navigator.clipboard.writeText(transaction_id);
+                              setMsg('Copied');
+                              handleOpenSnackBar();
                             }}
                           >
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
+                            {transaction_id}
+                          </TableCell>
+                        </Tooltip>
+                        <TableCell align="left">
+                          <Label
+                            color="secondary"
+                            onClick={() => window.open(payment_screen_shot?.originalname, '_blank')}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            View
+                          </Label>
+                        </TableCell>
+
+                        <TableCell align="left">
+                          <Label color={status === 0 ? 'error' : status === 1 ? 'success' : 'error'}>
+                            {status === 0 ? 'Processing' : status === 1 ? 'Approved' : 'Declined'}
+                          </Label>
                         </TableCell>
                       </TableRow>
                     );
@@ -404,85 +329,20 @@ export default function PendingKycPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={memberList.length}
+            count={tokenRequests.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
-        <Modal
-          open={openModal}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <CustomBox>
-            <NewMember
-              handleClose={handleClose}
-              onDataSubmit={() => {
-                handleClose();
-                fetchData();
-                setErrorMessage('');
-                setSuccessMessage('Successfully Created New Member');
-                handleOpenSnackBar();
-              }}
-            />
-          </CustomBox>
-        </Modal>
       </Container>
       <CommonSnackBar
         openSnackBar={openSnackBar}
         handleCloseSnackBar={handleCloseSnackBar}
-        msg={errorMessage !== '' ? errorMessage : successMessage}
-        severity={errorMessage !== '' ? 'error' : 'success'}
+        msg={msg}
+        severity="success"
       />
-      <Popover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
-        }}
-      >
-        <MenuItem
-          sx={{ color: 'seagreen' }}
-          onClick={() => {
-            handleApproveClick(editUserData);
-          }}
-        >
-          <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
-          Approve
-        </MenuItem>
-        <MenuItem
-          sx={{ color: 'error.main' }}
-          onClick={() => {
-            handleDeclineClick(editUserData);
-          }}
-        >
-          <Iconify icon={'system-uicons:cross'} sx={{ mr: 2 }} />
-          Decline
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            handleNavigate(`/users/${editUserData.id}`);
-          }}
-        >
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          View
-        </MenuItem>
-      </Popover>
     </>
   );
 }

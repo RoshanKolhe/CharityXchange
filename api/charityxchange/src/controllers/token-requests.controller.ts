@@ -1,4 +1,5 @@
-import { authenticate } from '@loopback/authentication';
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -17,14 +18,18 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
-import {TokenRequests} from '../models';
-import {TokenRequestsRepository} from '../repositories';
+import {PermissionKeys} from '../authorization/permission-keys';
+import {TokenRequests, UserProfile} from '../models';
+import {TokenRequestsRepository, UserRepository} from '../repositories';
 
 export class TokenRequestsController {
   constructor(
     @repository(TokenRequestsRepository)
-    public tokenRequestsRepository : TokenRequestsRepository,
+    public tokenRequestsRepository: TokenRequestsRepository,
+    @repository(UserRepository)
+    public userRepository: UserRepository,
   ) {}
 
   @post('/token-requests')
@@ -112,13 +117,17 @@ export class TokenRequestsController {
   })
   async findById(
     @param.path.number('id') id: number,
-    @param.filter(TokenRequests, {exclude: 'where'}) filter?: FilterExcludingWhere<TokenRequests>
+    @param.filter(TokenRequests, {exclude: 'where'})
+    filter?: FilterExcludingWhere<TokenRequests>,
   ): Promise<TokenRequests> {
     return this.tokenRequestsRepository.findById(id, filter);
   }
 
   @patch('/token-requests/{id}')
-  @authenticate('jwt')
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.SUPER_ADMIN]},
+  })
   @response(204, {
     description: 'TokenRequests PATCH success',
   })
@@ -132,8 +141,34 @@ export class TokenRequestsController {
       },
     })
     tokenRequests: TokenRequests,
-  ): Promise<void> {
-    await this.tokenRequestsRepository.updateById(id, tokenRequests);
+  ): Promise<any> {
+    try {
+      await this.tokenRequestsRepository.updateById(id, tokenRequests);
+      const current_balance =
+        (await (
+          await this.userRepository.balance_user(tokenRequests.userId).get()
+        ).current_balance) || 0;
+      const amountToBeAdded = tokenRequests.amount || 0;
+
+      //Add Token to users account
+      const inputData = {
+        current_balance: current_balance + amountToBeAdded,
+      };
+      await this.userRepository
+        .balance_user(tokenRequests.userId)
+        .patch(inputData);
+      //subtract token from admins account
+      const admin_total_supply =
+        (await (
+          await this.userRepository.adminBalances(5).get()
+        ).total_supply) || 0;
+      const dataToSubtract = {
+        total_supply: admin_total_supply - amountToBeAdded,
+      };
+      return await this.userRepository.adminBalances(5).patch(dataToSubtract);
+    } catch (err) {
+      throw new HttpErrors[400](err);
+    }
   }
 
   @put('/token-requests/{id}')
@@ -155,5 +190,24 @@ export class TokenRequestsController {
   })
   async deleteById(@param.path.number('id') id: number): Promise<void> {
     await this.tokenRequestsRepository.deleteById(id);
+  }
+
+  @patch('/token-requests-update-selcted')
+  @authenticate('jwt')
+  @response(200, {
+    description: 'TokenRequests PATCH success count',
+  })
+  async updateSelected(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(TokenRequests, {partial: true}),
+        },
+      },
+    })
+    tokenRequests: TokenRequests,
+    @param.where(TokenRequests) where?: Where<TokenRequests>,
+  ): Promise<{}> {
+    return this.tokenRequestsRepository.updateAll(tokenRequests, where);
   }
 }

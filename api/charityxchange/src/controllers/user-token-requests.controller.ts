@@ -1,4 +1,4 @@
-import { authenticate } from '@loopback/authentication';
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {
   Count,
@@ -19,7 +19,7 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {EmailManagerBindings} from '../keys';
-import {User, TokenRequests} from '../models';
+import {User, TokenRequests, UserProfile} from '../models';
 import {UserRepository} from '../repositories';
 import {EmailManager} from '../services/email.service';
 import generatenotificationUserTokenTemplate from '../templates/notification-user-token-request.template';
@@ -46,9 +46,13 @@ export class UserTokenRequestsController {
     },
   })
   async find(
+    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
     @param.path.number('id') id: number,
     @param.query.object('filter') filter?: Filter<TokenRequests>,
   ): Promise<TokenRequests[]> {
+    if (currnetUser.id != id) {
+      throw new HttpErrors.BadRequest('Something Went Wrong');
+    }
     return this.userRepository.tokenRequests(id).find(filter);
   }
 
@@ -65,6 +69,7 @@ export class UserTokenRequestsController {
   })
   async create(
     @param.path.number('id') id: typeof User.prototype.id,
+    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
     @requestBody({
       content: {
         'application/json': {
@@ -78,6 +83,10 @@ export class UserTokenRequestsController {
     })
     tokenRequests: Omit<TokenRequests, 'id'>,
   ): Promise<TokenRequests> {
+    console.log(currnetUser.id, id);
+    if (currnetUser.id != id) {
+      throw new HttpErrors.BadRequest('Something Went Wrong');
+    }
     const template = generatenotificationUserTokenTemplate();
     const user = await this.userRepository.findOne({
       where: {
@@ -107,30 +116,30 @@ export class UserTokenRequestsController {
     return this.userRepository.tokenRequests(id).create(tokenRequests);
   }
 
-  @authenticate('jwt')
-  @patch('/users/{id}/token-requests', {
-    responses: {
-      '200': {
-        description: 'User.TokenRequests PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
-      },
-    },
-  })
-  async patch(
-    @param.path.number('id') id: number,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(TokenRequests, {partial: true}),
-        },
-      },
-    })
-    tokenRequests: Partial<TokenRequests>,
-    @param.query.object('where', getWhereSchemaFor(TokenRequests))
-    where?: Where<TokenRequests>,
-  ): Promise<Count> {
-    return this.userRepository.tokenRequests(id).patch(tokenRequests, where);
-  }
+  // @authenticate('jwt')
+  // @patch('/users/{id}/token-requests', {
+  //   responses: {
+  //     '200': {
+  //       description: 'User.TokenRequests PATCH success count',
+  //       content: {'application/json': {schema: CountSchema}},
+  //     },
+  //   },
+  // })
+  // async patch(
+  //   @param.path.number('id') id: number,
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(TokenRequests, {partial: true}),
+  //       },
+  //     },
+  //   })
+  //   tokenRequests: Partial<TokenRequests>,
+  //   @param.query.object('where', getWhereSchemaFor(TokenRequests))
+  //   where?: Where<TokenRequests>,
+  // ): Promise<Count> {
+  //   return this.userRepository.tokenRequests(id).patch(tokenRequests, where);
+  // }
 
   @authenticate('jwt')
   @del('/users/{id}/token-requests', {

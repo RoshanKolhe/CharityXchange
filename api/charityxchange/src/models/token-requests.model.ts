@@ -1,4 +1,5 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {User} from './user.model';
 
 @model()
 export class TokenRequests extends Entity {
@@ -22,10 +23,10 @@ export class TokenRequests extends Entity {
   transaction_id: string;
 
   @property({
-    type: 'boolean',
+    type: 'number',
     default: 0,
   })
-  status: boolean;
+  status: number;
 
   @property({
     type: 'object',
@@ -43,10 +44,8 @@ export class TokenRequests extends Entity {
   })
   updatedAt?: Date;
 
-  @property({
-    type: 'number',
-  })
-  userId?: number;
+  @belongsTo(() => User)
+  userId: number;
 
   constructor(data?: Partial<TokenRequests>) {
     super(data);

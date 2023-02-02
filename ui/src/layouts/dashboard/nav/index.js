@@ -13,8 +13,8 @@ import Logo from '../../../components/logo';
 import Scrollbar from '../../../components/scrollbar';
 import NavSection from '../../../components/nav-section';
 //
-import navConfig from './config';
 import authService from '../../../services/auth.service';
+import navConfig from './config';
 
 // ----------------------------------------------------------------------
 
@@ -39,6 +39,8 @@ export default function Nav({ openNav, onCloseNav, userProfile }) {
   const { pathname } = useLocation();
 
   const isDesktop = useResponsive('up', 'lg');
+
+  const navConfigSidebarLinks = navConfig(userProfile);
 
   useEffect(() => {
     if (openNav) {
@@ -91,8 +93,8 @@ export default function Nav({ openNav, onCloseNav, userProfile }) {
         data={
           userProfile?.permissions
             ? userProfile?.permissions.includes('super_admin')
-              ? navConfig.sidebarLinks.admin
-              : navConfig.sidebarLinks.member
+              ? navConfigSidebarLinks.sidebarLinks.admin
+              : navConfigSidebarLinks.sidebarLinks.member
             : []
         }
       />
