@@ -51,6 +51,11 @@ const NewMember = (props) => {
   });
 
   const [currentUser, setCurrentUser] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
+  const [openSnackBar, setOpenSnackBar] = useState(false);
+
+  const handleOpenSnackBar = () => setOpenSnackBar(true);
+  const handleCloseSnackBar = () => setOpenSnackBar(false);
 
   const formik = useFormik({
     initialValues: {
@@ -67,9 +72,15 @@ const NewMember = (props) => {
         is_kyc_completed: 0,
         parent_id: currentUser.id || null,
       };
-      axiosInstance.post('users/register', inputValues).then((res) => {
-        props.onDataSubmit();
-      });
+      axiosInstance
+        .post('users/register', inputValues)
+        .then((res) => {
+          props.onDataSubmit();
+        })
+        .catch((err) => {
+          setErrorMessage(err.response.data.error.message);
+          handleOpenSnackBar();
+        });
     },
   });
   const { errors, touched, isSubmitting, handleSubmit, getFieldProps } = formik;
@@ -160,6 +171,12 @@ const NewMember = (props) => {
           Submit
         </Button>
       </form>
+      <CommonSnackBar
+        openSnackBar={openSnackBar}
+        handleCloseSnackBar={handleCloseSnackBar}
+        msg={errorMessage}
+        severity="error"
+      />
     </div>
   );
 };
