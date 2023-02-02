@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useFormik } from 'formik';
+import { Field, useFormik } from 'formik';
 import * as yup from 'yup';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import {
@@ -18,11 +18,15 @@ import {
   FormLabel,
   IconButton,
   Avatar,
+  Modal,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 
 import { omit } from 'lodash';
 import { makeStyles } from '@mui/styles';
 import { useLocation, useNavigate } from 'react-router-dom';
+import CustomBox from '../../common/CustomBox';
 import axiosInstance from '../../helpers/axios';
 import account from '../../_mock/account';
 import CommonSnackBar from '../../common/CommonSnackBar';
@@ -47,6 +51,50 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const TermsAndConditionsModal = ({ handleAccept }) => {
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <span>
+        I agree to <Button onClick={handleOpen}>Terms and conditions</Button>
+      </span>
+      <Modal open={open} onClose={handleClose}>
+        <CustomBox>
+          <div>
+            <h2>Terms and Conditions</h2>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam tincidunt leo id ex blandit, non congue
+              quam vehicula. Curabitur facilisis erat quis semper feugiat. Sed vel nisl vel velit scelerisque tempor.
+              Nam aliquet, diam vel sollicitudin volutpat, ex diam commodo mi, id blandit nulla odio eu nibh. Fusce quis
+              justo euismod, faucibus libero in, efficitur sapien. Lorem ipsum dolor sit amet, consectetur adipiscing
+              elit. Nullam tincidunt leo id ex blandit, non congue quam vehicula. Curabitur facilisis erat quis semper
+              feugiat. Sed vel nisl vel velit scelerisque tempor. Nam aliquet, diam vel sollicitudin volutpat, ex diam
+              commodo mi, id blandit nulla odio eu nibh. Fusce quis justo euismod, faucibus libero in, efficitur sapien.
+            </p>
+            <Button
+              onClick={() => {
+                handleAccept();
+                handleClose();
+              }}
+            >
+              Accept
+            </Button>
+          </div>
+        </CustomBox>
+      </Modal>
+    </>
+  );
+};
+
 const ProfileForm = ({ initialValues }) => {
   const fileInput = React.useRef();
   const idProofInput = React.useRef();
@@ -63,6 +111,8 @@ const ProfileForm = ({ initialValues }) => {
   const [idProof, setIdProof] = useState(null);
   const [addressProof, setAddressProof] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
+
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
@@ -96,6 +146,11 @@ const ProfileForm = ({ initialValues }) => {
         wallet_address: yup.string('Enter Public Key').required('Public Key is required'),
       }),
     }),
+    // terms: yup.boolean().when('', {
+    //   is: () => location.pathname === '/kyc',
+    //   then: yup.string().required('Please accept terms and condition'),
+    //   otherwise: yup.string().notRequired(),
+    // }),
   });
 
   const formik = useFormik({
@@ -125,6 +180,7 @@ const ProfileForm = ({ initialValues }) => {
       },
 
       email: initialValues.email || '',
+      terms: initialValues.terms || false,
     },
     enableReinitialize: true,
     validationSchema: profileFormValidationSchema,
@@ -136,6 +192,10 @@ const ProfileForm = ({ initialValues }) => {
         values = omit(values, 'balances.id');
       }
       if (location.pathname === '/kyc') {
+        if (!values.terms) {
+          formik.setFieldError('terms', 'Please accept the terms and condition to proceed');
+          return;
+        }
         values = {
           ...values,
           is_kyc_completed: 1,
@@ -164,6 +224,10 @@ const ProfileForm = ({ initialValues }) => {
         });
     },
   });
+
+  const handleAccept = () => {
+    formik.setFieldValue('terms', true);
+  };
 
   const handleFileUpload = (event, fileType) => {
     const reader = new FileReader();
@@ -541,6 +605,15 @@ const ProfileForm = ({ initialValues }) => {
             )}
           </Grid>
         </Grid>
+        {location.pathname !== '/kyc' ? null : (
+          <Grid container>
+            <Grid item xs={12} lg={11} margin={2}>
+              <Checkbox id="terms" name="terms" checked={formik.values.terms} onChange={formik.handleChange} />
+              <TermsAndConditionsModal handleAccept={handleAccept} />
+              <FormHelperText error>{formik?.touched?.terms && formik?.errors?.terms}</FormHelperText>
+            </Grid>
+          </Grid>
+        )}
         <Grid container>
           <Grid item margin={2}>
             <Button color="primary" variant="contained" fullWidth type="submit" form="profileForm">

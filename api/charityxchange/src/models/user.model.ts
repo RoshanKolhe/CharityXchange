@@ -70,6 +70,13 @@ export class User extends Entity {
   is_kyc_completed: number;
 
   @property({
+    type: 'boolean',
+    required: true,
+    default: false,
+  })
+  terms: boolean;
+
+  @property({
     type: 'string',
   })
   otp?: string;
