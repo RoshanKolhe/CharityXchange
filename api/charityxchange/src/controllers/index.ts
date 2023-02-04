@@ -9,3 +9,4 @@ export * from './user-admin-balances.controller';
 export * from './token-requests.controller';
 export * from './user-token-requests.controller';
 export * from './token-requests-user.controller';
+export * from './price-plans.controller';

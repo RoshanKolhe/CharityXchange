@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Field, useFormik } from 'formik';
 import * as yup from 'yup';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/material.css';
 import {
   FormHelperText,
   Button,
@@ -126,13 +128,11 @@ const ProfileForm = ({ initialValues }) => {
         return true;
       }),
     userProfile: yup.object({
-      contact: yup.number('Enter Contact Number').test('len', 'Must be  10 characters', (val) => {
-        if (val) return val.toString().length < 11;
-        return true;
-      }),
+      contact: yup.string('Enter Contact Number').required('Contact is required'),
       address: yup.object({
         addressLine1: yup.string('Enter Address Line 1').required('Address Line 1 is required'),
         addresLine2: yup.string('Enter Address Line 2'),
+        country: yup.string('Enter Country').required('Country is required'),
         city: yup.string('Enter City').required('City is required'),
         state: yup.string('Enter State').required('State is required'),
         zipCode: yup.string('Enter Zip Code').required('Zip Code is required'),
@@ -165,6 +165,7 @@ const ProfileForm = ({ initialValues }) => {
         address: {
           addressLine1: initialValues?.userProfile?.address?.addressLine1 || '',
           addressLine2: initialValues?.userProfile?.address?.addressLine2 || '',
+          country: initialValues?.userProfile?.address?.country || '',
           city: initialValues?.userProfile?.address?.city || '',
           state: initialValues?.userProfile?.address?.state || '',
           zipCode: initialValues?.userProfile?.address?.zipCode || '',
@@ -185,6 +186,7 @@ const ProfileForm = ({ initialValues }) => {
     enableReinitialize: true,
     validationSchema: profileFormValidationSchema,
     onSubmit: async (values) => {
+      console.log('values', values);  
       if (values.userProfile.id === undefined || values.userProfile.id === '') {
         values = omit(values, 'userProfile.id');
       }
@@ -227,6 +229,10 @@ const ProfileForm = ({ initialValues }) => {
 
   const handleAccept = () => {
     formik.setFieldValue('terms', true);
+  };
+
+  const onPhoneValueChange = (phoneNumber) => {
+    formik.setFieldValue('userProfile.contact', phoneNumber);
   };
 
   const handleFileUpload = (event, fileType) => {
@@ -318,7 +324,7 @@ const ProfileForm = ({ initialValues }) => {
             />
           </Grid>
           <Grid item xs={12} lg={5} margin={2}>
-            <TextField
+            {/* <TextField
               InputProps={{ disableUnderline: true }}
               fullWidth
               id="userProfile.contact"
@@ -329,7 +335,21 @@ const ProfileForm = ({ initialValues }) => {
               onChange={formik.handleChange}
               error={formik?.touched?.userProfile?.contact && Boolean(formik?.errors?.userProfile?.contact)}
               helperText={formik?.touched?.userProfile?.contact && formik?.errors?.userProfile?.contact}
+            /> */}
+            <PhoneInput
+              country={'in'}
+              value={formik.values.userProfile.contact}
+              onChange={(phone) => {
+                onPhoneValueChange(phone);
+              }}
+              inputStyle={{
+                width: '100%',
+              }}
+              placeholder="Phone number"
             />
+            <FormHelperText error>
+              {formik?.touched?.userProfile?.contact && formik?.errors?.userProfile?.contact}
+            </FormHelperText>
           </Grid>
         </Grid>
         <Grid container>
@@ -415,6 +435,24 @@ const ProfileForm = ({ initialValues }) => {
               helperText={
                 formik?.touched?.userProfile?.address?.addressLine2 &&
                 formik?.errors?.userProfile?.address?.addressLine2
+              }
+            />
+          </Grid>
+          <Grid item xs={12} lg={5} margin={2}>
+            <TextField
+              InputProps={{ disableUnderline: true }}
+              fullWidth
+              id="userProfile.address.country"
+              name="userProfile.address.country"
+              label="Country"
+              type="text"
+              value={formik.values.userProfile.address.country}
+              onChange={formik.handleChange}
+              error={
+                formik?.touched?.userProfile?.address?.country && Boolean(formik?.errors?.userProfile?.address?.country)
+              }
+              helperText={
+                formik?.touched?.userProfile?.address?.country && formik?.errors?.userProfile?.address?.country
               }
             />
           </Grid>

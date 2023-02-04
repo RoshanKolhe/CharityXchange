@@ -14,6 +14,7 @@ export async function migrate(args: string[]) {
       'Balances',
       'AdminBalances',
       'TokenRequests',
+      'PricingPlan',
     ],
   });
 

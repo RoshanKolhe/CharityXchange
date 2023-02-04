@@ -5,6 +5,7 @@ import { faker } from '@faker-js/faker';
 import { useTheme } from '@mui/material/styles';
 import { Grid, Container, Typography, Button, Modal } from '@mui/material';
 // components
+import LoyaltyIcon from '@mui/icons-material/Loyalty';
 import CommonSnackBar from '../common/CommonSnackBar';
 import PaymentForm from '../components/payment-section/PayementForm';
 import axiosInstance from '../helpers/axios';
@@ -53,7 +54,6 @@ export default function DashboardEmployeePage() {
     });
   };
 
-
   return (
     <>
       <Helmet>
@@ -95,16 +95,16 @@ export default function DashboardEmployeePage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
+            <AppWidgetSummary title="Incentives Earned" total={234} color="info" icon={'mdi:loyalty'} />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
               title="Withdrawn Balance"
               total={`${userProfile?.balance_user?.withdrawn_amount}`}
               color="warning"
               icon={'bx:money-withdraw'}
             />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Bug Reports" total={234} color="error" icon={'ant-design:bug-filled'} />
           </Grid>
 
           <Grid item xs={12} md={6} lg={8}>

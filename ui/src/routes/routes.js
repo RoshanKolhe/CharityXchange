@@ -1,6 +1,7 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import PricingPlan from '../components/PricingPlans/PricingPlans';
 import TokenRequestsAdminPage from '../pages/TokenRequestsAdminPage';
 import TokenRequestsEmployeePage from '../pages/TokenRequestsEmployeePage';
 import PendingKycPage from '../pages/PendingKycPage';
@@ -78,6 +79,10 @@ export default function Router({ role }) {
               name: 'tokenRequestsAdmin',
               path: 'tokenRequests',
               element: <TokenRequestsAdminPage />,
+            },
+            {
+              path: '/plans',
+              element: <PricingPlan />,
             },
           ],
         },
