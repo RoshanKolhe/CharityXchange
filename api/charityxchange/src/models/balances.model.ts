@@ -21,18 +21,18 @@ export class Balances extends Entity {
     type: 'number',
     default: 0,
   })
-  withdrawn_amount?: number;
+  withdrawn_amount: number;
 
   @property({
     type: 'number',
     default: 0,
   })
-  current_balance?: number;
+  current_balance: number;
 
   @property({
     type: 'object',
   })
-  payment_info?: object;
+  payment_info: object;
 
   @property({
     type: 'date',

@@ -1,7 +1,7 @@
 import {Entity, model, property} from '@loopback/repository';
 
 @model()
-export class PricingPlan extends Entity {
+export class AdminReceivedLinks extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -11,32 +11,27 @@ export class PricingPlan extends Entity {
 
   @property({
     type: 'string',
-  })
-  title?: string;
-
-  @property({
-    type: 'number',
     required: true,
   })
-  price: number;
+  linkName: string;
 
   @property({
-    type: 'number',
+    type: 'boolean',
     required: true,
   })
-  discounted_price: number;
+  is_active: boolean;
 
   @property({
-    type: 'number',
+    type: 'boolean',
     required: true,
   })
-  total_links: number;
+  is_help_send: boolean;
 
   @property({
-    type: 'object',
+    type: 'boolean',
     required: true,
   })
-  features: object;
+  is_send_to_admin: boolean;
 
   @property({
     type: 'date',
@@ -48,13 +43,18 @@ export class PricingPlan extends Entity {
   })
   updatedAt?: Date;
 
-  constructor(data?: Partial<PricingPlan>) {
+  @property({
+    type: 'number',
+  })
+  userLinksId?: number;
+
+  constructor(data?: Partial<AdminReceivedLinks>) {
     super(data);
   }
 }
 
-export interface PricingPlanRelations {
+export interface AdminReceivedLinksRelations {
   // describe navigational properties here
 }
 
-export type PricingPlanWithRelations = PricingPlan & PricingPlanRelations;
+export type AdminReceivedLinksWithRelations = AdminReceivedLinks & AdminReceivedLinksRelations;

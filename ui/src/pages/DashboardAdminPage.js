@@ -33,7 +33,7 @@ export default function DashboardAdminPage() {
       setUserProfile(res.data);
     });
   }, []);
-  
+
   return (
     <>
       <Helmet>
@@ -56,7 +56,7 @@ export default function DashboardAdminPage() {
 
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
-              title="Total Earnings"
+              title="Total Help Received"
               total={`${userProfile?.adminBalances?.total_earnings}`}
               color="info"
               icon={'ant-design:apple-filled'}

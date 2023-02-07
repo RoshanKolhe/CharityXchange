@@ -6,6 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import { Grid, Container, Typography, Button, Modal } from '@mui/material';
 // components
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
+import PaymentNotificationStrip from '../components/payment-section/Payment-Notification';
 import CommonSnackBar from '../common/CommonSnackBar';
 import PaymentForm from '../components/payment-section/PayementForm';
 import axiosInstance from '../helpers/axios';
@@ -53,7 +54,7 @@ export default function DashboardEmployeePage() {
       handleOpen();
     });
   };
-
+  console.log('userProfile', userProfile?.activePayment);
   return (
     <>
       <Helmet>
@@ -61,6 +62,14 @@ export default function DashboardEmployeePage() {
       </Helmet>
 
       <Container maxWidth="xl">
+        {!userProfile?.activePayment || userProfile?.activePayment === undefined ? (
+          <PaymentNotificationStrip
+            icon="ic:twotone-warning"
+            message="You do not currently have an active package. To start earning, please subscribe to a plan."
+            isError
+          />
+        ) : null}
+
         <Typography variant="h4" sx={{ mb: 5 }}>
           Hi, Welcome back
         </Typography>

@@ -3,6 +3,7 @@ import {UserProfile, UserProfileWithRelations} from './user-profile.model';
 import {Balances} from './balances.model';
 import {AdminBalances} from './admin-balances.model';
 import {TokenRequests} from './token-requests.model';
+import {UserLinks} from './user-links.model';
 
 @model()
 export class User extends Entity {
@@ -101,6 +102,9 @@ export class User extends Entity {
 
   @hasMany(() => TokenRequests)
   tokenRequests: TokenRequests[];
+
+  @hasMany(() => UserLinks)
+  userLinks: UserLinks[];
 
   constructor(data?: Partial<User>) {
     super(data);

@@ -10,3 +10,7 @@ export * from './token-requests.controller';
 export * from './user-token-requests.controller';
 export * from './token-requests-user.controller';
 export * from './price-plans.controller';
+export * from './user-pricing-plan.controller';
+export * from './user-user-links.controller';
+export * from './user-links-admin-received-links.controller';
+export * from './user-links-admin-received-links.controller';

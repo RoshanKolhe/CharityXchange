@@ -15,6 +15,9 @@ export async function migrate(args: string[]) {
       'AdminBalances',
       'TokenRequests',
       'PricingPlan',
+      'UserPricingPlan',
+      'UserLinks',
+      'AdminReceivedLinks',
     ],
   });
 

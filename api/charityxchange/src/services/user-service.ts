@@ -1,9 +1,9 @@
 import {UserService} from '@loopback/authentication';
 import {inject} from '@loopback/core';
-import {repository} from '@loopback/repository';
+import {DefaultTransactionalRepository, repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {securityId, UserProfile} from '@loopback/security';
-import {User} from '../models';
+import {User, UserPricingPlan} from '../models';
 import {Credentials, UserRepository} from './../repositories/user.repository';
 import {BcryptHasher} from './hash.password.bcrypt';
 
@@ -44,4 +44,6 @@ export class MyUserService implements UserService<User, Credentials> {
       permissions: user.permissions,
     };
   }
+
+
 }

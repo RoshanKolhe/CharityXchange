@@ -22,3 +22,35 @@ export const CredentialsRequestBody = {
     'application/json': {schema: CredentialsSchema},
   },
 };
+
+const packageSubscriptionSchema: SchemaObject = {
+  type: 'object',
+  required: ['id', 'price', 'discounted_price', 'total_links'],
+  properties: {
+    id: {
+      type: 'number',
+    },
+    price: {
+      type: 'number',
+    },
+    discounted_price: {
+      type: 'number',
+    },
+    total_links: {
+      type: 'number',
+    },
+    title: {
+      type: 'string',
+    },
+    features: {
+      type: 'object',
+    },
+  },
+};
+export const PackageSubscriptionRequestBody = {
+  description: 'The input of subscribeplan function',
+  required: true,
+  content: {
+    'application/json': {schema: packageSubscriptionSchema},
+  },
+};

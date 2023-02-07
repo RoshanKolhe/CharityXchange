@@ -186,7 +186,7 @@ const ProfileForm = ({ initialValues }) => {
     enableReinitialize: true,
     validationSchema: profileFormValidationSchema,
     onSubmit: async (values) => {
-      console.log('values', values);  
+      console.log('values', values);
       if (values.userProfile.id === undefined || values.userProfile.id === '') {
         values = omit(values, 'userProfile.id');
       }
@@ -324,18 +324,6 @@ const ProfileForm = ({ initialValues }) => {
             />
           </Grid>
           <Grid item xs={12} lg={5} margin={2}>
-            {/* <TextField
-              InputProps={{ disableUnderline: true }}
-              fullWidth
-              id="userProfile.contact"
-              name="userProfile.contact"
-              label="Contact Number"
-              type="text"
-              value={formik.values.userProfile.contact}
-              onChange={formik.handleChange}
-              error={formik?.touched?.userProfile?.contact && Boolean(formik?.errors?.userProfile?.contact)}
-              helperText={formik?.touched?.userProfile?.contact && formik?.errors?.userProfile?.contact}
-            /> */}
             <PhoneInput
               country={'in'}
               value={formik.values.userProfile.contact}

@@ -1,5 +1,10 @@
 import {securityId, UserProfile} from '@loopback/security';
-import {Filter, repository} from '@loopback/repository';
+import {
+  DefaultTransactionalRepository,
+  Filter,
+  IsolationLevel,
+  repository,
+} from '@loopback/repository';
 import {
   get,
   getJsonSchemaRef,
@@ -11,13 +16,27 @@ import {
   response,
 } from '@loopback/rest';
 import SITE_SETTINGS from '../utils/config';
-import {User, UserProfile as UserProfileData} from '../models';
-import {Credentials, UserRepository} from '../repositories';
+import {
+  PricingPlan,
+  User,
+  UserPricingPlan,
+  UserProfile as UserProfileData,
+} from '../models';
+import {
+  Credentials,
+  PricingPlanRepository,
+  UserLinksRepository,
+  UserPricingPlanRepository,
+  UserRepository,
+} from '../repositories';
 import * as _ from 'lodash';
 import {validateCredentials} from '../services/validator';
 import {inject} from '@loopback/core';
 import {BcryptHasher} from '../services/hash.password.bcrypt';
-import {CredentialsRequestBody} from './specs/user-controller-spec';
+import {
+  CredentialsRequestBody,
+  PackageSubscriptionRequestBody,
+} from './specs/user-controller-spec';
 import {MyUserService} from '../services/user-service';
 import {JWTService} from '../services/jwt-service';
 import {authenticate, AuthenticationBindings} from '@loopback/authentication';
@@ -26,6 +45,7 @@ import {EmailManager} from '../services/email.service';
 import {EmailManagerBindings} from '../keys';
 import generateOtpTemplate from '../templates/otp.template';
 import generateEmailAndPasswordTemplate from '../templates/email-and-password.template';
+import {CharityxchangeSqlDataSource} from '../datasources';
 
 const UserLoginSchema = {
   type: 'object',
@@ -40,6 +60,8 @@ const UserLoginSchema = {
 };
 export class UserController {
   constructor(
+    @inject('datasources.charityxchangeSql')
+    public dataSource: CharityxchangeSqlDataSource,
     @repository(UserRepository)
     public userRepository: UserRepository,
     @inject('service.hasher')
@@ -50,6 +72,12 @@ export class UserController {
     public jwtService: JWTService,
     @inject(EmailManagerBindings.SEND_MAIL)
     public emailManager: EmailManager,
+    @repository(UserPricingPlanRepository)
+    public userPricingPlanRepository: UserPricingPlanRepository,
+    @repository(PricingPlanRepository)
+    public pricingPlanRepository: PricingPlanRepository,
+    @repository(UserLinksRepository)
+    protected userLinksRepository: UserLinksRepository,
   ) {}
 
   @post('/users/register', {
@@ -163,10 +191,32 @@ export class UserController {
       where: {
         id: currnetUser.id,
       },
-      include: ['userProfile', 'balance_user','adminBalances'],
+      include: ['userProfile', 'balance_user', 'adminBalances'],
     });
+    const currentUserActivePlans = await this.userPricingPlanRepository.find({
+      where: {
+        userId: currnetUser.id,
+      },
+    });
+    let filteredData = currentUserActivePlans;
+    let currentUserActivePlan = {};
+    if (currentUserActivePlans.length > 0) {
+      filteredData = currentUserActivePlans.filter(function (res) {
+        return res.is_active === true;
+      });
+
+      if (filteredData.length > 1) {
+        throw new HttpErrors[400]('Something went wrong');
+      }
+      currentUserActivePlan = filteredData[0];
+    }
+
     return Promise.resolve({
       ...user,
+      activePayment:
+        Object.keys(currentUserActivePlan).length > 0
+          ? currentUserActivePlan
+          : undefined,
     });
   }
 
@@ -290,5 +340,180 @@ export class UserController {
     return Promise.resolve({
       ...user,
     });
+  }
+
+  @authenticate('jwt')
+  @post('/user/subscribe', {
+    responses: {
+      '200': {
+        description: 'Subscription',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                success: {
+                  type: 'string',
+                },
+                message: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  async subscribeToPlan(
+    @requestBody(PackageSubscriptionRequestBody) pricingPlan: any,
+    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
+  ): Promise<{}> {
+    const repo = new DefaultTransactionalRepository(User, this.dataSource);
+    const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
+    try {
+      const currentBalanceOfUser = await await this.userRepository
+        .balance_user(currnetUser.id)
+        .get();
+      if (
+        currentBalanceOfUser.current_balance &&
+        currentBalanceOfUser.current_balance < pricingPlan.price
+      ) {
+        throw new HttpErrors[400]('Not Enough Balance');
+      }
+
+      const currentUserActivePlans = await this.userPricingPlanRepository.find({
+        where: {
+          userId: currnetUser.id,
+        },
+      });
+      let filteredData = currentUserActivePlans;
+      let currentUserActivePlan;
+      if (currentUserActivePlans.length > 0) {
+        filteredData = currentUserActivePlans.filter(function (res) {
+          return res.is_active === true;
+        });
+
+        if (filteredData.length > 1) {
+          throw new HttpErrors[400]('Something went wrong');
+        }
+        currentUserActivePlan = filteredData[0];
+      }
+
+      if (currentUserActivePlan?.pricingPlanId == pricingPlan.id) {
+        throw new HttpErrors[400]('Plan is already active');
+      }
+
+      await this.userRepository.balance_user(currnetUser.id).patch(
+        {
+          current_balance:
+            currentBalanceOfUser.current_balance - pricingPlan.price,
+        },
+        {transaction: tx},
+      );
+      const adminBalance = await this.userRepository.adminBalances(5).get();
+      await this.userRepository.adminBalances(5).patch(
+        {
+          total_supply: adminBalance.total_supply + pricingPlan.price,
+          total_earnings: adminBalance.total_earnings + pricingPlan.price,
+        },
+        {transaction: tx},
+      );
+
+      let previousLinkCount = 0;
+      let currentActivePlanData;
+      if (currentUserActivePlan) {
+        previousLinkCount = await (
+          await this.userRepository.userLinks(currnetUser.id).find()
+        ).length;
+        currentActivePlanData = await this.pricingPlanRepository.findById(
+          currentUserActivePlan?.pricingPlanId,
+        );
+        await this.userPricingPlanRepository.updateById(
+          currentUserActivePlan?.id,
+          {
+            ...currentUserActivePlan,
+            is_active: false,
+          },
+          {transaction: tx},
+        );
+        pricingPlan.total_links =
+          pricingPlan.total_links - currentActivePlanData.total_links;
+      }
+
+      const pricingPlanData: any = {
+        userId: currnetUser.id,
+        pricingPlanId: pricingPlan.id,
+        startDate: new Date().toString(),
+        endDate: new Date(Date.UTC(2099, 1, 13, 23, 31, 30)).toString(),
+        is_active: true,
+      };
+      await this.userPricingPlanRepository.create(pricingPlanData, {
+        transaction: tx,
+      });
+
+      for (let i = 0; i < pricingPlan.total_links; i++) {
+        const userLinkData = {
+          linkName: currnetUser.name
+            ? `${currnetUser?.name.replace(/ /g, '')}-` +
+              (previousLinkCount + i + 1)
+            : `${new Date()}`,
+          is_active: true,
+          is_help_send: true,
+          is_send_to_admin: this.calculateBasedOnTotalLink(
+            pricingPlan.total_links,
+            i,
+          ),
+        };
+
+        const userLink = await this.userRepository
+          .userLinks(currnetUser.id)
+          .create(userLinkData, {transaction: tx});
+        if (userLinkData.is_send_to_admin) {
+          await this.userLinksRepository
+            .adminReceivedLinks(userLink.id)
+            .create(userLinkData, {transaction: tx});
+        }
+      }
+      tx.commit();
+      return Promise.resolve({
+        success: true,
+        message: 'Successfully Subscribed to a Plan',
+      });
+    } catch (err) {
+      console.log('error', err);
+      tx.rollback();
+      return Promise.resolve({
+        success: false,
+        message: err,
+      });
+    }
+  }
+
+  calculateBasedOnTotalLink(total_links: any, index: number): boolean {
+    if (total_links == 3) {
+      if (index == 0) {
+        return true;
+      }
+    } else if (total_links == 5) {
+      if (index == 0) {
+        return true;
+      } else if (index == 1) {
+        return true;
+      }
+    } else if (total_links == 11) {
+      if (index == 0) {
+        return true;
+      } else if (index == 1) {
+        return true;
+      } else if (index == 2) {
+        return true;
+      } else if (index == 3) {
+        return true;
+      } else if (index == 4) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -78,6 +78,15 @@ export default function Router({ role }) {
             {
               name: 'tokenRequestsAdmin',
               path: 'tokenRequests',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <TokenRequestsAdminPage />{' '}
+                </RolesAuthRoute>
+              ),
+            },
+            {
+              name: 'Links',
+              path: '/userLinks',
               element: <TokenRequestsAdminPage />,
             },
             {
