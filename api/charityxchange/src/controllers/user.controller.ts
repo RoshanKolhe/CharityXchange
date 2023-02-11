@@ -442,7 +442,7 @@ export class UserController {
       for (let i = 0; i < pricingPlan.total_links; i++) {
         const userLinkData = {
           linkName: currnetUser.name
-            ? `${currnetUser?.name.replace(/ /g, '')}-` +
+            ? `${currnetUser?.id}-` +
               (previousLinkCount + i + 1)
             : `${new Date()}`,
           is_active: true,

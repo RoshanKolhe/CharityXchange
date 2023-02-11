@@ -1,5 +1,6 @@
-import { Box, Button, Grid, Modal, TextField, Typography } from '@mui/material';
+import { Box, Button, Grid, IconButton, InputAdornment, Modal, TextField, Typography } from '@mui/material';
 import React, { useState } from 'react';
+import { Icon } from '@iconify/react';
 import * as yup from 'yup';
 import { makeStyles } from '@mui/styles';
 import { useFormik } from 'formik';
@@ -123,13 +124,22 @@ const PaymentForm = ({
         <Grid container>
           <Grid item xs={12} lg={11} sx={{ marginTop: '5px' }}>
             <TextField
-              InputProps={{ disableUnderline: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <IconButton edge="start">
+                      <Icon icon="material-symbols:attach-money" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                disableUnderline: true,
+              }}
               fullWidth
               id="amount"
               name="amount"
               label="Amount"
               type="number"
-              sx={{marginY:'10px'}}
+              sx={{ marginY: '10px' }}
               value={formik.values.amount}
               onChange={formik.handleChange}
               error={formik?.touched?.amount && Boolean(formik?.errors?.amount)}

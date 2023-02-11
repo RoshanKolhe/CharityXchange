@@ -64,31 +64,37 @@ export class UserUserLinksController {
       const linksNotSent = userLinks.filter(res => {
         return !res.is_send_to_admin;
       });
-      const currentUserActivePlan =
-        await this.userService.getCurrentUserActivePack(currnetUser);
+      const linkSendToAdminButHelpNotRceived = userLinks.filter(res => {
+        return res.is_send_to_admin && !res.is_help_received;
+      });
 
-      if (linksNotSent.length < currentUserActivePlan.total_links) {
-        const linksToAddCount =
-          currentUserActivePlan.total_links - linksNotSent.length;
-        const previousLinkCount = await (
-          await this.userRepository.userLinks(currnetUser.id).find()
-        ).length;
-        for (let i = 0; i < linksToAddCount; i++) {
-          const userLinkData = {
-            linkName: currnetUser.name
-              ? `${currnetUser?.name.replace(/ /g, '')}-` +
-                (previousLinkCount + i + 1)
-              : `${new Date()}`,
-            is_active: false,
-            is_help_send: false,
-            is_help_received: false,
-            is_send_to_admin: false,
-          };
-          await this.userRepository
-            .userLinks(currnetUser.id)
-            .create(userLinkData);
+      if (linkSendToAdminButHelpNotRceived.length === 0) {
+        const currentUserActivePlan =
+          await this.userService.getCurrentUserActivePack(currnetUser);
+
+        if (linksNotSent.length < currentUserActivePlan.total_links) {
+          const linksToAddCount =
+            currentUserActivePlan.total_links - linksNotSent.length;
+          const previousLinkCount = await (
+            await this.userRepository.userLinks(currnetUser.id).find()
+          ).length;
+          for (let i = 0; i < linksToAddCount; i++) {
+            const userLinkData = {
+              linkName: currnetUser.name
+                ? `${currnetUser?.id}-` + (previousLinkCount + i + 1)
+                : `${new Date()}`,
+              is_active: false,
+              is_help_send: false,
+              is_help_received: false,
+              is_send_to_admin: false,
+            };
+            await this.userRepository
+              .userLinks(currnetUser.id)
+              .create(userLinkData);
+          }
         }
       }
+
       return this.userRepository.userLinks(currnetUser.id).find(filter);
     } catch (err) {
       throw HttpErrors[400](err);
