@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
+import { filter, omit } from 'lodash';
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '@iconify/react';
@@ -36,6 +36,7 @@ import {
 } from '@mui/material';
 // components
 import { makeStyles } from '@mui/styles';
+import clsx from 'clsx';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -48,10 +49,10 @@ import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'amount', label: 'Amount', alignRight: false },
-  { id: 'transaction_id', label: 'Transaction Id', alignRight: false },
-  { id: 'payment_screen_shot', label: 'Transaction Proof', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'linkName', label: 'Link', alignRight: false },
+  { id: 'is_active', label: 'Active', alignRight: false },
+  { id: 'is_help_send', label: 'Help Send', alignRight: false },
+  { id: '' },
 ];
 
 // ----------------------------------------------------------------------
@@ -80,7 +81,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.linkName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -93,9 +94,16 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
+  rowColor: {
+    background: '#DFDFDF',
+  },
+
+  pointerCss: {
+    cursor: 'pointer',
+  },
 }));
 
-export default function TokenRequestsEmployeePage() {
+export default function AdminReceivedLInks() {
   const style = {
     position: 'absolute',
     top: '50%',
@@ -114,6 +122,7 @@ export default function TokenRequestsEmployeePage() {
   const navigate = useNavigate();
   const params = useParams();
   const [open, setOpen] = useState(null);
+  const [timer, setTimer] = useState(null);
 
   const [tokenRequests, setTokenRequests] = useState([]);
 
@@ -125,7 +134,7 @@ export default function TokenRequestsEmployeePage() {
 
   const [editUserData, setEditUserData] = useState({});
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('id');
 
   const [filterName, setFilterName] = useState('');
 
@@ -133,6 +142,8 @@ export default function TokenRequestsEmployeePage() {
 
   const [msg, setMsg] = useState('');
   const [openSnackBar, setOpenSnackBar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
@@ -204,13 +215,102 @@ export default function TokenRequestsEmployeePage() {
 
   const fetchData = () => {
     axiosInstance
-      .get(`/users/${params.id}/token-requests?filter[order]=createdAt%20DESC`)
+      .get(`/user-links/admin-received-links?filter[where][property]=value`)
       .then((res) => {
         setTokenRequests(res.data);
       })
       .catch((err) => {
         setTokenRequests([]);
       });
+  };
+
+  const handleLinkActivate = (row) => {
+    let inputData = {
+      ...row,
+      activationStartTime: `${new Date()}`,
+      activationEndTime: `${AddMinutesToDate(new Date(), 1440)}`,
+    };
+    inputData = omit(inputData, 'userId');
+    axiosInstance
+      .patch(`/users/update-user-link?where[id]=${row.id}`, inputData)
+      .then((res) => {
+        setErrorMessage('');
+        setSuccessMessage('Successfully Activated Link');
+        handleOpenSnackBar();
+        fetchData();
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        fetchData();
+      });
+  };
+
+  const handleSendHelp = (row) => {
+    let inputData = {
+      ...row,
+      is_active: true,
+      is_help_send: true,
+      is_help_received: false,
+      is_send_to_admin: false,
+    };
+    inputData = omit(inputData, 'userId');
+    axiosInstance
+      .patch(`/users/update-user-help-link?where[id]=${row.id}`, inputData)
+      .then((res) => {
+        setErrorMessage('');
+        setSuccessMessage('Successfully Activated Link');
+        handleOpenSnackBar();
+        fetchData();
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        fetchData();
+      });
+  };
+
+  const AddMinutesToDate = (date, minutes) => new Date(date.getTime() + minutes * 60000);
+
+  const renderCountdown = (dateStart, dateEnd) => {
+    const targetDate = new Date(dateEnd).getTime(); // set the countdown date
+    const count = 0;
+    const getCountdown = function () {
+      // find the amount of "seconds" between now and target
+      const currentDate = new Date().getTime();
+      let secondsLeft = (targetDate - currentDate) / 1000 - count;
+      const days = Math.floor(secondsLeft / 86400);
+      secondsLeft %= 86400;
+      const hours = Math.floor(secondsLeft / 3600);
+      secondsLeft %= 3600;
+      const minutes = Math.floor(secondsLeft / 60);
+      const seconds = Math.floor(secondsLeft % 60);
+      // format countdown string + set tag value
+      return `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    };
+    function pad(n) {
+      return (n < 10 ? '0' : '') + n;
+    }
+    return getCountdown();
+  };
+
+  const checkActiveState = (row) => {
+    const now = new Date();
+    let expire_start_date;
+    let expire_end_date;
+    if (row.activationStartTime && row.activationEndTime) {
+      expire_start_date = new Date(row.activationStartTime);
+      expire_end_date = new Date(row.activationEndTime);
+    }
+    if (row.is_active) {
+      return true;
+    }
+    if (!row.is_active && expire_start_date && expire_end_date && now <= expire_end_date && now >= expire_start_date) {
+      return true;
+    }
+    return false;
   };
 
   useEffect(() => {
@@ -220,25 +320,29 @@ export default function TokenRequestsEmployeePage() {
   return (
     <>
       <Helmet>
-        <title> Token Requests | CharityXchange </title>
+        <title> Links | CharityXchange </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Token Requests
+            Links
           </Typography>
         </Stack>
-
+        <Typography variant="caption" gutterBottom>
+          Note*: Activating a link will result in a $10 deduction from your wallet, and sending help will result in a
+          $20 deduction. After activating the link, help must be sent within 24 hours or the link will deactivate and
+          need to be reactivated.
+        </Typography>
         <Card>
-          {/* <ListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} /> */}
+          <ListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
                 <ListHead
-                  isChechbox={false}
                   order={order}
+                  isCheckbox
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
                   rowCount={tokenRequests.length}
@@ -248,47 +352,78 @@ export default function TokenRequestsEmployeePage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, amount, transaction_id, payment_screen_shot, status, user } = row;
+                    const {
+                      id,
+                      linkName,
+                      is_active,
+                      is_help_send,
+                      is_send_to_admin,
+                      is_help_received,
+                      activationStartTime,
+                      activationEndTime,
+                    } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        {/* <TableCell padding="checkbox">
+                      <TableRow
+                        hover
+                        key={id}
+                        tabIndex={-1}
+                        role="checkbox"
+                        selected={selectedUser}
+                      >
+                        <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
-                        </TableCell> */}
-                       
+                        </TableCell>
 
                         <TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
-                            {amount}
+                            {linkName}
                           </Typography>
                         </TableCell>
-                        <Tooltip placement="top" title={transaction_id}>
-                          <TableCell
-                            align="left"
-                            className={classes.textContainer}
-                            onClick={() => {
-                              navigator.clipboard.writeText(transaction_id);
-                              setMsg('Copied');
-                              handleOpenSnackBar();
-                            }}
-                          >
-                            {transaction_id}
-                          </TableCell>
-                        </Tooltip>
                         <TableCell align="left">
                           <Label
-                            color="secondary"
-                            onClick={() => window.open(payment_screen_shot?.originalname, '_blank')}
-                            style={{ cursor: 'pointer' }}
+                            color={!checkActiveState(row) ? 'error' : checkActiveState(row) ? 'success' : 'error'}
+                            className={clsx(!checkActiveState(row) ? classes.pointerCss : null)}
+                            onClick={() => {
+                              if (!checkActiveState(row)) {
+                                handleLinkActivate(row);
+                              }
+                            }}
                           >
-                            View
+                            {checkActiveState(row) ? 'Active' : 'Activate'}
                           </Label>
                         </TableCell>
-
                         <TableCell align="left">
-                          <Label color={status === 0 ? 'error' : status === 1 ? 'success' : 'error'}>
-                            {status === 0 ? 'Processing' : status === 1 ? 'Approved' : 'Declined'}
+                          <Label
+                            className={clsx(!is_help_send ? classes.pointerCss : null)}
+                            color={!is_help_send ? 'error' : is_help_send ? 'success' : 'error'}
+                            onClick={() => {
+                              if (
+                                new Date() <= new Date(activationEndTime) &&
+                                new Date() >= new Date(activationStartTime)
+                              ) {
+                                handleSendHelp(row);
+                              }
+                            }}
+                          >
+                            {!is_help_send ? 'Send Help' : is_help_send ? 'Active' : 'Send Help'}
                           </Label>
+                        </TableCell>
+                        {/* <TableCell align="left">
+                          <Label color={!is_help_received ? 'error' : is_help_received ? 'success' : 'error'}>
+                            {!is_help_received ? 'Pending' : is_help_received ? 'Received' : 'Pending'}
+                          </Label>
+                        </TableCell> */}
+                        <TableCell align="right">
+                          <IconButton
+                            size="large"
+                            color="inherit"
+                            onClick={(event) => {
+                              handleOpenMenu(event, row);
+                            }}
+                          >
+                            <Iconify icon={'eva:more-vertical-fill'} />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     );
@@ -341,9 +476,40 @@ export default function TokenRequestsEmployeePage() {
       <CommonSnackBar
         openSnackBar={openSnackBar}
         handleCloseSnackBar={handleCloseSnackBar}
-        msg={msg}
-        severity="success"
+        msg={errorMessage !== '' ? errorMessage : successMessage}
+        severity={errorMessage !== '' ? 'error' : 'success'}
       />
+      <Popover
+        open={Boolean(open)}
+        anchorEl={open}
+        onClose={handleCloseMenu}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: {
+            p: 1,
+            width: 140,
+            '& .MuiMenuItem-root': {
+              px: 1,
+              typography: 'body2',
+              borderRadius: 0.75,
+            },
+          },
+        }}
+      >
+        <MenuItem sx={{ color: 'seagreen' }} onClick={() => {}}>
+          <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
+          Approve
+        </MenuItem>
+        {/* <MenuItem
+          sx={{ color: 'error.main' }}
+          onClick={() => {
+          }}
+        >
+          <Iconify icon={'system-uicons:cross'} sx={{ mr: 2 }} />
+          Decline
+        </MenuItem> */}
+      </Popover>
     </>
   );
 }

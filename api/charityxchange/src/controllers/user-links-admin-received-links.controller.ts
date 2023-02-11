@@ -1,3 +1,4 @@
+import {authenticate} from '@loopback/authentication';
 import {
   Count,
   CountSchema,
@@ -15,41 +16,53 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
+import {PermissionKeys} from '../authorization/permission-keys';
+import {UserLinks, AdminReceivedLinks} from '../models';
 import {
-  UserLinks,
-  AdminReceivedLinks,
-} from '../models';
-import {UserLinksRepository} from '../repositories';
+  AdminReceivedLinksRepository,
+  UserLinksRepository,
+} from '../repositories';
 
 export class UserLinksAdminReceivedLinksController {
   constructor(
-    @repository(UserLinksRepository) protected userLinksRepository: UserLinksRepository,
-  ) { }
+    @repository(UserLinksRepository)
+    protected userLinksRepository: UserLinksRepository,
+    @repository(AdminReceivedLinksRepository)
+    protected adminReceivedLinksRepository: AdminReceivedLinksRepository,
+  ) {}
 
-  @get('/user-links/{id}/admin-received-links', {
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.SUPER_ADMIN]},
+  })
+  @get('/user-links/admin-received-links', {
     responses: {
       '200': {
         description: 'Array of UserLinks has many AdminReceivedLinks',
         content: {
           'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(AdminReceivedLinks)},
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(AdminReceivedLinks),
+            },
           },
         },
       },
     },
   })
   async find(
-    @param.path.number('id') id: number,
     @param.query.object('filter') filter?: Filter<AdminReceivedLinks>,
   ): Promise<AdminReceivedLinks[]> {
-    return this.userLinksRepository.adminReceivedLinks(id).find(filter);
+    return this.adminReceivedLinksRepository.find(filter);
   }
 
   @post('/user-links/{id}/admin-received-links', {
     responses: {
       '200': {
         description: 'UserLinks model instance',
-        content: {'application/json': {schema: getModelSchemaRef(AdminReceivedLinks)}},
+        content: {
+          'application/json': {schema: getModelSchemaRef(AdminReceivedLinks)},
+        },
       },
     },
   })
@@ -61,13 +74,16 @@ export class UserLinksAdminReceivedLinksController {
           schema: getModelSchemaRef(AdminReceivedLinks, {
             title: 'NewAdminReceivedLinksInUserLinks',
             exclude: ['id'],
-            optional: ['userLinksId']
+            optional: ['userLinksId'],
           }),
         },
       },
-    }) adminReceivedLinks: Omit<AdminReceivedLinks, 'id'>,
+    })
+    adminReceivedLinks: Omit<AdminReceivedLinks, 'id'>,
   ): Promise<AdminReceivedLinks> {
-    return this.userLinksRepository.adminReceivedLinks(id).create(adminReceivedLinks);
+    return this.userLinksRepository
+      .adminReceivedLinks(id)
+      .create(adminReceivedLinks);
   }
 
   @patch('/user-links/{id}/admin-received-links', {
@@ -88,9 +104,12 @@ export class UserLinksAdminReceivedLinksController {
       },
     })
     adminReceivedLinks: Partial<AdminReceivedLinks>,
-    @param.query.object('where', getWhereSchemaFor(AdminReceivedLinks)) where?: Where<AdminReceivedLinks>,
+    @param.query.object('where', getWhereSchemaFor(AdminReceivedLinks))
+    where?: Where<AdminReceivedLinks>,
   ): Promise<Count> {
-    return this.userLinksRepository.adminReceivedLinks(id).patch(adminReceivedLinks, where);
+    return this.userLinksRepository
+      .adminReceivedLinks(id)
+      .patch(adminReceivedLinks, where);
   }
 
   @del('/user-links/{id}/admin-received-links', {
@@ -103,7 +122,8 @@ export class UserLinksAdminReceivedLinksController {
   })
   async delete(
     @param.path.number('id') id: number,
-    @param.query.object('where', getWhereSchemaFor(AdminReceivedLinks)) where?: Where<AdminReceivedLinks>,
+    @param.query.object('where', getWhereSchemaFor(AdminReceivedLinks))
+    where?: Where<AdminReceivedLinks>,
   ): Promise<Count> {
     return this.userLinksRepository.adminReceivedLinks(id).delete(where);
   }

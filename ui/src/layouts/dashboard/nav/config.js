@@ -30,6 +30,11 @@ const navConfig = (userData) => {
           path: `/tokenRequests`,
           icon: icon('ic_request_token'),
         },
+        {
+          title: 'Links',
+          path: `/receivedLinks`,
+          icon: icon('ic_links'),
+        },
         // {
         //   title: 'product',
         //   path: '/products',
@@ -46,6 +51,11 @@ const navConfig = (userData) => {
           title: 'token Requests',
           path: `/tokenRequests/${userData?.id}`,
           icon: icon('ic_request_token'),
+        },
+        {
+          title: 'Links',
+          path: `/userLinks`,
+          icon: icon('ic_links'),
         },
         // {
         //   title: 'product',

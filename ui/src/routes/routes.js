@@ -1,6 +1,7 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import AdminReceivedLInks from '../pages/AdminReceivedLInks';
 import PricingPlan from '../components/PricingPlans/PricingPlans';
 import TokenRequestsAdminPage from '../pages/TokenRequestsAdminPage';
 import TokenRequestsEmployeePage from '../pages/TokenRequestsEmployeePage';
@@ -19,6 +20,8 @@ import ProfilePage from '../pages/ProfilePage';
 import PrivateRoutes from './PrivateRoute';
 import { RolesAuthRoute } from './RolesAuthRoute';
 import KycPage from '../pages/KycPage';
+import MemberLinks from '../pages/MemberLInks';
+
 // ----------------------------------------------------------------------
 
 export default function Router({ role }) {
@@ -59,8 +62,8 @@ export default function Router({ role }) {
               ),
             },
             { path: 'profile', element: <ProfilePage /> },
-            { path: 'products', element: <ProductsPage /> },
-            { path: 'blog', element: <BlogPage /> },
+            // { path: 'products', element: <ProductsPage /> },
+            // { path: 'blog', element: <BlogPage /> },
             {
               name: 'userDetails',
               path: 'users/:id',
@@ -87,7 +90,16 @@ export default function Router({ role }) {
             {
               name: 'Links',
               path: '/userLinks',
-              element: <TokenRequestsAdminPage />,
+              element: <MemberLinks />,
+            },
+            {
+              name: 'AdminReceivedLinks',
+              path: 'receivedLinks',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <AdminReceivedLInks />
+                </RolesAuthRoute>
+              ),
             },
             {
               path: '/plans',

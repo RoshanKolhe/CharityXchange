@@ -23,10 +23,26 @@ export class UserLinks extends Entity {
   is_active: boolean;
 
   @property({
+    type: 'string',
+  })
+  activationStartTime?: string | null;
+
+  @property({
+    type: 'string',
+  })
+  activationEndTime?: string | null;
+
+  @property({
     type: 'boolean',
     required: true,
   })
   is_help_send: boolean;
+
+  @property({
+    type: 'boolean',
+    required: true,
+  })
+  is_help_received: boolean;
 
   @property({
     type: 'boolean',

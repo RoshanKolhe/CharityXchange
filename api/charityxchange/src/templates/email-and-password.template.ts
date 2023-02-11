@@ -26,6 +26,18 @@ export default function generateEmailAndPasswordTemplate(mailOptions: any) {
         <p>Thank you for your attention .</p>
         <p>Best regards,</p>
         <p>CharityXchange</p>
+
+        <p>${mailOptions.name} yang dihormati,,</p>
+        <p>Sila dapatkan butiran Kredensial yang dilampirkan untuk platform kami. Selesaikan KYC anda dan mula menjana pendapatan</p>
+        <p>Email: ${mailOptions.email}</p>
+        <p>Password: ${mailOptions.password}</p>
+        <a href=${process.env.REACT_APP_LOGIN_ENDPOINT} target="_blank">Click here</a>
+        <p>Sila gunakan pautan di atas untuk melengkapkan kyc anda dan mulakan.</p>
+        <p>
+        Jika anda mempunyai sebarang pertanyaan atau kebimbangan, jangan teragak-agak untuk menghubungi kami.</p>
+        <p>Terima kasih kerana memberi perhatian .</p>
+        <p>Selamat sejahtera,</p>
+        <p>CharityXchange</p>
     </body>
     </html>`;
   const EmailAndPasswordTemplate = {

@@ -46,6 +46,7 @@ import {EmailManagerBindings} from '../keys';
 import generateOtpTemplate from '../templates/otp.template';
 import generateEmailAndPasswordTemplate from '../templates/email-and-password.template';
 import {CharityxchangeSqlDataSource} from '../datasources';
+import { omit } from 'lodash';
 
 const UserLoginSchema = {
   type: 'object',
@@ -193,23 +194,9 @@ export class UserController {
       },
       include: ['userProfile', 'balance_user', 'adminBalances'],
     });
-    const currentUserActivePlans = await this.userPricingPlanRepository.find({
-      where: {
-        userId: currnetUser.id,
-      },
-    });
-    let filteredData = currentUserActivePlans;
-    let currentUserActivePlan = {};
-    if (currentUserActivePlans.length > 0) {
-      filteredData = currentUserActivePlans.filter(function (res) {
-        return res.is_active === true;
-      });
 
-      if (filteredData.length > 1) {
-        throw new HttpErrors[400]('Something went wrong');
-      }
-      currentUserActivePlan = filteredData[0];
-    }
+    const currentUserActivePlan =
+      await this.userService.getCurrentUserActivePack(currnetUser);
 
     return Promise.resolve({
       ...user,
@@ -460,6 +447,7 @@ export class UserController {
             : `${new Date()}`,
           is_active: true,
           is_help_send: true,
+          is_help_received: false,
           is_send_to_admin: this.calculateBasedOnTotalLink(
             pricingPlan.total_links,
             i,
@@ -470,9 +458,10 @@ export class UserController {
           .userLinks(currnetUser.id)
           .create(userLinkData, {transaction: tx});
         if (userLinkData.is_send_to_admin) {
+          const updatedUserLinkData =  omit(userLinkData, 'is_help_received');
           await this.userLinksRepository
             .adminReceivedLinks(userLink.id)
-            .create(userLinkData, {transaction: tx});
+            .create(updatedUserLinkData, {transaction: tx});
         }
       }
       tx.commit();
@@ -481,7 +470,6 @@ export class UserController {
         message: 'Successfully Subscribed to a Plan',
       });
     } catch (err) {
-      console.log('error', err);
       tx.rollback();
       return Promise.resolve({
         success: false,

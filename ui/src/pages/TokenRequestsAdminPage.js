@@ -48,6 +48,7 @@ import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
+  { id: 'id', label: 'Id', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
   { id: 'transaction_id', label: 'Transaction Id', alignRight: false },
   { id: 'payment_screen_shot', label: 'Transaction Proof', alignRight: false },
@@ -304,7 +305,7 @@ export default function TokenRequestsAdminPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, amount, transaction_id, payment_screen_shot, status } = row;
+                    const { id, amount, transaction_id, payment_screen_shot, status, userId } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
@@ -313,7 +314,11 @@ export default function TokenRequestsAdminPage() {
                             <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                           )}
                         </TableCell>
-
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {userId}
+                          </Typography>
+                        </TableCell>
                         <TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
                             {`${amount}`}

@@ -156,9 +156,7 @@ export class UserUserProfileController {
         omit(userProfile, 'userProfile'),
       );
 
-      return Promise.resolve({
-        ...userProfile,
-      });
+      return Promise.resolve(userProfile);
     } catch (err) {
       throw new HttpErrors.UnprocessableEntity(`error updatin profile${err}`);
     }
