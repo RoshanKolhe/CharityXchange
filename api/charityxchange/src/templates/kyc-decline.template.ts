@@ -38,7 +38,7 @@ export default function generateKycDeclineTemplate(userData: any) {
         <div class="container">
           <h1>KYC Verification Declined</h1>
           <p>Dear ${userData.name},</p>
-          <p>We're sorry to inform you that your KYC verification has been declined due to ${userData?.reason}.</p>
+          <p>We're sorry to inform you that your KYC verification has been declined due to ${userData?.decline_reason}.</p>
           <p>If you have any questions or concerns, please contact our support team for further assistance.</p>
           <a href="#" class="btn">Contact Support</a>
         </div>
