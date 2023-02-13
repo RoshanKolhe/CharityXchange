@@ -296,6 +296,10 @@ export default function AdminReceivedLInks() {
     return getCountdown();
   };
 
+  const handleApproveLinkHelpSend = () => {
+    console.log(editUserData);
+  };
+
   const checkActiveState = (row) => {
     const now = new Date();
     let expire_start_date;
@@ -364,13 +368,7 @@ export default function AdminReceivedLInks() {
                     } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
-                      <TableRow
-                        hover
-                        key={id}
-                        tabIndex={-1}
-                        role="checkbox"
-                        selected={selectedUser}
-                      >
+                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                         </TableCell>
@@ -497,7 +495,7 @@ export default function AdminReceivedLInks() {
           },
         }}
       >
-        <MenuItem sx={{ color: 'seagreen' }} onClick={() => {}}>
+        <MenuItem sx={{ color: 'seagreen' }} onClick={handleApproveLinkHelpSend}>
           <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
           Approve
         </MenuItem>

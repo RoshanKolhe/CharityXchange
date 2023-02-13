@@ -1,8 +1,12 @@
-import {authenticate} from '@loopback/authentication';
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
+import {UserProfile} from '@loopback/security';
+import {inject} from '@loopback/core';
 import {
   Count,
   CountSchema,
+  DefaultTransactionalRepository,
   Filter,
+  IsolationLevel,
   repository,
   Where,
 } from '@loopback/repository';
@@ -17,18 +21,24 @@ import {
   requestBody,
 } from '@loopback/rest';
 import {PermissionKeys} from '../authorization/permission-keys';
-import {UserLinks, AdminReceivedLinks} from '../models';
+import {CharityxchangeSqlDataSource} from '../datasources';
+import {UserLinks, AdminReceivedLinks, User} from '../models';
 import {
   AdminReceivedLinksRepository,
   UserLinksRepository,
+  UserRepository,
 } from '../repositories';
 
 export class UserLinksAdminReceivedLinksController {
   constructor(
+    @inject('datasources.charityxchangeSql')
+    public dataSource: CharityxchangeSqlDataSource,
     @repository(UserLinksRepository)
     protected userLinksRepository: UserLinksRepository,
     @repository(AdminReceivedLinksRepository)
     protected adminReceivedLinksRepository: AdminReceivedLinksRepository,
+    @repository(UserRepository)
+    public userRepository: UserRepository,
   ) {}
 
   @authenticate({
@@ -126,5 +136,40 @@ export class UserLinksAdminReceivedLinksController {
     where?: Where<AdminReceivedLinks>,
   ): Promise<Count> {
     return this.userLinksRepository.adminReceivedLinks(id).delete(where);
+  }
+
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.SUPER_ADMIN]},
+  })
+  @patch('/sendHelpToLink', {
+    responses: {
+      '200': {
+        description: 'UserLinks.AdminReceivedLinks PATCH success count',
+        content: {'application/json': {schema: CountSchema}},
+      },
+    },
+  })
+  async sendHelpToUserLink(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(AdminReceivedLinks, {partial: true}),
+        },
+      },
+    })
+    adminReceivedLinks: Partial<AdminReceivedLinks>,
+    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
+    @param.query.object('where', getWhereSchemaFor(AdminReceivedLinks))
+    where?: Where<AdminReceivedLinks>,
+  ): Promise<any> {
+    const repo = new DefaultTransactionalRepository(User, this.dataSource);
+    const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
+    try {
+      const userLink = await this.userRepository
+        .balance_user(currnetUser.id)
+        .get();
+      console.log('currentBalanceOfUser', userLink);
+    } catch (err) {}
   }
 }

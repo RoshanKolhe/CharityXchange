@@ -21,12 +21,19 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import {omit, pick} from 'lodash';
+import {EmailManagerBindings} from '../keys';
 import {User, UserProfile} from '../models';
 import {UserRepository} from '../repositories';
+import {EmailManager} from '../services/email.service';
+import generateKycDeclineTemplate from '../templates/kyc-decline.template';
+import SITE_SETTINGS from '../utils/config';
 
 export class UserUserProfileController {
   constructor(
-    @repository(UserRepository) protected userRepository: UserRepository,
+    @repository(UserRepository)
+    protected userRepository: UserRepository,
+    @inject(EmailManagerBindings.SEND_MAIL)
+    public emailManager: EmailManager,
   ) {}
 
   @get('/users/{id}/user-profile', {
@@ -149,12 +156,35 @@ export class UserUserProfileController {
   async approveOrDisapproveUserKyc(
     @requestBody({})
     userProfile: any,
-  ): Promise<{}> {
+  ): Promise<any> {
     try {
       await this.userRepository.updateById(
         userProfile.id,
         omit(userProfile, 'userProfile'),
       );
+      if (userProfile.is_kyc_completed === 3) {
+        const template = generateKycDeclineTemplate({
+          ...userProfile,
+        });
+
+        const mailOptions = {
+          from: SITE_SETTINGS.fromMail,
+          to: userProfile.email,
+          subject: template.subject,
+          html: template.html,
+        };
+        this.emailManager
+          .sendMail(mailOptions)
+          .then(function (res: any) {
+            return Promise.resolve({
+              success: true,
+              message: `Kyc Declined Mail sent successfully`,
+            });
+          })
+          .catch(function (err: any) {
+            throw new HttpErrors.UnprocessableEntity(err);
+          });
+      }
 
       return Promise.resolve(userProfile);
     } catch (err) {

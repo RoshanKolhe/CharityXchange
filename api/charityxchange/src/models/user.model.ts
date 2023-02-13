@@ -71,6 +71,11 @@ export class User extends Entity {
   is_kyc_completed: number;
 
   @property({
+    type: 'string',
+  })
+  decline_reason?: string;
+
+  @property({
     type: 'boolean',
     default: false,
   })
