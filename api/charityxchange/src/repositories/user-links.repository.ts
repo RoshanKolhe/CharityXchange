@@ -24,7 +24,9 @@ export class UserLinksRepository extends TimeStampRepositoryMixin<
 
   constructor(
     @inject('datasources.charityxchangeSql')
-    dataSource: CharityxchangeSqlDataSource, @repository.getter('AdminReceivedLinksRepository') protected adminReceivedLinksRepositoryGetter: Getter<AdminReceivedLinksRepository>,
+    dataSource: CharityxchangeSqlDataSource, 
+    @repository.getter('AdminReceivedLinksRepository') 
+    protected adminReceivedLinksRepositoryGetter: Getter<AdminReceivedLinksRepository>,
   ) {
     super(UserLinks, dataSource);
     this.adminReceivedLinks = this.createHasManyRepositoryFactoryFor('adminReceivedLinks', adminReceivedLinksRepositoryGetter,);

@@ -15,6 +15,7 @@ import {
   get,
   getModelSchemaRef,
   getWhereSchemaFor,
+  HttpErrors,
   param,
   patch,
   post,
@@ -28,6 +29,7 @@ import {
   UserLinksRepository,
   UserRepository,
 } from '../repositories';
+import {PER_LINK_HELP_AMOUNT} from '../utils/constants';
 
 export class UserLinksAdminReceivedLinksController {
   constructor(
@@ -151,25 +153,69 @@ export class UserLinksAdminReceivedLinksController {
     },
   })
   async sendHelpToUserLink(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(AdminReceivedLinks, {partial: true}),
-        },
-      },
-    })
-    adminReceivedLinks: Partial<AdminReceivedLinks>,
-    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
-    @param.query.object('where', getWhereSchemaFor(AdminReceivedLinks))
-    where?: Where<AdminReceivedLinks>,
+    @requestBody({})
+    adminReceivedLinkIds: any,
   ): Promise<any> {
-    const repo = new DefaultTransactionalRepository(User, this.dataSource);
-    const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
-    try {
-      const userLink = await this.userRepository
-        .balance_user(currnetUser.id)
-        .get();
-      console.log('currentBalanceOfUser', userLink);
-    } catch (err) {}
+    if (adminReceivedLinkIds.linkIds.length > 0) {
+      adminReceivedLinkIds.linkIds.map(async (res: any) => {
+        const repo = new DefaultTransactionalRepository(User, this.dataSource);
+        const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
+        try {
+          const adminReceivedLink =
+            await this.adminReceivedLinksRepository.findById(res);
+          const adminBalances = await this.userRepository
+            .adminBalances(5)
+            .get();
+          const userLinkData = await this.userLinksRepository.findById(
+            adminReceivedLink.userLinksId,
+          );
+          if (userLinkData) {
+            const userBalance = await this.userRepository
+              .balance_user(userLinkData.userId)
+              .get();
+            await this.userRepository.adminBalances(5).patch(
+              {
+                total_supply: adminBalances.total_supply - PER_LINK_HELP_AMOUNT,
+                total_help_send:
+                  adminBalances.total_help_send + PER_LINK_HELP_AMOUNT,
+              },
+              {transaction: tx},
+            );
+            await this.userRepository.balance_user(userLinkData.userId).patch(
+              {
+                total_earnings:
+                  userBalance.total_earnings + PER_LINK_HELP_AMOUNT,
+                current_balance:
+                  userBalance.current_balance + PER_LINK_HELP_AMOUNT,
+              },
+              {transaction: tx},
+            );
+            await this.userLinksRepository.updateById(
+              adminReceivedLink.userLinksId,
+              {
+                is_help_received: true,
+              },
+              {transaction: tx},
+            );
+            await this.adminReceivedLinksRepository.updateById(
+              adminReceivedLink.id,
+              {
+                is_help_send_to_user: true,
+              },
+              {transaction: tx},
+            );
+          }
+          tx.commit();
+        } catch (err) {
+          tx.rollback();
+          throw new HttpErrors[400](err);
+        }
+      });
+      return Promise.resolve({
+        success: true,
+        message: 'Help Sent Successfully',
+      });
+    }
+    throw new HttpErrors[400]('Please provide an non empty array');
   }
 }

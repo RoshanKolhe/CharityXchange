@@ -83,7 +83,6 @@ export class UserTokenRequestsController {
     })
     tokenRequests: Omit<TokenRequests, 'id'>,
   ): Promise<TokenRequests> {
-    console.log(currnetUser.id, id);
     if (currnetUser.id != id) {
       throw new HttpErrors.BadRequest('Something Went Wrong');
     }

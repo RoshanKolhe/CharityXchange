@@ -48,7 +48,6 @@ export default function LoginPage() {
   const isAuthenticated = localStorage.getItem('isAuthenticated');
   const isKycCompleted = localStorage.getItem('is_kyc_completed');
   const permissions = localStorage.getItem('permissions');
-  console.log('isKycCompletedLogin', isKycCompleted);
 
   useEffect(() => {
     if (permissions && permissions.split(',').includes('super_admin')) {

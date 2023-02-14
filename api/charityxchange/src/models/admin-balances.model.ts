@@ -28,6 +28,25 @@ export class AdminBalances extends Entity {
   current_balance: number;
 
   @property({
+    type: 'number',
+    default: 0,
+  })
+  total_help_send: number;
+
+  @property({
+    type: 'number',
+    default: 0,
+  })
+  activation_help: number;
+
+  @property({
+    type: 'number',
+    default: 0,
+  })
+  total_help_received: number;
+
+
+  @property({
     type: 'object',
   })
   payment_info: object;

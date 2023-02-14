@@ -203,7 +203,6 @@ export default function MemberLinks() {
   };
 
   const handleFilterByName = (event) => {
-    console.log('event', event);
     setPage(0);
     setFilterName(event.target.value);
   };
@@ -213,8 +212,18 @@ export default function MemberLinks() {
   const filteredUsers = applySortFilter(tokenRequests, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length;
+  const clearAllInterval = () => {
+    const interval_id = window.setInterval(() => {}, Number.MAX_SAFE_INTEGER);
+
+    // Clear any timeout/interval up to that id
+    // eslint-disable-next-line no-plusplus
+    for (let i = 1; i < interval_id; i++) {
+      window.clearInterval(i);
+    }
+  };
 
   const fetchData = () => {
+    clearAllInterval();
     axiosInstance
       .get(`/users/user-links?filter[order]=linkName%20DESC`)
       .then((res) => {
@@ -266,7 +275,11 @@ export default function MemberLinks() {
         fetchData();
       })
       .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
+        setErrorMessage(
+          Object.keys(err.response.data.error.message).length > 0
+            ? err.response.data.error.message.message
+            : err.response.data.error.message
+        );
         setSuccessMessage('');
         handleOpenSnackBar();
         fetchData();
@@ -426,7 +439,7 @@ export default function MemberLinks() {
                               ? setInterval(() => {
                                   const countdown = renderCountdown(new Date(), activationEndTime);
                                   const timeCell = document.getElementById(`countdown-${row.id}`);
-                                  timeCell.textContent = countdown;
+                                  if (timeCell) timeCell.textContent = countdown;
                                 }, 1000)
                               : ''}
                           </Typography>

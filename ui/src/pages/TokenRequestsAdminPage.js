@@ -158,7 +158,6 @@ export default function TokenRequestsAdminPage() {
   };
 
   const handleSelectAllClick = (event) => {
-    console.log(event.target);
     if (event.target.checked) {
       const newSelecteds = tokenRequests.filter((e) => e.status === 0).map((n) => n.id);
       setSelected(newSelecteds);
@@ -201,7 +200,6 @@ export default function TokenRequestsAdminPage() {
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleApproveClick = (userData) => {
-    console.log('userData', userData);
     userData = omit(userData, 'user');
     const inputData = {
       ...userData,

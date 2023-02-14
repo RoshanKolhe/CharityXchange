@@ -215,60 +215,12 @@ export default function AdminReceivedLInks() {
 
   const fetchData = () => {
     axiosInstance
-      .get(`/user-links/admin-received-links?filter[where][property]=value`)
+      .get(`/user-links/admin-received-links?filter[where][is_help_send_to_user]=false`)
       .then((res) => {
         setTokenRequests(res.data);
       })
       .catch((err) => {
         setTokenRequests([]);
-      });
-  };
-
-  const handleLinkActivate = (row) => {
-    let inputData = {
-      ...row,
-      activationStartTime: `${new Date()}`,
-      activationEndTime: `${AddMinutesToDate(new Date(), 1440)}`,
-    };
-    inputData = omit(inputData, 'userId');
-    axiosInstance
-      .patch(`/users/update-user-link?where[id]=${row.id}`, inputData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Successfully Activated Link');
-        handleOpenSnackBar();
-        fetchData();
-      })
-      .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        fetchData();
-      });
-  };
-
-  const handleSendHelp = (row) => {
-    let inputData = {
-      ...row,
-      is_active: true,
-      is_help_send: true,
-      is_help_received: false,
-      is_send_to_admin: false,
-    };
-    inputData = omit(inputData, 'userId');
-    axiosInstance
-      .patch(`/users/update-user-help-link?where[id]=${row.id}`, inputData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Successfully Activated Link');
-        handleOpenSnackBar();
-        fetchData();
-      })
-      .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        fetchData();
       });
   };
 
@@ -297,7 +249,25 @@ export default function AdminReceivedLInks() {
   };
 
   const handleApproveLinkHelpSend = () => {
-    console.log(editUserData);
+    const inputData = {
+      linkIds: [editUserData.id],
+    };
+    axiosInstance
+      .patch(`sendHelpToLink`, inputData)
+      .then((res) => {
+        setErrorMessage('');
+        setSuccessMessage('Help sent Successfully');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      });
   };
 
   const checkActiveState = (row) => {
@@ -315,6 +285,28 @@ export default function AdminReceivedLInks() {
       return true;
     }
     return false;
+  };
+
+  const onApproveSelected = () => {
+    const inputData = {
+      linkIds: selected,
+    };
+    axiosInstance
+      .patch(`sendHelpToLink`, inputData)
+      .then((res) => {
+        setErrorMessage('');
+        setSuccessMessage('Help sent Successfully');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      });
   };
 
   useEffect(() => {
@@ -339,7 +331,13 @@ export default function AdminReceivedLInks() {
           need to be reactivated.
         </Typography>
         <Card>
-          <ListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          <ListToolbar
+            numSelected={selected.length}
+            filterName={filterName}
+            onFilterName={handleFilterByName}
+            onReload={fetchData}
+            onApproveSelected={onApproveSelected}
+          />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -382,11 +380,6 @@ export default function AdminReceivedLInks() {
                           <Label
                             color={!checkActiveState(row) ? 'error' : checkActiveState(row) ? 'success' : 'error'}
                             className={clsx(!checkActiveState(row) ? classes.pointerCss : null)}
-                            onClick={() => {
-                              if (!checkActiveState(row)) {
-                                handleLinkActivate(row);
-                              }
-                            }}
                           >
                             {checkActiveState(row) ? 'Active' : 'Activate'}
                           </Label>
@@ -395,14 +388,6 @@ export default function AdminReceivedLInks() {
                           <Label
                             className={clsx(!is_help_send ? classes.pointerCss : null)}
                             color={!is_help_send ? 'error' : is_help_send ? 'success' : 'error'}
-                            onClick={() => {
-                              if (
-                                new Date() <= new Date(activationEndTime) &&
-                                new Date() >= new Date(activationStartTime)
-                              ) {
-                                handleSendHelp(row);
-                              }
-                            }}
                           >
                             {!is_help_send ? 'Send Help' : is_help_send ? 'Active' : 'Send Help'}
                           </Label>

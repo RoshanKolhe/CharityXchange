@@ -183,7 +183,6 @@ export class UserUserLinksController {
         const currentUserbalance = await this.userRepository
           .balance_user(currnetUser.id)
           .get();
-        console.log('currentUserbalance', currentUserbalance);
         await this.userRepository.balance_user(currnetUser.id).patch(
           {
             current_balance: currentUserbalance.current_balance - 10,
@@ -255,15 +254,12 @@ export class UserUserLinksController {
       const userAllLinks = await this.userRepository
         .userLinks(currnetUser.id)
         .find();
-      console.log('userAllLinks.length', userAllLinks);
       const linksNotSent = userAllLinks.filter(res => {
         return !res.is_send_to_admin && res.is_active && res.is_help_send;
       });
-      console.log('linksNotSent.length', linksNotSent);
       const currentUserActivePlan =
         await this.userService.getCurrentUserActivePack(currnetUser);
       if (linksNotSent.length + 1 === currentUserActivePlan.total_links) {
-        console.log('linksNotSent', linksNotSent);
         for (
           let i = 0;
           i < this.calculateBasedOnTotalLink(currentUserActivePlan.total_links);
@@ -278,7 +274,6 @@ export class UserUserLinksController {
           };
 
           userLinkData = omit(userLinkData, 'userId');
-          console.log('userLinkData', userLinkData);
           await this.userRepository
             .userLinks(currnetUser.id)
             .patch(userLinkData, {id: userLinkData.id}, {transaction: tx});
@@ -290,10 +285,12 @@ export class UserUserLinksController {
               'activationStartTime',
               'activationEndTime',
             );
-            console.log('updatedUserLinkData', updatedUserLinkData);
             await this.userLinksRepository
               .adminReceivedLinks(userLinkData.id)
-              .create(updatedUserLinkData, {transaction: tx});
+              .create(
+                {...updatedUserLinkData, is_help_send_to_user: false},
+                {transaction: tx},
+              );
           }
         }
       }
@@ -305,10 +302,7 @@ export class UserUserLinksController {
       });
     } catch (err) {
       tx.rollback();
-      return Promise.resolve({
-        success: false,
-        message: err,
-      });
+      throw new HttpErrors[400](err);
     }
   }
 

@@ -31,6 +31,12 @@ export class AdminReceivedLinks extends Entity {
     type: 'boolean',
     required: true,
   })
+  is_help_send_to_user: boolean;
+
+  @property({
+    type: 'boolean',
+    required: true,
+  })
   is_send_to_admin: boolean;
 
   @property({

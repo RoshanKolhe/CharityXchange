@@ -37,9 +37,10 @@ ListToolbar.propTypes = {
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
   onReload: PropTypes.func,
+  onApproveSelected: PropTypes.func,
 };
 
-export default function ListToolbar({ numSelected, filterName, onFilterName, onReload }) {
+export default function ListToolbar({ numSelected, filterName, onFilterName, onApproveSelected, onReload }) {
   return (
     <StyledRoot
       sx={{
@@ -68,7 +69,7 @@ export default function ListToolbar({ numSelected, filterName, onFilterName, onR
 
       {numSelected > 0 ? (
         <Tooltip title="Approve Selected">
-          <IconButton>
+          <IconButton onClick={onApproveSelected}>
             <Iconify icon="material-symbols:order-approve" />
           </IconButton>
         </Tooltip>

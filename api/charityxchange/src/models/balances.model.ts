@@ -15,7 +15,7 @@ export class Balances extends Entity {
     type: 'number',
     default: 0,
   })
-  total_earnings?: number;
+  total_earnings: number;
 
   @property({
     type: 'number',

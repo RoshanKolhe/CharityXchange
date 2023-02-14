@@ -135,7 +135,6 @@ const MemberDetails = (props) => {
   const updateMemberDetails = async (event, value) => {
     const fieldvalue = event.target.value;
     const fieldName = event.target.name;
-    console.log(formik.values.is_active);
     let newFormValue;
     if (value) {
       newFormValue = { ...formik.values, is_active: formik.values.is_active };

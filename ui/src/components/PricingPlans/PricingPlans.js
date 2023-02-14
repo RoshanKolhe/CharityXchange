@@ -34,7 +34,6 @@ const PackageConfimationModal = ({ open, handleClose, data }) => {
 
   const navigate = useNavigate();
 
-  console.log('data', data);
   const handlePackageSubscription = () => {
     axiosInstance
       .post(`user/subscribe`, data)
@@ -46,8 +45,7 @@ const PackageConfimationModal = ({ open, handleClose, data }) => {
       })
       .catch((err) => {
         setSuccessMessage('');
-
-        setErrorMessage(err);
+        setErrorMessage(err.response.data.error.message);
         handleOpenSnackBar();
       });
     handleClose();

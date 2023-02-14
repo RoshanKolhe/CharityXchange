@@ -16,6 +16,8 @@ import {
   response,
 } from '@loopback/rest';
 import SITE_SETTINGS from '../utils/config';
+import {USERLINKACTIVEANDHELPSEND} from '../utils/constants';
+
 import {
   PricingPlan,
   User,
@@ -46,7 +48,7 @@ import {EmailManagerBindings} from '../keys';
 import generateOtpTemplate from '../templates/otp.template';
 import generateEmailAndPasswordTemplate from '../templates/email-and-password.template';
 import {CharityxchangeSqlDataSource} from '../datasources';
-import { omit } from 'lodash';
+import {omit} from 'lodash';
 
 const UserLoginSchema = {
   type: 'object',
@@ -399,8 +401,16 @@ export class UserController {
         {transaction: tx},
       );
       const adminBalance = await this.userRepository.adminBalances(5).get();
+      const plansDistibution =
+        USERLINKACTIVEANDHELPSEND[
+          pricingPlan.total_links as keyof typeof USERLINKACTIVEANDHELPSEND
+        ];
       await this.userRepository.adminBalances(5).patch(
         {
+          activation_help:
+            adminBalance.activation_help + plansDistibution.active,
+          total_help_received:
+            adminBalance.total_help_received + plansDistibution.sendHelp,
           total_supply: adminBalance.total_supply + pricingPlan.price,
           total_earnings: adminBalance.total_earnings + pricingPlan.price,
         },
@@ -442,8 +452,7 @@ export class UserController {
       for (let i = 0; i < pricingPlan.total_links; i++) {
         const userLinkData = {
           linkName: currnetUser.name
-            ? `${currnetUser?.id}-` +
-              (previousLinkCount + i + 1)
+            ? `${currnetUser?.id}-` + (previousLinkCount + i + 1)
             : `${new Date()}`,
           is_active: true,
           is_help_send: true,
@@ -458,10 +467,14 @@ export class UserController {
           .userLinks(currnetUser.id)
           .create(userLinkData, {transaction: tx});
         if (userLinkData.is_send_to_admin) {
-          const updatedUserLinkData =  omit(userLinkData, 'is_help_received');
+          const updatedUserLinkData = omit(userLinkData, 'is_help_received');
+
           await this.userLinksRepository
             .adminReceivedLinks(userLink.id)
-            .create(updatedUserLinkData, {transaction: tx});
+            .create(
+              {...updatedUserLinkData, is_help_send_to_user: false},
+              {transaction: tx},
+            );
         }
       }
       tx.commit();
@@ -471,10 +484,7 @@ export class UserController {
       });
     } catch (err) {
       tx.rollback();
-      return Promise.resolve({
-        success: false,
-        message: err,
-      });
+      throw err;
     }
   }
 

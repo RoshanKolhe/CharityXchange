@@ -54,7 +54,6 @@ export default function DashboardEmployeePage() {
       handleOpen();
     });
   };
-  console.log('userProfile', userProfile?.activePayment);
   return (
     <>
       <Helmet>
@@ -68,7 +67,7 @@ export default function DashboardEmployeePage() {
             message="You do not currently have an active package. To start earning, please subscribe to a plan."
             isError
           />
-        ) : null}
+        ) : null} 
 
         <Typography variant="h4" sx={{ mb: 5 }}>
           Hi, Welcome back
