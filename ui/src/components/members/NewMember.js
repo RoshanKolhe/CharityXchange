@@ -4,6 +4,7 @@ import eyeOffFill from '@iconify/icons-eva/eye-off-fill';
 import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import SaveIcon from '@mui/icons-material/Save';
 import {
   Button,
   TextField,
@@ -18,6 +19,7 @@ import {
 import PropTypes from 'prop-types';
 import { Icon } from '@iconify/react';
 import closefill from '@iconify/icons-eva/close-fill';
+import { LoadingButton } from '@mui/lab';
 import axiosInstance from '../../helpers/axios';
 import CommonSnackBar from '../../common/CommonSnackBar';
 
@@ -27,6 +29,7 @@ const NewMember = (props) => {
     handleClose: PropTypes.func,
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const validationSchema = yup.object({
@@ -43,11 +46,14 @@ const NewMember = (props) => {
         if (val) return val.toString().length < 50;
       }),
     password: yup
-      .string('Enter password')
-      .required('password is required')
-      .test('len', 'Must be less than 50 characters', (val) => {
-        if (val) return val.toString().length < 50;
-      }),
+      .string()
+      .required('Password is required')
+      .min(8, 'Password is too short - should be 8 chars minimum.')
+      .matches(
+        // eslint-disable-next-line no-useless-escape
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/,
+        'Must Contain 8 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character'
+      ),
   });
 
   const [currentUser, setCurrentUser] = useState({});
@@ -65,6 +71,7 @@ const NewMember = (props) => {
     },
     validationSchema,
     onSubmit: async (values) => {
+      setIsSubmitting(true);
       const inputValues = {
         ...values,
         permissions: ['employee'],
@@ -75,15 +82,17 @@ const NewMember = (props) => {
       axiosInstance
         .post('users/register', inputValues)
         .then((res) => {
+          setIsSubmitting(true);
           props.onDataSubmit();
         })
         .catch((err) => {
+          setIsSubmitting(false);
           setErrorMessage(err.response.data.error.message);
           handleOpenSnackBar();
         });
     },
   });
-  const { errors, touched, isSubmitting, handleSubmit, getFieldProps } = formik;
+  const { errors, touched, handleSubmit, getFieldProps } = formik;
 
   const handleShowPassword = () => {
     setShowPassword((show) => !show);
@@ -167,9 +176,19 @@ const NewMember = (props) => {
           />
         </Grid>
 
-        <Button color="primary" variant="contained" fullWidth type="submit" form="alertForm">
+        <LoadingButton
+          loading={isSubmitting}
+          loadingPosition="start"
+          variant="contained"
+          startIcon={<SaveIcon />}
+          color="primary"
+          fullWidth
+          type="submit"
+          form="alertForm"
+          disabled={isSubmitting}
+        >
           Submit
-        </Button>
+        </LoadingButton>
       </form>
       <CommonSnackBar
         openSnackBar={openSnackBar}

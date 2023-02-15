@@ -34,6 +34,11 @@ const navConfig = (userData) => {
           path: `/receivedLinks`,
           icon: icon('ic_links'),
         },
+        {
+          title: 'Cycles',
+          path: `/cycles`,
+          icon: icon('ic_cycle'),
+        },
         // {
         //   title: 'product',
         //   path: '/products',
@@ -45,6 +50,11 @@ const navConfig = (userData) => {
           title: 'dashboard',
           path: '/dashboard',
           icon: icon('ic_analytics'),
+        },
+        {
+          title: 'members',
+          path: '/members',
+          icon: icon('ic_user'),
         },
         {
           title: 'token Requests',

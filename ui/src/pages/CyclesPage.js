@@ -35,6 +35,8 @@ import {
   Paper,
 } from '@mui/material';
 // components
+import moment from 'moment';
+import NewCycle from '../components/cycles/NewCycle';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -50,10 +52,10 @@ import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'email', label: 'Email', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'startDate', label: 'Start Date', alignRight: false },
+  { id: 'endDate', label: 'End Date', alignRight: false },
+  { id: 'is_active', label: 'Active', alignRight: false },
+  //   { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
 ];
 
@@ -88,7 +90,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function UserPage() {
+export default function CyclesPage() {
   const style = {
     position: 'absolute',
     top: '50%',
@@ -105,17 +107,13 @@ export default function UserPage() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(null);
 
-  const [isTreeView, setIsTreeView] = useState(false);
-
-  const [memberList, setMemberList] = useState([]);
+  const [cyclesList, setCyclesList] = useState([]);
 
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
-
-  const [userProfile, setUserProfile] = useState();
 
   const [editUserData, setEditUserData] = useState({});
 
@@ -157,7 +155,7 @@ export default function UserPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = memberList.map((n) => n.id);
+      const newSelecteds = cyclesList.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -194,32 +192,16 @@ export default function UserPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - memberList.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - cyclesList.length) : 0;
 
-  const filteredUsers = applySortFilter(memberList, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(cyclesList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
-  const fetchCurrentUserData = () => {
-    axiosInstance.get('users/me').then((res) => {
-      setUserProfile(res.data);
-    });
-  };
-
-  const role = localStorage.getItem('permissions');
-  const permissions = role && role.split(',');
 
   const fetchData = () => {
-    if (permissions && permissions.includes('super_admin')) {
-      axiosInstance.get('users?filter[include][]=userProfile').then((res) => {
-        setMemberList(res.data);
-      });
-    } else {
-      axiosInstance
-        .get(`users?filter[include][]=userProfile&filter[where][parent_id]=${userProfile?.id}`)
-        .then((res) => {
-          setMemberList(res.data);
-        });
-    }
+    axiosInstance.get('cycles').then((res) => {
+      setCyclesList(res.data);
+    });
   };
 
   const handleReloadData = (event) => {
@@ -227,23 +209,19 @@ export default function UserPage() {
   };
 
   useEffect(() => {
-    fetchCurrentUserData();
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [userProfile]);
-  console.log('isTreeView', isTreeView);
   return (
     <>
       <Helmet>
-        <title> Members | CharityXchange </title>
+        <title> Cycles | CharityXchange </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Members
+            Cycles
           </Typography>
 
           <Button
@@ -253,19 +231,8 @@ export default function UserPage() {
             startIcon={<Icon icon={plusFill} />}
             onClick={handleOpen}
           >
-            New Member
+            New Cycle
           </Button>
-        </Stack>
-        <Stack direction="row" alignItems="end" justifyContent="end" mb={0}>
-          <Typography
-            variant="caption"
-            gutterBottom
-            onClick={() => {
-              setIsTreeView(!isTreeView);
-            }}
-          >
-            show tree view
-          </Typography>
         </Stack>
 
         <Card>
@@ -274,69 +241,51 @@ export default function UserPage() {
             filterName={filterName}
             onFilterName={handleFilterByName}
             onReload={handleReloadData}
+            showSearch={false}
           />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
                 <ListHead
-                  isCheckbox={permissions && permissions.includes('super_admin')}
+                  isCheckbox={false}
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={memberList.length}
+                  rowCount={cyclesList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, email, permissions:userPermissions, is_active, userProfile } = row;
+                    const { id, startDate, endDate, is_active } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        {permissions && permissions.includes('super_admin') && (
-                          <TableCell padding="checkbox">
-                            <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
-                          </TableCell>
-                        )}
+                        {/* <TableCell padding="checkbox">
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
+                        </TableCell> */}
 
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar
-                              alt={name}
-                              src={
-                                userProfile?.avatar?.originalname ? userProfile?.avatar?.originalname : account.photoURL
-                              }
-                              style={{marginLeft:'10px'}}
-                            />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
-                        </TableCell>
-
-                        <TableCell align="left">{email}</TableCell>
-                        <TableCell align="left">{userPermissions.toString()}</TableCell>
-
+                        <TableCell align="left">{moment(startDate).format('DD MM YYYY hh:mm:ss')}</TableCell>
+                        <TableCell align="left">{moment(endDate).format('DD MM YYYY hh:mm:ss')}</TableCell>
                         <TableCell align="left">
                           <Label color={(is_active === false && 'error') || 'success'}>
                             {is_active === false ? 'InActive' : 'Active'}
                           </Label>
                         </TableCell>
-                        {permissions && permissions.includes('super_admin') && (
-                          <TableCell align="right">
-                            <IconButton
-                              size="large"
-                              color="inherit"
-                              onClick={(event) => {
-                                handleOpenMenu(event, row);
-                              }}
-                            >
-                              <Iconify icon={'eva:more-vertical-fill'} />
-                            </IconButton>
-                          </TableCell>
-                        )}
+
+                        <TableCell align="right">
+                          <IconButton
+                            size="large"
+                            color="inherit"
+                            onClick={(event) => {
+                              handleOpenMenu(event, row);
+                            }}
+                          >
+                            <Iconify icon={'eva:more-vertical-fill'} />
+                          </IconButton>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -377,7 +326,7 @@ export default function UserPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={memberList.length}
+            count={cyclesList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -391,12 +340,12 @@ export default function UserPage() {
           aria-describedby="modal-modal-description"
         >
           <CustomBox>
-            <NewMember
+            <NewCycle
               handleClose={handleClose}
               onDataSubmit={() => {
                 handleClose();
                 fetchData();
-                setMsg('Successfully Created New Member');
+                setMsg('Successfully Created New Cycle');
                 handleOpenSnackBar();
               }}
             />

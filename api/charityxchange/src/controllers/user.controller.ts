@@ -211,7 +211,7 @@ export class UserController {
 
   @authenticate({
     strategy: 'jwt',
-    options: {required: [PermissionKeys.SUPER_ADMIN]},
+    options: {required: [PermissionKeys.EMPLOYEE]},
   })
   @get('/users')
   @response(200, {

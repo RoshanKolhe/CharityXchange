@@ -14,3 +14,4 @@ export * from './user-pricing-plan.controller';
 export * from './user-user-links.controller';
 export * from './user-links-admin-received-links.controller';
 export * from './user-links-admin-received-links.controller';
+export * from './cycle.controller';

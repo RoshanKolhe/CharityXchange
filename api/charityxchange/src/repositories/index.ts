@@ -7,3 +7,4 @@ export * from './pricing-plan.repository';
 export * from './user-pricing-plan.repository';
 export * from './user-links.repository';
 export * from './admin-received-links.repository';
+export * from './cycles.repository';

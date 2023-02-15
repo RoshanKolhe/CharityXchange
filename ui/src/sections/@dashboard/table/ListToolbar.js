@@ -38,9 +38,17 @@ ListToolbar.propTypes = {
   onFilterName: PropTypes.func,
   onReload: PropTypes.func,
   onApproveSelected: PropTypes.func,
+  showSearch: PropTypes.bool,
 };
 
-export default function ListToolbar({ numSelected, filterName, onFilterName, onApproveSelected, onReload }) {
+export default function ListToolbar({
+  numSelected,
+  filterName,
+  onFilterName,
+  onApproveSelected,
+  onReload,
+  showSearch = true,
+}) {
   return (
     <StyledRoot
       sx={{
@@ -54,7 +62,7 @@ export default function ListToolbar({ numSelected, filterName, onFilterName, onA
         <Typography component="div" variant="subtitle1">
           {numSelected} selected
         </Typography>
-      ) : (
+      ) : showSearch ? (
         <StyledSearch
           value={filterName}
           onChange={onFilterName}
@@ -65,7 +73,7 @@ export default function ListToolbar({ numSelected, filterName, onFilterName, onA
             </InputAdornment>
           }
         />
-      )}
+      ) : null}
 
       {numSelected > 0 ? (
         <Tooltip title="Approve Selected">

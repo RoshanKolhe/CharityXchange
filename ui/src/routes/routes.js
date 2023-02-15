@@ -1,6 +1,7 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import CyclesPage from '../pages/CyclesPage';
 import AdminReceivedLInks from '../pages/AdminReceivedLInks';
 import PricingPlan from '../components/PricingPlans/PricingPlans';
 import TokenRequestsAdminPage from '../pages/TokenRequestsAdminPage';
@@ -47,7 +48,7 @@ export default function Router({ role }) {
             {
               path: 'members',
               element: (
-                <RolesAuthRoute roles={['super_admin']}>
+                <RolesAuthRoute roles={['super_admin', 'employee']}>
                   <UserPage />
                 </RolesAuthRoute>
               ),
@@ -94,10 +95,19 @@ export default function Router({ role }) {
             },
             {
               name: 'AdminReceivedLinks',
-              path: 'receivedLinks',
+              path: '/receivedLinks',
               element: (
                 <RolesAuthRoute roles={['super_admin']}>
                   <AdminReceivedLInks />
+                </RolesAuthRoute>
+              ),
+            },
+            {
+              name: 'AllCycles',
+              path: 'cycles',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <CyclesPage />
                 </RolesAuthRoute>
               ),
             },
