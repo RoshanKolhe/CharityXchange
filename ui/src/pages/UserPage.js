@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Link as RouterLink, Navigate, useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import plusFill from '@iconify/icons-eva/plus-fill';
-
+import MaterialTable, { MTableToolbar } from 'material-table';
 // @mui
 import {
   Card,
@@ -35,6 +35,8 @@ import {
   Paper,
 } from '@mui/material';
 // components
+import { TreeItem } from '@mui/lab';
+import { convertData, tableIcons } from '../utils/constants';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -45,17 +47,7 @@ import account from '../_mock/account';
 import NewMember from '../components/members/NewMember';
 import CustomBox from '../common/CustomBox';
 import CommonSnackBar from '../common/CommonSnackBar';
-import { ListHead, ListToolbar } from '../sections/@dashboard/table';
-
-// ----------------------------------------------------------------------
-
-const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'email', label: 'Email', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
-  { id: '' },
-];
+import MemberTree from '../components/members/MemberTree';
 
 // ----------------------------------------------------------------------
 
@@ -137,13 +129,64 @@ export default function UserPage() {
   const handleClose = () => setOpenMdal(false);
 
   const handleNavigate = (url) => {
-    navigate(url, { replace: true });
+    navigate(url);
   };
 
   const handleOpenMenu = (event, row) => {
     setOpen(event.currentTarget);
     setEditUserData(row);
   };
+
+  const role = localStorage.getItem('permissions');
+  const permissions = role && role.split(',');
+
+  const TABLE_HEAD = [
+    {
+      title: 'Name',
+      render: (row) => (
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Avatar
+            alt={row.name}
+            src={row.userProfile?.avatar?.originalname ? row.userProfile?.avatar?.originalname : account.photoURL}
+          />
+          <Typography variant="subtitle2" noWrap>
+            {row.name}
+          </Typography>
+        </Stack>
+      ),
+    },
+    { field: 'email', title: 'Email' },
+    {
+      title: 'Role',
+      render: (row) => row.permissions.toString(),
+    },
+    {
+      title: 'Status',
+      render: (row) => (
+        <Label color={(row.is_active === false && 'error') || 'success'}>
+          {row.is_active === false ? 'InActive' : 'Active'}
+        </Label>
+      ),
+    },
+    {
+      title: '',
+      render: (row) =>
+        permissions &&
+        permissions.includes('super_admin') && (
+          <div>
+            <IconButton
+              size="large"
+              color="inherit"
+              onClick={(event) => {
+                handleOpenMenu(event, row);
+              }}
+            >
+              <Iconify icon={'eva:more-vertical-fill'} />
+            </IconButton>
+          </div>
+        ),
+    },
+  ];
 
   const handleCloseMenu = () => {
     setOpen(null);
@@ -205,20 +248,15 @@ export default function UserPage() {
     });
   };
 
-  const role = localStorage.getItem('permissions');
-  const permissions = role && role.split(',');
-
   const fetchData = () => {
     if (permissions && permissions.includes('super_admin')) {
       axiosInstance.get('users?filter[include][]=userProfile').then((res) => {
         setMemberList(res.data);
       });
     } else {
-      axiosInstance
-        .get(`users?filter[include][]=userProfile&filter[where][parent_id]=${userProfile?.id}`)
-        .then((res) => {
-          setMemberList(res.data);
-        });
+      axiosInstance.get(`getAllDescendantsOfUser`).then((res) => {
+        setMemberList(res.data);
+      });
     }
   };
 
@@ -233,7 +271,7 @@ export default function UserPage() {
   useEffect(() => {
     fetchData();
   }, [userProfile]);
-  console.log('isTreeView', isTreeView);
+
   return (
     <>
       <Helmet>
@@ -263,127 +301,179 @@ export default function UserPage() {
             onClick={() => {
               setIsTreeView(!isTreeView);
             }}
+            style={{
+              color: 'blue',
+              cursor: 'pointer',
+            }}
           >
-            show tree view
+            {isTreeView ? 'show table view' : 'show tree view'}
           </Typography>
         </Stack>
 
-        <Card>
-          <ListToolbar
-            numSelected={selected.length}
-            filterName={filterName}
-            onFilterName={handleFilterByName}
-            onReload={handleReloadData}
-          />
+        {/* <Card>
+        <ListToolbar
+          numSelected={selected.length}
+          filterName={filterName}
+          onFilterName={handleFilterByName}
+          onReload={handleReloadData}
+        />
 
-          <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <ListHead
-                  isCheckbox={permissions && permissions.includes('super_admin')}
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={memberList.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, email, permissions:userPermissions, is_active, userProfile } = row;
-                    const selectedUser = selected.indexOf(id) !== -1;
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        {permissions && permissions.includes('super_admin') && (
-                          <TableCell padding="checkbox">
-                            <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
-                          </TableCell>
-                        )}
-
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar
-                              alt={name}
-                              src={
-                                userProfile?.avatar?.originalname ? userProfile?.avatar?.originalname : account.photoURL
-                              }
-                              style={{marginLeft:'10px'}}
-                            />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
+        <Scrollbar>
+          <TableContainer sx={{ minWidth: 800 }}>
+            <Table>
+              <ListHead
+                isCheckbox={permissions && permissions.includes('super_admin')}
+                order={order}
+                orderBy={orderBy}
+                headLabel={TABLE_HEAD}
+                rowCount={memberList.length}
+                numSelected={selected.length}
+                onRequestSort={handleRequestSort}
+                onSelectAllClick={handleSelectAllClick}
+              />
+              <TableBody>
+                {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                  const { id, name, email, permissions:userPermissions, is_active, userProfile } = row;
+                  const selectedUser = selected.indexOf(id) !== -1;
+                  return (
+                    <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
+                      {permissions && permissions.includes('super_admin') && (
+                        <TableCell padding="checkbox">
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                         </TableCell>
+                      )}
 
-                        <TableCell align="left">{email}</TableCell>
-                        <TableCell align="left">{userPermissions.toString()}</TableCell>
-
-                        <TableCell align="left">
-                          <Label color={(is_active === false && 'error') || 'success'}>
-                            {is_active === false ? 'InActive' : 'Active'}
-                          </Label>
-                        </TableCell>
-                        {permissions && permissions.includes('super_admin') && (
-                          <TableCell align="right">
-                            <IconButton
-                              size="large"
-                              color="inherit"
-                              onClick={(event) => {
-                                handleOpenMenu(event, row);
-                              }}
-                            >
-                              <Iconify icon={'eva:more-vertical-fill'} />
-                            </IconButton>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
+                      <TableCell component="th" scope="row" padding="none">
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                          <Avatar
+                            alt={name}
+                            src={
+                              userProfile?.avatar?.originalname ? userProfile?.avatar?.originalname : account.photoURL
+                            }
+                            style={{marginLeft:'10px'}}
+                          />
+                          <Typography variant="subtitle2" noWrap>
+                            {name}
                           </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
+                        </Stack>
                       </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
-          </Scrollbar>
 
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={memberList.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+                      <TableCell align="left">{email}</TableCell>
+                      <TableCell align="left">{userPermissions.toString()}</TableCell>
+
+                      <TableCell align="left">
+                        <Label color={(is_active === false && 'error') || 'success'}>
+                          {is_active === false ? 'InActive' : 'Active'}
+                        </Label>
+                      </TableCell>
+                      {permissions && permissions.includes('super_admin') && (
+                        <TableCell align="right">
+                          <IconButton
+                            size="large"
+                            color="inherit"
+                            onClick={(event) => {
+                              handleOpenMenu(event, row);
+                            }}
+                          >
+                            <Iconify icon={'eva:more-vertical-fill'} />
+                          </IconButton>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
+                {emptyRows > 0 && (
+                  <TableRow style={{ height: 53 * emptyRows }}>
+                    <TableCell colSpan={6} />
+                  </TableRow>
+                )}
+              </TableBody>
+
+              {isNotFound && (
+                <TableBody>
+                  <TableRow>
+                    <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                      <Paper
+                        sx={{
+                          textAlign: 'center',
+                        }}
+                      >
+                        <Typography variant="h6" paragraph>
+                          Not found
+                        </Typography>
+
+                        <Typography variant="body2">
+                          No results found for &nbsp;
+                          <strong>&quot;{filterName}&quot;</strong>.
+                          <br /> Try checking for typos or using complete words.
+                        </Typography>
+                      </Paper>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              )}
+            </Table>
+          </TableContainer>
+        </Scrollbar>
+
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={memberList.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Card> */}
+        {!isTreeView ? (
+          <MaterialTable
+            data={memberList}
+            columns={TABLE_HEAD}
+            parentChildData={(row, rows) => rows.find((a) => a.id === row.parent_id)}
+            options={{
+              selection: permissions && permissions.includes('super_admin'),
+              showTitle: false,
+            }}
+            icons={tableIcons}
+            // components={{
+            //   Toolbar: (props) => (
+            //     <div
+            //       style={{
+            //         display: 'flex',
+            //         justifyContent: 'space-between',
+            //         alignItems: 'center',
+            //       }}
+            //     >
+            //       <div>
+            //         <MTableToolbar {...props} />
+            //       </div>
+            //       <div
+            //         style={{
+            //           marginRight: '20px',
+            //         }}
+            //       >
+            //         <Tooltip title="Reload">
+            //           <IconButton onClick={handleReloadData}>
+            //             <Iconify icon="mdi:reload" />
+            //           </IconButton>
+            //         </Tooltip>
+            //       </div>
+            //     </div>
+            //   ),
+            //   Container: (props) => <Paper {...props} elevation={8} />,
+            // }}
           />
-        </Card>
+        ) : (
+          <MemberTree
+            treeData={
+              permissions && permissions.includes('super_admin')
+                ? convertData(memberList)
+                : convertData(memberList, userProfile.id)
+            }
+          />
+        )}
+
         <Modal
           open={openModal}
           onClose={handleClose}

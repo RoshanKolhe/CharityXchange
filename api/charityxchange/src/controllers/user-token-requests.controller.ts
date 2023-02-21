@@ -101,17 +101,17 @@ export class UserTokenRequestsController {
       subject: template.subject,
       html: template.html,
     };
-    // const data = await this.emailManager
-    //   .sendMail(mailOptions)
-    //   .then(function (res: any) {
-    //     return Promise.resolve({
-    //       success: true,
-    //       message: `Token request confirmation mail sent to email ${user?.email} successfully`,
-    //     });
-    //   })
-    //   .catch(function (err: any) {
-    //     throw new HttpErrors.UnprocessableEntity(err);
-    //   });
+    const data = await this.emailManager
+      .sendMail(mailOptions)
+      .then(function (res: any) {
+        return Promise.resolve({
+          success: true,
+          message: `Token request confirmation mail sent to email ${user?.email} successfully`,
+        });
+      })
+      .catch(function (err: any) {
+        // throw new HttpErrors.UnprocessableEntity(err);
+      });
     return this.userRepository.tokenRequests(id).create(tokenRequests);
   }
 

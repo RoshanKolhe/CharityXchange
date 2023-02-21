@@ -148,7 +148,7 @@ export class UserController {
         });
       })
       .catch(function (err: any) {
-        throw new HttpErrors.UnprocessableEntity(err);
+        // throw new HttpErrors.UnprocessableEntity(err);
       });
     return data;
   }
@@ -513,5 +513,25 @@ export class UserController {
       }
     }
     return false;
+  }
+
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.EMPLOYEE]},
+  })
+  @get('/getAllDescendantsOfUser')
+  async getAllDescendantsOfUser(
+    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
+  ): Promise<any> {
+    return this.userRepository.execute(`WITH RECURSIVE descendants AS (
+      SELECT *
+      FROM user
+      WHERE id = ${currnetUser.id}
+      UNION ALL
+      SELECT user.*
+      FROM user
+      JOIN descendants ON user.parent_id = descendants.id
+    )
+    SELECT * FROM descendants;`);
   }
 }

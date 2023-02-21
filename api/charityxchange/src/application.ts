@@ -21,6 +21,7 @@ import {
 } from '@loopback/authentication';
 import {JWTStrategy} from './authentication-strategy/jwt-strategy';
 import { EmailService } from './services/email.service';
+import { CyclesService } from './services/cycles.service';
 
 export {ApplicationConfig};
 
@@ -64,6 +65,7 @@ export class CharityxchangeApplication extends BootMixin(
     this.bind('service.hasher').toClass(BcryptHasher);
     this.bind('service.user.service').toClass(MyUserService);
     this.bind('service.jwt.service').toClass(JWTService);
+    this.bind('service.cycle.service').toClass(CyclesService);
     this.bind(EmailManagerBindings.SEND_MAIL).toClass(EmailService);
   }
   protected configureFileUpload(destination?: string) {

@@ -22,6 +22,7 @@ import PrivateRoutes from './PrivateRoute';
 import { RolesAuthRoute } from './RolesAuthRoute';
 import KycPage from '../pages/KycPage';
 import MemberLinks from '../pages/MemberLInks';
+import ViewCycleDetails from '../components/cycles/ViewCycleDetails';
 
 // ----------------------------------------------------------------------
 
@@ -104,6 +105,15 @@ export default function Router({ role }) {
             },
             {
               name: 'AllCycles',
+              path: 'cycle/:id',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <ViewCycleDetails />
+                </RolesAuthRoute>
+              ),
+            },
+            {
+              name: 'Cycle',
               path: 'cycles',
               element: (
                 <RolesAuthRoute roles={['super_admin']}>

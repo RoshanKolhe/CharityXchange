@@ -135,7 +135,7 @@ export default function CyclesPage() {
   const handleClose = () => setOpenMdal(false);
 
   const handleNavigate = (url) => {
-    navigate(url, { replace: true });
+    navigate(url);
   };
 
   const handleOpenMenu = (event, row) => {
@@ -267,8 +267,8 @@ export default function CyclesPage() {
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                         </TableCell> */}
 
-                        <TableCell align="left">{moment(startDate).format('DD MM YYYY hh:mm:ss')}</TableCell>
-                        <TableCell align="left">{moment(endDate).format('DD MM YYYY hh:mm:ss')}</TableCell>
+                        <TableCell align="left">{moment(startDate).format('DD-MM-YYYY hh:mm:ss')}</TableCell>
+                        <TableCell align="left">{moment(endDate).format('DD-MM-YYYY hh:mm:ss')}</TableCell>
                         <TableCell align="left">
                           <Label color={(is_active === false && 'error') || 'success'}>
                             {is_active === false ? 'InActive' : 'Active'}
@@ -378,16 +378,11 @@ export default function CyclesPage() {
       >
         <MenuItem
           onClick={() => {
-            handleNavigate(`/users/${editUserData.id}`);
+            handleNavigate(`/cycle/${editUserData.id}`);
           }}
         >
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Edit
-        </MenuItem>
-
-        <MenuItem sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Delete
+          View
         </MenuItem>
       </Popover>
     </>

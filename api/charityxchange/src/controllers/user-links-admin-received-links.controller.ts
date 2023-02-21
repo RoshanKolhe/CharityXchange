@@ -157,7 +157,7 @@ export class UserLinksAdminReceivedLinksController {
     adminReceivedLinkIds: any,
   ): Promise<any> {
     if (adminReceivedLinkIds.linkIds.length > 0) {
-      adminReceivedLinkIds.linkIds.map(async (res: any) => {
+      for (const res of adminReceivedLinkIds.linkIds) {
         const repo = new DefaultTransactionalRepository(User, this.dataSource);
         const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
         try {
@@ -210,12 +210,50 @@ export class UserLinksAdminReceivedLinksController {
           tx.rollback();
           throw new HttpErrors[400](err);
         }
-      });
+      }
       return Promise.resolve({
         success: true,
         message: 'Help Sent Successfully',
       });
     }
     throw new HttpErrors[400]('Please provide an non empty array');
+  }
+
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.SUPER_ADMIN]},
+  })
+  @post('/user-links/adminCycle-user-links', {
+    responses: {
+      '200': {
+        description: 'Array of UserLinks has many AdminReceivedLinks',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'array',
+              items: getModelSchemaRef(AdminReceivedLinks),
+            },
+          },
+        },
+      },
+    },
+  })
+  async getAdminReceivedLinksBetweenDates(
+    @requestBody() cycleData: any,
+    @param.query.object('filter') filter?: Filter<AdminReceivedLinks>,
+  ): Promise<AdminReceivedLinks[]> {
+    const startDate = cycleData.startDate;
+    const endDate = cycleData.endDate;
+    return this.adminReceivedLinksRepository.find(
+      {
+        where: {
+          createdAt: {
+            between: [startDate, endDate],
+          },
+          is_help_send_to_user: false,
+        },
+      },
+      filter,
+    );
   }
 }

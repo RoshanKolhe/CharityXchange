@@ -37,23 +37,22 @@ import {
 // components
 import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
-import Label from '../components/label';
-import Iconify from '../components/iconify';
-import Scrollbar from '../components/scrollbar';
+import moment from 'moment';
+import Label from '../label';
+import Iconify from '../iconify';
+import Scrollbar from '../scrollbar';
 // sections
 // mock
-import axiosInstance from '../helpers/axios';
-import CommonSnackBar from '../common/CommonSnackBar';
-import { ListHead, ListToolbar } from '../sections/@dashboard/table';
+import axiosInstance from '../../helpers/axios';
+import CommonSnackBar from '../../common/CommonSnackBar';
+import { ListHead, ListToolbar } from '../../sections/@dashboard/table';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'linkName', label: 'Link', alignRight: false },
   { id: 'is_active', label: 'Active', alignRight: false },
-  { id: 'is_help_send', label: 'Send Help', alignRight: false },
-  { id: 'is_help_received', label: 'Help Received', alignRight: false },
-  { id: 'activationStartTime', label: 'Time Remaining', alignRight: false },
+  { id: 'is_help_send', label: 'Help Send', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -82,7 +81,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.linkName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -104,7 +103,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function MemberLinks() {
+export default function ViewCycleDetails() {
   const style = {
     position: 'absolute',
     top: '50%',
@@ -127,9 +126,11 @@ export default function MemberLinks() {
 
   const [tokenRequests, setTokenRequests] = useState([]);
 
+  const [currentCycleData, setCurrentCycleData] = useState();
+
   const [page, setPage] = useState(0);
 
-  const [order, setOrder] = useState('desc');
+  const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
 
@@ -203,6 +204,7 @@ export default function MemberLinks() {
   };
 
   const handleFilterByName = (event) => {
+    console.log('event', event);
     setPage(0);
     setFilterName(event.target.value);
   };
@@ -212,77 +214,15 @@ export default function MemberLinks() {
   const filteredUsers = applySortFilter(tokenRequests, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length;
-  const clearAllInterval = () => {
-    const interval_id = window.setInterval(() => {}, Number.MAX_SAFE_INTEGER);
-
-    // Clear any timeout/interval up to that id
-    // eslint-disable-next-line no-plusplus
-    for (let i = 1; i < interval_id; i++) {
-      window.clearInterval(i);
-    }
-  };
 
   const fetchData = () => {
-    clearAllInterval();
     axiosInstance
-      .get(`/users/user-links?filter[order]=linkName%20DESC`)
+      .post(`/user-links/adminCycle-user-links`, currentCycleData)
       .then((res) => {
         setTokenRequests(res.data);
       })
       .catch((err) => {
         setTokenRequests([]);
-      });
-  };
-
-  const handleLinkActivate = (row) => {
-    let inputData = {
-      ...row,
-      activationStartTime: `${new Date()}`,
-      activationEndTime: `${AddMinutesToDate(new Date(), 1440)}`,
-    };
-    inputData = omit(inputData, 'userId');
-    axiosInstance
-      .patch(`/users/update-user-link?where[id]=${row.id}`, inputData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Successfully Activated Link');
-        handleOpenSnackBar();
-        fetchData();
-      })
-      .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        fetchData();
-      });
-  };
-
-  const handleSendHelp = (row) => {
-    let inputData = {
-      ...row,
-      is_active: true,
-      is_help_send: true,
-      is_help_received: false,
-      is_send_to_admin: false,
-    };
-    inputData = omit(inputData, 'userId');
-    axiosInstance
-      .patch(`/users/update-user-help-link?where[id]=${row.id}`, inputData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Successfully Activated Link');
-        handleOpenSnackBar();
-        fetchData();
-      })
-      .catch((err) => {
-        setErrorMessage(
-          Object.keys(err.response.data.error.message).length > 0
-            ? err.response.data.error.message.message
-            : err.response.data.error.message
-        );
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        fetchData();
       });
   };
 
@@ -310,6 +250,28 @@ export default function MemberLinks() {
     return getCountdown();
   };
 
+  const handleApproveLinkHelpSend = () => {
+    const inputData = {
+      linkIds: [editUserData.id],
+    };
+    axiosInstance
+      .patch(`sendHelpToLink`, inputData)
+      .then((res) => {
+        setErrorMessage('');
+        setSuccessMessage('Help sent Successfully');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      });
+  };
+
   const checkActiveState = (row) => {
     const now = new Date();
     let expire_start_date;
@@ -327,9 +289,52 @@ export default function MemberLinks() {
     return false;
   };
 
+  const onApproveSelected = () => {
+    const inputData = {
+      linkIds: selected,
+    };
+    axiosInstance
+      .patch(`sendHelpToLink`, inputData)
+      .then((res) => {
+        setErrorMessage('');
+        setSuccessMessage('Help sent Successfully');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      });
+  };
+
+  const getCurrentCycleData = () => {
+    axiosInstance
+      .get(`/cycles/${params.id}`)
+      .then((res) => {
+        setCurrentCycleData(res.data);
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        fetchData();
+      });
+  };
+
   useEffect(() => {
-    fetchData();
+    getCurrentCycleData();
   }, []);
+
+  useEffect(() => {
+    console.log('currentCycleData', currentCycleData);
+    if (currentCycleData) {
+      fetchData();
+    }
+  }, [currentCycleData]);
 
   return (
     <>
@@ -343,13 +348,27 @@ export default function MemberLinks() {
             Links
           </Typography>
         </Stack>
-        <Typography variant="caption" gutterBottom>
-          Note*: Activating a link will result in a $10 deduction from your wallet, and sending help will result in a
-          $20 deduction. After activating the link, help must be sent within 24 hours or the link will deactivate and
-          need to be reactivated.
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-evenly" mb={2}>
+          <Typography variant="body1" gutterBottom>
+            {`Start Date : ${moment(new Date(currentCycleData?.startDate)).format('YYYY-MM-DD HH:mm:ss')}`}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            {`End Date : ${moment(new Date(currentCycleData?.endDate)).format('YYYY-MM-DD HH:mm:ss')}`}
+          </Typography>
+          <Button variant="contained" style={{ backgroundColor: 'red' }}>
+            End Cycle
+          </Button>
+        </Stack>
+
         <Card>
-          {/* <ListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} /> */}
+          <ListToolbar
+            numSelected={selected.length}
+            filterName={filterName}
+            onFilterName={handleFilterByName}
+            onReload={fetchData}
+            onApproveSelected={onApproveSelected}
+            showSearch={false}
+          />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -378,14 +397,7 @@ export default function MemberLinks() {
                     } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
-                      <TableRow
-                        hover
-                        key={id}
-                        tabIndex={-1}
-                        role="checkbox"
-                        selected={selectedUser}
-                        className={clsx(is_send_to_admin ? classes.rowColor : null)}
-                      >
+                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         {/* <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                         </TableCell> */}
@@ -399,11 +411,6 @@ export default function MemberLinks() {
                           <Label
                             color={!checkActiveState(row) ? 'error' : checkActiveState(row) ? 'success' : 'error'}
                             className={clsx(!checkActiveState(row) ? classes.pointerCss : null)}
-                            onClick={() => {
-                              if (!checkActiveState(row)) {
-                                handleLinkActivate(row);
-                              }
-                            }}
                           >
                             {checkActiveState(row) ? 'Active' : 'Activate'}
                           </Label>
@@ -412,37 +419,9 @@ export default function MemberLinks() {
                           <Label
                             className={clsx(!is_help_send ? classes.pointerCss : null)}
                             color={!is_help_send ? 'error' : is_help_send ? 'success' : 'error'}
-                            onClick={() => {
-                              if (
-                                new Date() <= new Date(activationEndTime) &&
-                                new Date() >= new Date(activationStartTime)
-                              ) {
-                                handleSendHelp(row);
-                              }
-                            }}
                           >
                             {!is_help_send ? 'Send Help' : is_help_send ? 'Active' : 'Send Help'}
                           </Label>
-                        </TableCell>
-                        <TableCell align="left">
-                          <Label color={!is_help_received ? 'error' : is_help_received ? 'success' : 'error'}>
-                            {!is_help_received ? 'Pending' : is_help_received ? 'Received' : 'Pending'}
-                          </Label>
-                        </TableCell>
-                        <TableCell align="left" id={`countdown-${row.id}`}>
-                          <Typography variant="subtitle2" noWrap>
-                            {!is_active &&
-                            activationStartTime &&
-                            activationEndTime &&
-                            new Date() <= new Date(activationEndTime) &&
-                            new Date() >= new Date(activationStartTime)
-                              ? setInterval(() => {
-                                  const countdown = renderCountdown(new Date(), activationEndTime);
-                                  const timeCell = document.getElementById(`countdown-${row.id}`);
-                                  if (timeCell) timeCell.textContent = countdown;
-                                }, 1000)
-                              : ''}
-                          </Typography>
                         </TableCell>
                       </TableRow>
                     );

@@ -280,7 +280,7 @@ const MemberDetails = (props) => {
                 name="userProfile.address.addressLine1"
                 label="Address Line 1"
                 type="text"
-                value={formik.values.userProfile.address.addressLine1}
+                value={formik.values?.userProfile?.address?.addressLine1}
                 onChange={formik.handleChange}
                 error={
                   formik?.touched?.userProfile?.address?.addressLine1 &&
@@ -300,7 +300,7 @@ const MemberDetails = (props) => {
                 name="userProfile.address.addressLine2"
                 label="Address Line 2"
                 type="text"
-                value={formik.values.userProfile.address.addressLine2}
+                value={formik.values?.userProfile?.address?.addressLine2}
                 onChange={formik.handleChange}
                 error={
                   formik?.touched?.userProfile?.address?.addressLine2 &&
@@ -320,7 +320,7 @@ const MemberDetails = (props) => {
                 name="userProfile.address.city"
                 label="City"
                 type="text"
-                value={formik.values.userProfile.address.city}
+                value={formik.values?.userProfile?.address?.city}
                 onChange={formik.handleChange}
                 error={
                   formik?.touched?.userProfile?.address?.city && Boolean(formik?.errors?.userProfile?.address?.city)
@@ -336,7 +336,7 @@ const MemberDetails = (props) => {
                 name="userProfile.address.state"
                 label="State"
                 type="text"
-                value={formik.values.userProfile.address.state}
+                value={formik.values?.userProfile?.address?.state}
                 onChange={formik.handleChange}
                 error={
                   formik?.touched?.userProfile?.address?.state && Boolean(formik?.errors?.userProfile?.address?.state)
@@ -352,7 +352,7 @@ const MemberDetails = (props) => {
                 name="userProfile.address.zipCode"
                 label="Zip Code"
                 type="text"
-                value={formik.values.userProfile.address.zipCode}
+                value={formik.values?.userProfile?.address?.zipCode}
                 onChange={formik.handleChange}
                 error={
                   formik?.touched?.userProfile?.address?.zipCode &&
@@ -371,7 +371,7 @@ const MemberDetails = (props) => {
                 name="balance_user.payment_info.wallet_address"
                 label="Wallet Address"
                 type="text"
-                value={formik.values.balance_user.payment_info.wallet_address}
+                value={formik.values?.balance_user?.payment_info?.wallet_address}
                 onChange={formik.handleChange}
                 error={
                   formik?.touched?.balance_user?.payment_info?.wallet_address &&
