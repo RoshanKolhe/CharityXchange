@@ -34,7 +34,8 @@ import {
   UserRepository,
 } from '../repositories';
 import {CyclesService} from '../services/cycles.service';
-import {PER_LINK_HELP_AMOUNT} from '../utils/constants';
+import {MyUserService} from '../services/user-service';
+import {LEVEL_PRICES, PER_LINK_HELP_AMOUNT} from '../utils/constants';
 
 export class CycleController {
   constructor(
@@ -50,6 +51,8 @@ export class CycleController {
     protected userLinksRepository: UserLinksRepository,
     @inject('service.cycle.service')
     public cycleService: CyclesService,
+    @inject('service.user.service')
+    public userService: MyUserService,
   ) {}
 
   @authenticate({
@@ -211,10 +214,53 @@ export class CycleController {
       let participatedUserIds: any = [];
 
       const allUserRecords = await this.userRepository.find();
-      participatedUserIds = allUserRecords.map(record => record.id);
+      participatedUserIds = allUserRecords
+        .filter(record => !record.permissions.includes('super_admin'))
+        .map(x => x.id);
+      const adminBalance = await this.userRepository.adminBalances(5).get();
+      for (const element of participatedUserIds) {
+        const userData = await this.userRepository.findOne({
+          where: {
+            id: element,
+          },
+          include: ['userProfile', 'balance_user', 'adminBalances'],
+        });
+        const userLevel = await this.userService.calculateUserLevel(userData);
+        const createdAtDate = userData?.createdAt
+          ? new Date(userData.createdAt)
+          : new Date();
+        const diffInMs = Date.now() - createdAtDate.getTime();
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 
+        if (
+          diffInDays <= 7 &&
+          !userData?.balance_user &&
+          !userData?.balance_user.is_first_level_price_taken
+        ) {
+          await this.userRepository.balance_user(element).patch({
+            is_first_level_price_taken: true,
+            current_balance: userData?.balance_user.current_balance || 0 + 20,
+            total_earnings: userData?.balance_user.total_earnings || 0 + 20,
+          });
+
+          await this.userRepository.adminBalances(5).patch({
+            activation_help: adminBalance.activation_help - 20,
+          });
+        }
+        if (userLevel.level) {
+          const price =
+            LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
+          await this.userRepository.balance_user(element).patch({
+            total_earnings:
+              userData?.balance_user.total_earnings ||
+              0 + price.levelIncome + price.awardOrReward,
+            current_balance:
+              userData?.balance_user.current_balance ||
+              0 + price.levelIncome + price.awardOrReward,
+          });
+        }
+      }
       this.cycleService.updateCycleAndSendEmailToUser(participatedUserIds);
-      await this.cycleService.sendLevelIncomeAndEndCycle(participatedUserIds);
 
       tx.commit();
       return Promise.resolve({
