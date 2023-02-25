@@ -199,13 +199,14 @@ export class UserController {
 
     const currentUserActivePlan =
       await this.userService.getCurrentUserActivePack(currnetUser);
-
+    const userLevel = await this.userService.calculateUserLevel(currnetUser);
     return Promise.resolve({
       ...user,
       activePayment:
         Object.keys(currentUserActivePlan).length > 0
           ? currentUserActivePlan
           : undefined,
+      userLevel: userLevel,
     });
   }
 
@@ -384,7 +385,7 @@ export class UserController {
         });
 
         if (filteredData.length > 1) {
-          throw new HttpErrors[400]('Something went wrong');
+          throw new HttpErrors[400]('User Has More than one active plans');
         }
         currentUserActivePlan = filteredData[0];
       }

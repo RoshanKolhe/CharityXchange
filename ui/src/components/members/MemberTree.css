@@ -1,0 +1,7 @@
+#initechOrgChart .reactOrgChart .orgNodeChildGroup .nodeGroupLineVerticalMiddle {
+  border-right: solid 3px #36cd71 !important;
+}
+
+#initechOrgChart .reactOrgChart .nodeLineBorderTop {
+  border-top: solid 3px #36cd71 !important;
+}

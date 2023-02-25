@@ -103,7 +103,7 @@ export default function DashboardEmployeePage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Incentives Earned" total={0} color="info" icon={'mdi:loyalty'} />
+            <AppWidgetSummary title="Incentives Earned" total={10} color="info" icon={'mdi:loyalty'} />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>

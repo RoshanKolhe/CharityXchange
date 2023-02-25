@@ -32,10 +32,12 @@ const NewCycle = (props) => {
   NewCycle.propTypes = {
     onDataSubmit: PropTypes.func,
     handleClose: PropTypes.func,
+    cyclesData: PropTypes.array,
   };
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [highestDate, setHighestDate] = useState();
   const validationSchema = yup.object({
     startDate: yup.string('Select Start Date').required('Start Date is required'),
     endDate: yup
@@ -77,9 +79,19 @@ const NewCycle = (props) => {
         });
     },
   });
-  const handleShowPassword = () => {
-    setShowPassword((show) => !show);
+
+  const sortData = (cycleData) => {
+    cycleData = cycleData.sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+    setHighestDate(cycleData[0].endDate);
   };
+
+  const onKeyDown = (e) => {
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    if (props.cyclesData) sortData(props.cyclesData);
+  }, [props.cyclesData]);
 
   useEffect(() => {
     axiosInstance.get('users/me').then((res) => {
@@ -112,14 +124,17 @@ const NewCycle = (props) => {
           <Grid item xs={12} margin={2}>
             <DateTimePicker
               label="Start Date"
+              minDate={highestDate}
               value={formik.values.startDate || null}
               onChange={(newValue) => formik.setFieldValue('startDate', newValue)}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   fullWidth
+                  autoComplete="off"
                   error={formik.touched.startDate && Boolean(formik.errors.startDate)}
                   helperText={formik.touched.startDate && formik.errors.startDate}
+                  onKeyDown={onKeyDown}
                 />
               )}
             />
@@ -127,14 +142,17 @@ const NewCycle = (props) => {
           <Grid item xs={12} margin={2}>
             <DateTimePicker
               label="End Date"
+              minDate={highestDate}
               value={formik.values.endDate || null}
               onChange={(newValue) => formik.setFieldValue('endDate', newValue)}
               renderInput={(params) => (
                 <TextField
                   {...params}
+                  autoComplete="off"
                   fullWidth
                   error={formik.touched.endDate && Boolean(formik.errors.endDate)}
                   helperText={formik.touched.endDate && formik.errors.endDate}
+                  onKeyDown={onKeyDown}
                 />
               )}
             />

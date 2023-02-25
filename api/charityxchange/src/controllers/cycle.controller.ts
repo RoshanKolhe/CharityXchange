@@ -5,6 +5,7 @@ import {
   CountSchema,
   DefaultTransactionalRepository,
   Filter,
+  FilterBuilder,
   FilterExcludingWhere,
   IsolationLevel,
   repository,
@@ -204,45 +205,24 @@ export class CycleController {
 
   @post('/cycles/endCycle')
   async endPayoutCycle(@requestBody() cycles: any): Promise<any> {
+    const repo = new DefaultTransactionalRepository(Cycles, this.dataSource);
+    const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
     try {
-      const allLinksBetweenDates = await this.adminReceivedLinksRepository.find(
-        {
-          where: {
-            createdAt: {
-              between: [cycles.startDate, cycles.endDate],
-            },
-          },
-        },
-      );
-      if (allLinksBetweenDates.length > 0) {
-        this.cycleService.sendNonWorkingMoneyToUser(allLinksBetweenDates);
-        let participatedUserIds: any = [];
-        for (const res of allLinksBetweenDates) {
-          const userLinkData = await this.userLinksRepository.findById(
-            res.userLinksId,
-          );
-          participatedUserIds.push(userLinkData.userId);
-        }
-        const filteredParicipatedUsers = participatedUserIds.filter(
-          (item: any, index: any) =>
-            participatedUserIds.indexOf(item) === index,
-        );
-        console.log(
-          'filteredParicipatedUsers',
-          filteredParicipatedUsers.length,
-        );
+      let participatedUserIds: any = [];
 
-        this.cycleService.updateCycleAndSendEmailToUser(
-          filteredParicipatedUsers,
-        );
-        return Promise.resolve({
-          success: true,
-          message: `Successfully Closed the Cycle`,
-        });
-      } else {
-        throw new HttpErrors.NotFound('No Links Found For this cycle');
-      }
+      const allUserRecords = await this.userRepository.find();
+      participatedUserIds = allUserRecords.map(record => record.id);
+
+      this.cycleService.updateCycleAndSendEmailToUser(participatedUserIds);
+      await this.cycleService.sendLevelIncomeAndEndCycle(participatedUserIds);
+
+      tx.commit();
+      return Promise.resolve({
+        success: true,
+        message: `Successfully Closed the Cycle`,
+      });
     } catch (err) {
+      tx.rollback();
       return Promise.resolve({
         success: false,
         message: err,

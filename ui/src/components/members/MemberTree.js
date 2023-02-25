@@ -9,6 +9,7 @@ import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
 import CustomBox from '../../common/CustomBox';
 import account from '../../_mock/account';
+import './MemberTree.css';
 
 function traverse(obj) {
   const o = { ...obj };
@@ -184,7 +185,9 @@ function MemberTree({ treeData }) {
 
   return (
     <ScrollContainer className="scroll-container">
-      <OrgChart tree={treeData} NodeComponent={MyNodeComponent} />
+      <div id="initechOrgChart">
+        <OrgChart tree={treeData} NodeComponent={MyNodeComponent} />
+      </div>
     </ScrollContainer>
   );
 }

@@ -213,9 +213,15 @@ export default function AdminReceivedLInks() {
 
   const isNotFound = !filteredUsers.length;
 
-  const fetchData = () => {
+  const fetchData = (startDate, endDate) => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    let filterString = `/user-links/admin-received-links?filter[where][createdAt][lt]=${sevenDaysAgo}&filter[where][is_help_send_to_user]=false`;
+    if (startDate && endDate) {
+      filterString = `/user-links/admin-received-links?filter[where][is_help_send_to_user]=false&filter[where][createdAt][between][0]=${startDate}&filter[where][createdAt][between][1]=${endDate}&filter[where][createdAt][lt]=${sevenDaysAgo}`;
+    }
     axiosInstance
-      .get(`/user-links/admin-received-links?filter[where][is_help_send_to_user]=false`)
+      .get(filterString)
       .then((res) => {
         setTokenRequests(res.data);
       })
@@ -337,6 +343,8 @@ export default function AdminReceivedLInks() {
             onFilterName={handleFilterByName}
             onReload={fetchData}
             onApproveSelected={onApproveSelected}
+            isFilter
+            onFilterDateSelected={fetchData}
           />
 
           <Scrollbar>

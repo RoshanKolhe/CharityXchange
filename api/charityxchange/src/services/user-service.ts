@@ -8,6 +8,7 @@ import {
   PricingPlanRepository,
   UserPricingPlanRepository,
 } from '../repositories';
+import {getUserLevel} from '../utils/constants';
 import {Credentials, UserRepository} from './../repositories/user.repository';
 import {BcryptHasher} from './hash.password.bcrypt';
 
@@ -53,9 +54,7 @@ export class MyUserService implements UserService<User, Credentials> {
     };
   }
 
-  async getCurrentUserActivePack(
-    currnetUser: UserProfile,
-  ): Promise<any> {
+  async getCurrentUserActivePack(currnetUser: any): Promise<any> {
     const currentUserActivePlans = await this.userPricingPlanRepository.find({
       where: {
         userId: currnetUser.id,
@@ -83,6 +82,74 @@ export class MyUserService implements UserService<User, Credentials> {
       return currentActivePack;
     } else {
       return currentUserActivePlan;
+    }
+  }
+
+  async calculateUserLevel(currnetUser: any): Promise<any> {
+    try {
+      const descendantsOfuser: any = await this.userRepository
+        .execute(`WITH RECURSIVE descendants AS (
+        SELECT *
+        FROM user
+        WHERE id = ${currnetUser.id}
+        UNION ALL
+        SELECT user.*
+        FROM user
+        JOIN descendants ON user.parent_id = descendants.id
+      )
+      SELECT * FROM descendants;`);
+
+      let teamActiveLinkCount = 0;
+      let directUserCount = 0;
+      for (const descendant of descendantsOfuser) {
+        const descendantUserWithLinks = await this.userRepository.findOne({
+          where: {
+            id: descendant.id,
+          },
+          include: ['userProfile', 'balance_user', 'userLinks'],
+        });
+        if (
+          descendantUserWithLinks &&
+          descendantUserWithLinks.userLinks &&
+          descendantUserWithLinks.userLinks.length > 0
+        ) {
+          const filteredDescendantUserWithLinks =
+            descendantUserWithLinks.userLinks.filter(element => {
+              return (
+                (element.is_active && !element.is_help_received) ||
+                (!element.is_help_received &&
+                  !element.is_active &&
+                  element.activationEndTime &&
+                  element.activationStartTime &&
+                  new Date() <= new Date(element.activationEndTime) &&
+                  new Date() >= new Date(element.activationStartTime))
+              );
+            });
+          teamActiveLinkCount =
+            teamActiveLinkCount + filteredDescendantUserWithLinks.length;
+        }
+      }
+      const userDirectUsers = await this.userRepository.find({
+        where: {
+          parent_id: currnetUser.id,
+        },
+      });
+      for (const userDirectUser of userDirectUsers) {
+        const userActivePlan = await this.getCurrentUserActivePack(
+          userDirectUser,
+        );
+        if (userActivePlan && userActivePlan.total_links === 11) {
+          directUserCount = directUserCount + 1;
+        }
+      }
+
+      return {
+        level: getUserLevel(directUserCount, teamActiveLinkCount),
+        directUserCount: directUserCount,
+        teamActiveLinkCount: teamActiveLinkCount,
+      };
+    } catch (err) {
+      console.log(err);
     }
   }
 }

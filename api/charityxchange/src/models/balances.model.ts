@@ -49,6 +49,12 @@ export class Balances extends Entity {
   })
   userId?: number;
 
+  @property({
+    type: 'boolean',
+    default: false,
+  })
+  is_first_level_price_taken: boolean;
+
   constructor(data?: Partial<Balances>) {
     super(data);
   }

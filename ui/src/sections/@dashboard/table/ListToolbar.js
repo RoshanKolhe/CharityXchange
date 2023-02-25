@@ -1,10 +1,24 @@
 import PropTypes from 'prop-types';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+import { Icon } from '@iconify/react';
+import {
+  Toolbar,
+  Tooltip,
+  IconButton,
+  Typography,
+  OutlinedInput,
+  InputAdornment,
+  TextField,
+  Grid,
+} from '@mui/material';
 // component
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { useEffect, useState } from 'react';
+import roundFilterList from '@iconify/icons-ic/round-filter-list';
 import Iconify from '../../../components/iconify';
-
 // ----------------------------------------------------------------------
 
 const StyledRoot = styled(Toolbar)(({ theme }) => ({
@@ -39,6 +53,8 @@ ListToolbar.propTypes = {
   onReload: PropTypes.func,
   onApproveSelected: PropTypes.func,
   showSearch: PropTypes.bool,
+  isFilter: PropTypes.bool,
+  onFilterDateSelected: PropTypes.func,
 };
 
 export default function ListToolbar({
@@ -48,7 +64,19 @@ export default function ListToolbar({
   onApproveSelected,
   onReload,
   showSearch = true,
+  isFilter = false,
+  onFilterDateSelected,
 }) {
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
+  const [isFilterClicked, setIsFilterClicked] = useState(false);
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      onFilterDateSelected(new Date(startDate).toISOString(), new Date(endDate).toISOString());
+    }
+  }, [startDate, endDate]);
+
   return (
     <StyledRoot
       sx={{
@@ -82,11 +110,49 @@ export default function ListToolbar({
           </IconButton>
         </Tooltip>
       ) : (
-        <Tooltip title="Reload">
-          <IconButton onClick={onReload}>
-            <Iconify icon="mdi:reload" />
-          </IconButton>
-        </Tooltip>
+        <>
+          {isFilterClicked ? (
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Grid container direction="row">
+                <Grid item marginX={3}>
+                  <DateTimePicker
+                    label="Start Date"
+                    value={startDate || null}
+                    onChange={(newValue) => setStartDate(newValue)}
+                    renderInput={(params) => <TextField {...params} autoComplete="off" />}
+                  />
+                </Grid>
+                <Grid item>
+                  <DateTimePicker
+                    label="end Date"
+                    value={endDate || null}
+                    onChange={(newValue) => setEndDate(newValue)}
+                    renderInput={(params) => <TextField {...params} autoComplete="off" />}
+                  />
+                </Grid>
+              </Grid>
+            </LocalizationProvider>
+          ) : null}
+          <div>
+            {isFilter ? (
+              <Tooltip title="Filter list">
+                <IconButton
+                  onClick={() => {
+                    setIsFilterClicked(!isFilterClicked);
+                  }}
+                >
+                  <Icon icon={roundFilterList} />
+                </IconButton>
+              </Tooltip>
+            ) : null}
+
+            <Tooltip title="Reload">
+              <IconButton onClick={onReload}>
+                <Iconify icon="mdi:reload" />
+              </IconButton>
+            </Tooltip>
+          </div>
+        </>
       )}
     </StyledRoot>
   );

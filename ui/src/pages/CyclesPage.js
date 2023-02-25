@@ -348,6 +348,7 @@ export default function CyclesPage() {
                 setMsg('Successfully Created New Cycle');
                 handleOpenSnackBar();
               }}
+              cyclesData={cyclesList}
             />
           </CustomBox>
         </Modal>
