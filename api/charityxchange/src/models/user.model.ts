@@ -4,6 +4,7 @@ import {Balances} from './balances.model';
 import {AdminBalances} from './admin-balances.model';
 import {TokenRequests} from './token-requests.model';
 import {UserLinks} from './user-links.model';
+import {Transactions} from './transactions.model';
 
 @model()
 export class User extends Entity {
@@ -116,6 +117,9 @@ export class User extends Entity {
 
   @hasMany(() => UserLinks)
   userLinks: UserLinks[];
+
+  @hasMany(() => Transactions)
+  transactions: Transactions[];
 
   constructor(data?: Partial<User>) {
     super(data);

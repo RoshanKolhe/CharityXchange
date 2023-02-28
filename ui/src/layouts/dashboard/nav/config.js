@@ -39,6 +39,11 @@ const navConfig = (userData) => {
           path: `/cycles`,
           icon: icon('ic_cycle'),
         },
+        {
+          title: 'Transactions',
+          path: `/transactions`,
+          icon: icon('ic_transaction'),
+        },
         // {
         //   title: 'product',
         //   path: '/products',
@@ -65,6 +70,11 @@ const navConfig = (userData) => {
           title: 'Links',
           path: `/userLinks`,
           icon: icon('ic_links'),
+        },
+        {
+          title: 'Transactions',
+          path: `/employeeTransactions`,
+          icon: icon('ic_transaction'),
         },
         // {
         //   title: 'product',

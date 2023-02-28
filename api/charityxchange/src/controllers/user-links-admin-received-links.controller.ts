@@ -29,7 +29,12 @@ import {
   UserLinksRepository,
   UserRepository,
 } from '../repositories';
-import {ADMIN_ID, PER_LINK_HELP_AMOUNT} from '../utils/constants';
+import {
+  ADMIN_ID,
+  generateTransactionId,
+  PER_LINK_HELP_AMOUNT,
+} from '../utils/constants';
+import {TransactionService} from '../services/transaction.service';
 
 export class UserLinksAdminReceivedLinksController {
   constructor(
@@ -41,6 +46,8 @@ export class UserLinksAdminReceivedLinksController {
     protected adminReceivedLinksRepository: AdminReceivedLinksRepository,
     @repository(UserRepository)
     public userRepository: UserRepository,
+    @inject('service.transaction.service')
+    public transactionService: TransactionService,
   ) {}
 
   @authenticate({
@@ -205,7 +212,20 @@ export class UserLinksAdminReceivedLinksController {
               {transaction: tx},
             );
           }
+
           tx.commit();
+          const transactionDetails: any = {
+            transaction_id: generateTransactionId(),
+            remark: `Help to link #${userLinkData.linkName} received`,
+            amount: PER_LINK_HELP_AMOUNT,
+            type: 'Credited',
+            status: true,
+            transaction_fees: 0,
+          };
+          await this.transactionService.createTransaction(
+            transactionDetails,
+            userLinkData.userId,
+          );
         } catch (err) {
           tx.rollback();
           throw new HttpErrors[400](err);

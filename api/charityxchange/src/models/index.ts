@@ -9,3 +9,4 @@ export * from './user-links.model';
 export * from './admin-received-links.model';
 export * from './cycles.model';
 export * from './cycle-payments.model';
+export * from './transactions.model';

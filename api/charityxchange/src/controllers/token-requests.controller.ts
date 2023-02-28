@@ -1,6 +1,7 @@
 import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {
+  AnyObject,
   Count,
   CountSchema,
   Filter,
@@ -21,9 +22,10 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import {PermissionKeys} from '../authorization/permission-keys';
-import {TokenRequests, UserProfile} from '../models';
+import {TokenRequests, Transactions, UserProfile} from '../models';
 import {TokenRequestsRepository, UserRepository} from '../repositories';
-import {ADMIN_ID} from '../utils/constants';
+import {TransactionService} from '../services/transaction.service';
+import {ADMIN_ID, generateTransactionId} from '../utils/constants';
 
 export class TokenRequestsController {
   constructor(
@@ -31,6 +33,8 @@ export class TokenRequestsController {
     public tokenRequestsRepository: TokenRequestsRepository,
     @repository(UserRepository)
     public userRepository: UserRepository,
+    @inject('service.transaction.service')
+    public transactionService: TransactionService,
   ) {}
 
   @post('/token-requests')
@@ -170,6 +174,18 @@ export class TokenRequestsController {
         const dataToSubtract = {
           total_supply: admin_total_supply - amountToBeAdded,
         };
+        const transactionDetails: any = {
+          transaction_id: generateTransactionId(),
+          remark: 'Token Request Completed',
+          amount:  amountToBeAdded,
+          type: 'Deposited',
+          status: true,
+          transaction_fees: 0,
+        };
+        await this.transactionService.createTransaction(
+          transactionDetails,
+          tokenRequests.userId,
+        );
         return await this.userRepository
           .adminBalances(ADMIN_ID)
           .patch(dataToSubtract);

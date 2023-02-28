@@ -69,7 +69,7 @@ export default function Header({ onOpenNav, userProfile }) {
           }}
         >
           {/* <LanguagePopover /> */}
-          <NotificationsPopover />
+          {/* <NotificationsPopover /> */}
           <AccountPopover userProfile={userProfile} />
         </Stack>
       </StyledToolbar>

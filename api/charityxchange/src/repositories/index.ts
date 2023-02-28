@@ -9,3 +9,4 @@ export * from './user-links.repository';
 export * from './admin-received-links.repository';
 export * from './cycles.repository';
 export * from './cycle-payments.repository';
+export * from './transactions.repository';

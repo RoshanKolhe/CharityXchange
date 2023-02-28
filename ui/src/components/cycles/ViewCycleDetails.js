@@ -154,7 +154,7 @@ export default function ViewCycleDetails() {
   const handleCloseSnackBar = () => setOpenSnackBar(false);
 
   const handleNavigate = (url) => {
-    navigate(url, { replace: true });
+    navigate(url);
   };
 
   const handleOpenMenu = (event, row) => {
@@ -229,7 +229,9 @@ export default function ViewCycleDetails() {
         setErrorMessage('');
         setSuccessMessage('Cycle Ended Successfully');
         handleOpenSnackBar();
-        fetchData();
+        setTimeout(() => {
+          navigate(-1);
+        }, 2000);
       })
       .catch((err) => {
         setErrorMessage(err.response.data.error.message);

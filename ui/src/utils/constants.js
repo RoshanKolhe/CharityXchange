@@ -71,3 +71,12 @@ export const convertData = (data) => {
   console.log(result[0]);
   return result[0];
 };
+
+export const LEVEL_DATA = {
+  LEVEL_1: 'Assistance Executive',
+  LEVEL_2: 'Executive',
+  LEVEL_3: 'Senior Executive',
+  LEVEL_4: 'Royal Executive',
+  LEVEL_5: 'Crown Executive',
+  LEVEL_6: 'Global Executive',
+};

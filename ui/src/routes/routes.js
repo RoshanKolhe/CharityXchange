@@ -1,6 +1,8 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import TransactionsAdminPage from '../pages/TransactionsAdminPage';
+import TransactionsEmployeePage from '../pages/TransactionsEmployeePage';
 import CyclesPage from '../pages/CyclesPage';
 import AdminReceivedLInks from '../pages/AdminReceivedLInks';
 import PricingPlan from '../components/PricingPlans/PricingPlans';
@@ -76,11 +78,6 @@ export default function Router({ role }) {
               ),
             },
             {
-              name: 'tokenRequests',
-              path: 'tokenRequests/:id',
-              element: <TokenRequestsEmployeePage />,
-            },
-            {
               name: 'tokenRequestsAdmin',
               path: 'tokenRequests',
               element: (
@@ -88,6 +85,25 @@ export default function Router({ role }) {
                   <TokenRequestsAdminPage />{' '}
                 </RolesAuthRoute>
               ),
+            },
+            {
+              name: 'tokenRequests',
+              path: 'tokenRequests/:id',
+              element: <TokenRequestsEmployeePage />,
+            },
+            {
+              name: 'transactionsAdmin',
+              path: 'transactions',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <TransactionsAdminPage />
+                </RolesAuthRoute>
+              ),
+            },
+            {
+              name: 'transactionsEmployee',
+              path: 'employeeTransactions',
+              element: <TransactionsEmployeePage />,
             },
             {
               name: 'Links',

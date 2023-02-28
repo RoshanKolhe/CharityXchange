@@ -10,7 +10,11 @@ import {RepositoryMixin} from '@loopback/repository';
 import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
-import {EmailManagerBindings, FILE_UPLOAD_SERVICE, STORAGE_DIRECTORY} from './keys';
+import {
+  EmailManagerBindings,
+  FILE_UPLOAD_SERVICE,
+  STORAGE_DIRECTORY,
+} from './keys';
 import {MySequence} from './sequence';
 import {BcryptHasher} from './services/hash.password.bcrypt';
 import {MyUserService} from './services/user-service';
@@ -20,8 +24,9 @@ import {
   registerAuthenticationStrategy,
 } from '@loopback/authentication';
 import {JWTStrategy} from './authentication-strategy/jwt-strategy';
-import { EmailService } from './services/email.service';
-import { CyclesService } from './services/cycles.service';
+import {EmailService} from './services/email.service';
+import {CyclesService} from './services/cycles.service';
+import {TransactionService} from './services/transaction.service';
 
 export {ApplicationConfig};
 
@@ -66,6 +71,7 @@ export class CharityxchangeApplication extends BootMixin(
     this.bind('service.user.service').toClass(MyUserService);
     this.bind('service.jwt.service').toClass(JWTService);
     this.bind('service.cycle.service').toClass(CyclesService);
+    this.bind('service.transaction.service').toClass(TransactionService);
     this.bind(EmailManagerBindings.SEND_MAIL).toClass(EmailService);
   }
   protected configureFileUpload(destination?: string) {

@@ -13,12 +13,13 @@ import {
   UserProfile,
   Balances,
   AdminBalances,
-  TokenRequests, UserLinks} from '../models';
+  TokenRequests, UserLinks, Transactions} from '../models';
 import {UserProfileRepository} from './user-profile.repository';
 import {BalancesRepository} from './balances.repository';
 import {AdminBalancesRepository} from './admin-balances.repository';
 import {TokenRequestsRepository} from './token-requests.repository';
 import {UserLinksRepository} from './user-links.repository';
+import {TransactionsRepository} from './transactions.repository';
 
 export type Credentials = {
   email: string;
@@ -54,6 +55,8 @@ export class UserRepository extends TimeStampRepositoryMixin<
 
   public readonly userLinks: HasManyRepositoryFactory<UserLinks, typeof User.prototype.id>;
 
+  public readonly transactions: HasManyRepositoryFactory<Transactions, typeof User.prototype.id>;
+
   constructor(
     @inject('datasources.charityxchangeSql')
     dataSource: CharityxchangeSqlDataSource,
@@ -64,9 +67,11 @@ export class UserRepository extends TimeStampRepositoryMixin<
     @repository.getter('AdminBalancesRepository')
     protected adminBalancesRepositoryGetter: Getter<AdminBalancesRepository>,
     @repository.getter('TokenRequestsRepository')
-    protected tokenRequestsRepositoryGetter: Getter<TokenRequestsRepository>, @repository.getter('UserLinksRepository') protected userLinksRepositoryGetter: Getter<UserLinksRepository>,
+    protected tokenRequestsRepositoryGetter: Getter<TokenRequestsRepository>, @repository.getter('UserLinksRepository') protected userLinksRepositoryGetter: Getter<UserLinksRepository>, @repository.getter('TransactionsRepository') protected transactionsRepositoryGetter: Getter<TransactionsRepository>,
   ) {
     super(User, dataSource);
+    this.transactions = this.createHasManyRepositoryFactoryFor('transactions', transactionsRepositoryGetter,);
+    this.registerInclusionResolver('transactions', this.transactions.inclusionResolver);
     this.userLinks = this.createHasManyRepositoryFactoryFor('userLinks', userLinksRepositoryGetter,);
     this.registerInclusionResolver('userLinks', this.userLinks.inclusionResolver);
     this.tokenRequests = this.createHasManyRepositoryFactoryFor(

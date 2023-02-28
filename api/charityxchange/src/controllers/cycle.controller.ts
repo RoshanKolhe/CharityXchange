@@ -227,7 +227,6 @@ export class CycleController {
       const adminBalance = await this.userRepository
         .adminBalances(ADMIN_ID)
         .get();
-      console.log(adminBalance);
       let totalAwardOrReward = 0;
       let totalLevelIncome = 0;
       for (const id of participatedUserIds) {

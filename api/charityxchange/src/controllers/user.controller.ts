@@ -194,7 +194,17 @@ export class UserController {
       where: {
         id: currnetUser.id,
       },
-      include: ['userProfile', 'balance_user', 'adminBalances'],
+      include: [
+        {relation: 'userProfile'},
+        {relation: 'balance_user'},
+        {relation: 'adminBalances'},
+        {
+          relation: 'transactions',
+          scope: {
+            order: ['id DESC'], // Sort by transactions' property in ascending order
+          },
+        },
+      ],
     });
 
     const currentUserActivePlan =
@@ -271,7 +281,7 @@ export class UserController {
     return Promise.resolve({
       success: true,
       message: `Successfully sent otp mail to ${userData.email}`,
-    });;
+    });
   }
 
   @post('/verifyOtp')
@@ -407,7 +417,9 @@ export class UserController {
         },
         {transaction: tx},
       );
-      const adminBalance = await this.userRepository.adminBalances(ADMIN_ID).get();
+      const adminBalance = await this.userRepository
+        .adminBalances(ADMIN_ID)
+        .get();
       const plansDistibution =
         USERLINKACTIVEANDHELPSEND[
           pricingPlan.total_links as keyof typeof USERLINKACTIVEANDHELPSEND

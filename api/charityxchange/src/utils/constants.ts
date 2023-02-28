@@ -63,3 +63,18 @@ export const LEVEL_PRICES = {
     awardOrReward: 2500,
   },
 };
+
+export function generateTransactionId() {
+  const chars =
+    '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const length = 40;
+  let transactionId = '';
+
+  for (let i = 0; i < length; i++) {
+    transactionId += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  return transactionId;
+}
+
+

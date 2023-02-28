@@ -6,6 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import { Grid, Container, Typography, Button, Modal } from '@mui/material';
 // components
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
+import { LEVEL_DATA } from '../utils/constants';
 import PaymentNotificationStrip from '../components/payment-section/Payment-Notification';
 import CommonSnackBar from '../common/CommonSnackBar';
 import PaymentForm from '../components/payment-section/PayementForm';
@@ -25,6 +26,7 @@ import {
   AppLevelCard,
 } from '../sections/@dashboard/app';
 import CustomBox from '../common/CustomBox';
+import TransactionsEmployeePage from './TransactionsEmployeePage';
 
 // ----------------------------------------------------------------------
 
@@ -45,6 +47,7 @@ export default function DashboardEmployeePage() {
 
   useEffect(() => {
     axiosInstance.get('users/me').then((res) => {
+      console.log(res.data);
       setUserProfile(res.data);
     });
   }, []);
@@ -157,10 +160,11 @@ export default function DashboardEmployeePage() {
           </Grid>
 
           <Grid item xs={12} md={6} lg={4}>
-            <AppLevelCard title="Current Level" />
+            <AppLevelCard title="Current Level" subheader={LEVEL_DATA[userProfile?.userLevel?.level] || 'No Level'} />
           </Grid>
-
-         
+          <Grid item xs={12} md={12} lg={12}>
+            <TransactionsEmployeePage />
+          </Grid>
         </Grid>
         <Modal
           open={openModal}

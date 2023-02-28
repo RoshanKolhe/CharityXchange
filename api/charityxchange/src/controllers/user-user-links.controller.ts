@@ -26,6 +26,8 @@ import {UserLinksRepository, UserRepository} from '../repositories';
 import {MyUserService} from '../services/user-service';
 import {CharityxchangeSqlDataSource} from '../datasources';
 import {omit} from 'lodash';
+import {TransactionService} from '../services/transaction.service';
+import {generateTransactionId} from '../utils/constants';
 
 export class UserUserLinksController {
   constructor(
@@ -37,6 +39,8 @@ export class UserUserLinksController {
     public userService: MyUserService,
     @repository(UserLinksRepository)
     protected userLinksRepository: UserLinksRepository,
+    @inject('service.transaction.service')
+    public transactionService: TransactionService,
   ) {}
 
   @authenticate('jwt')
@@ -195,6 +199,18 @@ export class UserUserLinksController {
         .userLinks(currnetUser.id)
         .patch(userLinks, where, {transaction: tx});
       tx.commit();
+      const transactionDetails: any = {
+        transaction_id: generateTransactionId(),
+        remark: `Activated Link #${userLinks.linkName}`,
+        amount: 10,
+        type: 'Debited',
+        status: true,
+        transaction_fees: 0,
+      };
+      await this.transactionService.createTransaction(
+        transactionDetails,
+        currnetUser.id,
+      );
       return Promise.resolve({
         success: true,
         message: 'Successfully Activated The link',
@@ -296,6 +312,18 @@ export class UserUserLinksController {
       }
 
       tx.commit();
+      const transactionDetails: any = {
+        transaction_id: generateTransactionId(),
+        remark: `Help sent to link #${userLinks.linkName}`,
+        amount: 20,
+        type: 'Debited',
+        status: true,
+        transaction_fees: 0,
+      };
+      await this.transactionService.createTransaction(
+        transactionDetails,
+        currnetUser.id,
+      );
       return Promise.resolve({
         success: true,
         message: 'Successfully Activated The link',
