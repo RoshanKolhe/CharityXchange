@@ -1,4 +1,4 @@
-import {authenticate} from '@loopback/authentication';
+import {authenticate, AuthenticationBindings} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {
   Count,
@@ -23,13 +23,15 @@ import {
 import {omit, pick} from 'lodash';
 import {EmailManagerBindings} from '../keys';
 import {User, UserProfile} from '../models';
-import {UserRepository} from '../repositories';
+import {BalancesRepository, UserRepository} from '../repositories';
 import {EmailManager} from '../services/email.service';
 import generateKycDeclineTemplate from '../templates/kyc-decline.template';
 import SITE_SETTINGS from '../utils/config';
 
 export class UserUserProfileController {
   constructor(
+    @repository(BalancesRepository)
+    protected balanceRepository: BalancesRepository,
     @repository(UserRepository)
     protected userRepository: UserRepository,
     @inject(EmailManagerBindings.SEND_MAIL)
@@ -207,5 +209,24 @@ export class UserUserProfileController {
     where?: Where<UserProfile>,
   ): Promise<Count> {
     return this.userRepository.userProfile(id).delete(where);
+  }
+
+  @post('/checkIfWalletAddressExists')
+  async checkIfWalletAddressExists(@requestBody() keyData: any): Promise<any> {
+    console.log(keyData);
+    const records = await this.balanceRepository.execute(
+      `select * from balances where payment_info like '%{"wallet_address":"${keyData.wallet_address}"}%';`,
+    );
+    console.log('records', records);
+    if (records.length > 0) {
+      return Promise.resolve({
+        success: true,
+        message: 'This address already exists',
+      });
+    }
+    return Promise.resolve({
+      success: false,
+      message: 'This address does not exists',
+    });
   }
 }

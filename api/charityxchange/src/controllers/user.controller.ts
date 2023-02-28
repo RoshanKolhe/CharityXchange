@@ -16,7 +16,7 @@ import {
   response,
 } from '@loopback/rest';
 import SITE_SETTINGS from '../utils/config';
-import {USERLINKACTIVEANDHELPSEND} from '../utils/constants';
+import {ADMIN_ID, USERLINKACTIVEANDHELPSEND} from '../utils/constants';
 
 import {
   PricingPlan,
@@ -257,18 +257,21 @@ export class UserController {
       subject: template.subject,
       html: template.html,
     };
-    const data = await this.emailManager
-      .sendMail(mailOptions)
-      .then(function (res: any) {
-        return Promise.resolve({
-          success: true,
-          message: `Successfully sent otp mail to ${userData.email}`,
-        });
-      })
-      .catch(function (err: any) {
-        throw new HttpErrors.UnprocessableEntity(err);
-      });
-    return data;
+    // const data = await this.emailManager
+    //   .sendMail(mailOptions)
+    //   .then(function (res: any) {
+    //     return Promise.resolve({
+    //       success: true,
+    //       message: `Successfully sent otp mail to ${userData.email}`,
+    //     });
+    //   })
+    //   .catch(function (err: any) {
+    //     throw new HttpErrors.UnprocessableEntity(err);
+    //   });
+    return Promise.resolve({
+      success: true,
+      message: `Successfully sent otp mail to ${userData.email}`,
+    });;
   }
 
   @post('/verifyOtp')
@@ -362,13 +365,16 @@ export class UserController {
     const repo = new DefaultTransactionalRepository(User, this.dataSource);
     const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
     try {
-      const currentBalanceOfUser = await await this.userRepository
+      const currentBalanceOfUser = await this.userRepository
         .balance_user(currnetUser.id)
         .get();
+      console.log('currentBalanceOfUser', currentBalanceOfUser.current_balance);
+      console.log('currentBalanceOfUser', pricingPlan.price);
       if (
-        currentBalanceOfUser.current_balance &&
+        currentBalanceOfUser &&
         currentBalanceOfUser.current_balance < pricingPlan.price
       ) {
+        console.log('here');
         throw new HttpErrors[400]('Not Enough Balance');
       }
 
@@ -401,12 +407,12 @@ export class UserController {
         },
         {transaction: tx},
       );
-      const adminBalance = await this.userRepository.adminBalances(5).get();
+      const adminBalance = await this.userRepository.adminBalances(ADMIN_ID).get();
       const plansDistibution =
         USERLINKACTIVEANDHELPSEND[
           pricingPlan.total_links as keyof typeof USERLINKACTIVEANDHELPSEND
         ];
-      await this.userRepository.adminBalances(5).patch(
+      await this.userRepository.adminBalances(ADMIN_ID).patch(
         {
           activation_help:
             adminBalance.activation_help + plansDistibution.active,

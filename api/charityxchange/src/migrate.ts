@@ -19,6 +19,7 @@ export async function migrate(args: string[]) {
       'UserLinks',
       'AdminReceivedLinks',
       'Cycles',
+      'CyclePayments'
     ],
   });
 

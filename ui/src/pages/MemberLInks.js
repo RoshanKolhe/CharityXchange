@@ -392,7 +392,7 @@ export default function MemberLinks() {
 
                         <TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
-                            {linkName}
+                            {`#${linkName}`}
                           </Typography>
                         </TableCell>
                         <TableCell align="left">

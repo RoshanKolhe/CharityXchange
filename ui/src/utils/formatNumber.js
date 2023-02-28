@@ -3,7 +3,7 @@ import numeral from 'numeral';
 // ----------------------------------------------------------------------
 
 export function fNumber(number) {
-  return numeral(number).format();
+  return numeral(number).format(fShortenNumber);
 }
 
 export function fCurrency(number) {

@@ -4,6 +4,8 @@ import { Icon } from '@iconify/react';
 import * as yup from 'yup';
 import { makeStyles } from '@mui/styles';
 import { useFormik } from 'formik';
+import { LoadingButton } from '@mui/lab';
+import SaveIcon from '@mui/icons-material/Save';
 import CommonSnackBar from '../../common/CommonSnackBar';
 import axiosInstance from '../../helpers/axios';
 
@@ -27,6 +29,7 @@ const PaymentForm = ({
   const classes = useStyles();
   const [openSnackBar, setOpenSnackBar] = useState(false);
   const [fileName, setFileName] = useState();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [src, setSrc] = useState();
   const [file, setFile] = useState();
 
@@ -45,6 +48,7 @@ const PaymentForm = ({
     enableReinitialize: true,
     validationSchema: paymentFormValidationSchema,
     onSubmit: async (values) => {
+      setIsSubmitting(true);
       values = {
         ...values,
         amount: values?.amount || 0,
@@ -52,12 +56,14 @@ const PaymentForm = ({
       axiosInstance
         .post(`users/${userProfile.id}/token-requests`, values)
         .then((res) => {
+          setIsSubmitting(false);
           setSuccessMessage('Request Sent Successfully');
           handleOpenSnackBar();
           setErrorMessage('');
           handleClose();
         })
         .catch((err) => {
+          setIsSubmitting(false);
           handleOpenSnackBar();
           setSuccessMessage('');
           setErrorMessage(err);
@@ -171,9 +177,19 @@ const PaymentForm = ({
 
         <Grid container>
           <Grid item sx={{ marginTop: '10px' }}>
-            <Button color="primary" variant="contained" fullWidth type="submit" form="paymentForm">
+            <LoadingButton
+              loading={isSubmitting}
+              loadingPosition="start"
+              variant="contained"
+              startIcon={<SaveIcon />}
+              color="primary"
+              fullWidth
+              type="submit"
+              form="paymentForm"
+              disabled={isSubmitting}
+            >
               Submit
-            </Button>
+            </LoadingButton>
           </Grid>
         </Grid>
       </form>

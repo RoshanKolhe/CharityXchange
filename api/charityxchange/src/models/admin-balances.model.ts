@@ -12,36 +12,42 @@ export class AdminBalances extends Entity {
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   total_earnings: number;
 
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   withdrawn_amount: number;
 
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   current_balance: number;
 
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   total_help_send: number;
 
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   activation_help: number;
 
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   total_help_received: number;
 
@@ -54,6 +60,7 @@ export class AdminBalances extends Entity {
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   total_supply: number;
 

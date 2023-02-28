@@ -186,7 +186,6 @@ const ProfileForm = ({ initialValues }) => {
     enableReinitialize: true,
     validationSchema: profileFormValidationSchema,
     onSubmit: async (values) => {
-      console.log('values', values);
       if (values.userProfile.id === undefined || values.userProfile.id === '') {
         values = omit(values, 'userProfile.id');
       }
@@ -198,12 +197,15 @@ const ProfileForm = ({ initialValues }) => {
           formik.setFieldError('terms', 'Please accept the terms and condition to proceed');
           return;
         }
+        if (await checkWalletPublicKeyExists(values.balances.payment_info.wallet_address)) {
+          formik.setFieldError('balances.payment_info.wallet_address', 'This wallet address already exists');
+          return;
+        }
         values = {
           ...values,
           is_kyc_completed: 1,
         };
       }
-
       axiosInstance
         .patch(`/users/${values.id}/user-profile`, values)
         .then((res) => {
@@ -227,6 +229,25 @@ const ProfileForm = ({ initialValues }) => {
     },
   });
 
+  const checkWalletPublicKeyExists = async (value) => {
+    const data = await axiosInstance
+      .post(`checkIfWalletAddressExists`, {
+        wallet_address: value,
+      })
+      .then((res) => {
+        console.log('data', res.data);
+        if (res.data.success) {
+          return true;
+        }
+        return false;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    return data;
+  };
+
   const handleAccept = () => {
     formik.setFieldValue('terms', true);
   };
@@ -236,6 +257,7 @@ const ProfileForm = ({ initialValues }) => {
   };
 
   const handleFileUpload = (event, fileType) => {
+    console.log('here');
     const reader = new FileReader();
     const file = event.target.files[0];
     if (file) {
@@ -524,6 +546,7 @@ const ProfileForm = ({ initialValues }) => {
                 formik?.touched?.balances?.payment_info?.wallet_address &&
                 formik?.errors?.balances?.payment_info?.wallet_address
               }
+              disabled={location.pathname !== '/kyc'}
             />
           </Grid>
         </Grid>
@@ -537,6 +560,7 @@ const ProfileForm = ({ initialValues }) => {
               type="file"
               ref={idProofInput}
               onChange={(event) => {
+                console.log(event);
                 handleFileUpload(event, 'idProof');
               }}
             />

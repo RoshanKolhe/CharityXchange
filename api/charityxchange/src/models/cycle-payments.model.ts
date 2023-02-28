@@ -1,7 +1,7 @@
 import {Entity, model, property} from '@loopback/repository';
 
 @model()
-export class PricingPlan extends Entity {
+export class CyclePayments extends Entity {
   @property({
     type: 'number',
     id: true,
@@ -10,35 +10,25 @@ export class PricingPlan extends Entity {
   id?: number;
 
   @property({
-    type: 'string',
+    type: 'number',
+    required: true,
+     dataType: 'FLOAT'
   })
-  title?: string;
+  levelIncome: number;
 
   @property({
     type: 'number',
     required: true,
     dataType: 'FLOAT'
   })
-  price: number;
+  awardOrReward: number;
 
   @property({
     type: 'number',
     required: true,
     dataType: 'FLOAT'
   })
-  discounted_price: number;
-
-  @property({
-    type: 'number',
-    required: true,
-  })
-  total_links: number;
-
-  @property({
-    type: 'object',
-    required: true,
-  })
-  features: object;
+  participatedUsers: number;
 
   @property({
     type: 'date',
@@ -50,13 +40,18 @@ export class PricingPlan extends Entity {
   })
   updatedAt?: Date;
 
-  constructor(data?: Partial<PricingPlan>) {
+  @property({
+    type: 'number',
+  })
+  cyclesId?: number;
+
+  constructor(data?: Partial<CyclePayments>) {
     super(data);
   }
 }
 
-export interface PricingPlanRelations {
+export interface CyclePaymentsRelations {
   // describe navigational properties here
 }
 
-export type PricingPlanWithRelations = PricingPlan & PricingPlanRelations;
+export type CyclePaymentsWithRelations = CyclePayments & CyclePaymentsRelations;

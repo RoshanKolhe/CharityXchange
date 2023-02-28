@@ -29,6 +29,7 @@ import axiosInstance from '../../helpers/axios';
 import CommonSnackBar from '../../common/CommonSnackBar';
 
 const NewCycle = (props) => {
+  console.log(props.cyclesData);
   NewCycle.propTypes = {
     onDataSubmit: PropTypes.func,
     handleClose: PropTypes.func,
@@ -90,7 +91,7 @@ const NewCycle = (props) => {
   };
 
   useEffect(() => {
-    if (props.cyclesData) sortData(props.cyclesData);
+    if (props.cyclesData.length) sortData(props.cyclesData);
   }, [props.cyclesData]);
 
   useEffect(() => {

@@ -13,7 +13,11 @@ export const USERLINKACTIVEANDHELPSEND = {
   },
 };
 
-export const PER_LINK_HELP_AMOUNT = 40;
+export const PER_LINK_HELP_AMOUNT = 40.0;
+
+export const FIRST_LEVEL_AWARD = 20.0;
+
+export const ADMIN_ID = 1;
 
 export function getUserLevel(direct: any, links: any) {
   if (direct >= 32 && links >= 5000) {

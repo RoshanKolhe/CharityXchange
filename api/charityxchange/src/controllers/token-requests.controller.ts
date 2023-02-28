@@ -23,6 +23,7 @@ import {
 import {PermissionKeys} from '../authorization/permission-keys';
 import {TokenRequests, UserProfile} from '../models';
 import {TokenRequestsRepository, UserRepository} from '../repositories';
+import {ADMIN_ID} from '../utils/constants';
 
 export class TokenRequestsController {
   constructor(
@@ -143,29 +144,37 @@ export class TokenRequestsController {
     tokenRequests: TokenRequests,
   ): Promise<any> {
     try {
-      await this.tokenRequestsRepository.updateById(id, tokenRequests);
-      const current_balance =
-        (await (
-          await this.userRepository.balance_user(tokenRequests.userId).get()
-        ).current_balance) || 0;
-      const amountToBeAdded = tokenRequests.amount || 0;
+      const data = await this.tokenRequestsRepository.updateById(
+        id,
+        tokenRequests,
+      );
+      if (tokenRequests.status === 1) {
+        const current_balance =
+          (await (
+            await this.userRepository.balance_user(tokenRequests.userId).get()
+          ).current_balance) || 0;
+        const amountToBeAdded = tokenRequests.amount || 0;
 
-      //Add Token to users account
-      const inputData = {
-        current_balance: current_balance + amountToBeAdded,
-      };
-      await this.userRepository
-        .balance_user(tokenRequests.userId)
-        .patch(inputData);
-      //subtract token from admins account
-      const admin_total_supply =
-        (await (
-          await this.userRepository.adminBalances(5).get()
-        ).total_supply) || 0;
-      const dataToSubtract = {
-        total_supply: admin_total_supply - amountToBeAdded,
-      };
-      return await this.userRepository.adminBalances(5).patch(dataToSubtract);
+        //Add Token to users account
+        const inputData = {
+          current_balance: current_balance + amountToBeAdded,
+        };
+        await this.userRepository
+          .balance_user(tokenRequests.userId)
+          .patch(inputData);
+        //subtract token from admins account
+        const admin_total_supply =
+          (await (
+            await this.userRepository.adminBalances(ADMIN_ID).get()
+          ).total_supply) || 0;
+        const dataToSubtract = {
+          total_supply: admin_total_supply - amountToBeAdded,
+        };
+        return await this.userRepository
+          .adminBalances(ADMIN_ID)
+          .patch(dataToSubtract);
+      }
+      return data;
     } catch (err) {
       throw new HttpErrors[400](err);
     }

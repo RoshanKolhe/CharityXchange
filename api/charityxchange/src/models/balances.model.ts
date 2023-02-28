@@ -14,18 +14,21 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
-  total_earnings: number;
+  total_earnings:number ;
 
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   withdrawn_amount: number;
 
   @property({
     type: 'number',
     default: 0,
+    dataType: 'FLOAT'
   })
   current_balance: number;
 

@@ -13,6 +13,7 @@ export class TokenRequests extends Entity {
   @property({
     type: 'number',
     required: true,
+    dataType: 'FLOAT'
   })
   amount?: number;
 

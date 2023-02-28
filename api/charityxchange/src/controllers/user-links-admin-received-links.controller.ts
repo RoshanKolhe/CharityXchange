@@ -29,7 +29,7 @@ import {
   UserLinksRepository,
   UserRepository,
 } from '../repositories';
-import {PER_LINK_HELP_AMOUNT} from '../utils/constants';
+import {ADMIN_ID, PER_LINK_HELP_AMOUNT} from '../utils/constants';
 
 export class UserLinksAdminReceivedLinksController {
   constructor(
@@ -164,7 +164,7 @@ export class UserLinksAdminReceivedLinksController {
           const adminReceivedLink =
             await this.adminReceivedLinksRepository.findById(res);
           const adminBalances = await this.userRepository
-            .adminBalances(5)
+            .adminBalances(ADMIN_ID)
             .get();
           const userLinkData = await this.userLinksRepository.findById(
             adminReceivedLink.userLinksId,
@@ -173,7 +173,7 @@ export class UserLinksAdminReceivedLinksController {
             const userBalance = await this.userRepository
               .balance_user(userLinkData.userId)
               .get();
-            await this.userRepository.adminBalances(5).patch(
+            await this.userRepository.adminBalances(ADMIN_ID).patch(
               {
                 total_supply: adminBalances.total_supply - PER_LINK_HELP_AMOUNT,
                 total_help_send:

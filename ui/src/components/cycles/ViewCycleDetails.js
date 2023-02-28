@@ -33,11 +33,13 @@ import {
   Avatar,
   IconButton,
   Paper,
+  Grid,
 } from '@mui/material';
 // components
 import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
 import moment from 'moment';
+import { AppWidgetSummary } from '../../sections/@dashboard/app';
 import Label from '../label';
 import Iconify from '../iconify';
 import Scrollbar from '../scrollbar';
@@ -123,8 +125,9 @@ export default function ViewCycleDetails() {
   const params = useParams();
   const [open, setOpen] = useState(null);
   const [timer, setTimer] = useState(null);
+  const [checkEndCycle, setCheckEndCycle] = useState(false);
 
-  const [tokenRequests, setTokenRequests] = useState([]);
+  const [cycleIncomeData, setCycleIncomeData] = useState([]);
 
   const [currentCycleData, setCurrentCycleData] = useState();
 
@@ -163,21 +166,6 @@ export default function ViewCycleDetails() {
     setOpen(null);
   };
 
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = tokenRequests.map((n) => n.id);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
   const handleClick = (event, name) => {
     const selectedIndex = selected.indexOf(name);
 
@@ -209,105 +197,14 @@ export default function ViewCycleDetails() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tokenRequests.length) : 0;
-
-  const filteredUsers = applySortFilter(tokenRequests, getComparator(order, orderBy), filterName);
-
-  const isNotFound = !filteredUsers.length;
-
   const fetchData = () => {
     axiosInstance
-      .post(`/user-links/adminCycle-user-links`, currentCycleData)
+      .post(`/cycles/getCycleData`, currentCycleData)
       .then((res) => {
-        setTokenRequests(res.data);
+        setCycleIncomeData(res.data);
       })
       .catch((err) => {
-        setTokenRequests([]);
-      });
-  };
-
-  const AddMinutesToDate = (date, minutes) => new Date(date.getTime() + minutes * 60000);
-
-  const renderCountdown = (dateStart, dateEnd) => {
-    const targetDate = new Date(dateEnd).getTime(); // set the countdown date
-    const count = 0;
-    const getCountdown = function () {
-      // find the amount of "seconds" between now and target
-      const currentDate = new Date().getTime();
-      let secondsLeft = (targetDate - currentDate) / 1000 - count;
-      const days = Math.floor(secondsLeft / 86400);
-      secondsLeft %= 86400;
-      const hours = Math.floor(secondsLeft / 3600);
-      secondsLeft %= 3600;
-      const minutes = Math.floor(secondsLeft / 60);
-      const seconds = Math.floor(secondsLeft % 60);
-      // format countdown string + set tag value
-      return `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-    };
-    function pad(n) {
-      return (n < 10 ? '0' : '') + n;
-    }
-    return getCountdown();
-  };
-
-  const handleApproveLinkHelpSend = () => {
-    const inputData = {
-      linkIds: [editUserData.id],
-    };
-    axiosInstance
-      .patch(`sendHelpToLink`, inputData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Help sent Successfully');
-        handleOpenSnackBar();
-        handleCloseMenu();
-        fetchData();
-      })
-      .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        handleCloseMenu();
-        fetchData();
-      });
-  };
-
-  const checkActiveState = (row) => {
-    const now = new Date();
-    let expire_start_date;
-    let expire_end_date;
-    if (row.activationStartTime && row.activationEndTime) {
-      expire_start_date = new Date(row.activationStartTime);
-      expire_end_date = new Date(row.activationEndTime);
-    }
-    if (row.is_active) {
-      return true;
-    }
-    if (!row.is_active && expire_start_date && expire_end_date && now <= expire_end_date && now >= expire_start_date) {
-      return true;
-    }
-    return false;
-  };
-
-  const onApproveSelected = () => {
-    const inputData = {
-      linkIds: selected,
-    };
-    axiosInstance
-      .patch(`sendHelpToLink`, inputData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Help sent Successfully');
-        handleOpenSnackBar();
-        handleCloseMenu();
-        fetchData();
-      })
-      .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        handleCloseMenu();
-        fetchData();
+        setCycleIncomeData([]);
       });
   };
 
@@ -325,13 +222,33 @@ export default function ViewCycleDetails() {
       });
   };
 
+  const handleEndCycle = () => {
+    axiosInstance
+      .post(`/cycles/endCycle`, currentCycleData)
+      .then((res) => {
+        setErrorMessage('');
+        setSuccessMessage('Cycle Ended Successfully');
+        handleOpenSnackBar();
+        fetchData();
+      })
+      .catch((err) => {
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        fetchData();
+      });
+  };
+
   useEffect(() => {
     getCurrentCycleData();
   }, []);
 
   useEffect(() => {
-    console.log('currentCycleData', currentCycleData);
     if (currentCycleData) {
+      const endDate = new Date(currentCycleData.endDate);
+      if (endDate <= new Date()) {
+        setCheckEndCycle(true);
+      }
       fetchData();
     }
   }, [currentCycleData]);
@@ -355,121 +272,41 @@ export default function ViewCycleDetails() {
           <Typography variant="body1" gutterBottom>
             {`End Date : ${moment(new Date(currentCycleData?.endDate)).format('YYYY-MM-DD HH:mm:ss')}`}
           </Typography>
-          <Button variant="contained" style={{ backgroundColor: 'red' }}>
+          <Button variant="contained" color="error" onClick={handleEndCycle} disabled={checkEndCycle}>
             End Cycle
           </Button>
         </Stack>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={4}>
+            <AppWidgetSummary
+              title="Total LevelIncome "
+              total={`${cycleIncomeData?.levelIncome}`}
+              icon={'ic:twotone-attach-money'}
+            />
+          </Grid>
 
-        <Card>
-          <ListToolbar
-            numSelected={selected.length}
-            filterName={filterName}
-            onFilterName={handleFilterByName}
-            onReload={fetchData}
-            onApproveSelected={onApproveSelected}
-            showSearch={false}
-          />
+          <Grid item xs={12} sm={6} md={4}>
+            <AppWidgetSummary
+              title="Total Award Or Rewards"
+              total={`${cycleIncomeData?.awardOrReward}`}
+              color="info"
+              icon={'ic:twotone-attach-money'}
+            />
+          </Grid>
 
-          <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <ListHead
-                  order={order}
-                  isCheckbox={false}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={tokenRequests.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-                />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const {
-                      id,
-                      linkName,
-                      is_active,
-                      is_help_send,
-                      is_send_to_admin,
-                      is_help_received,
-                      activationStartTime,
-                      activationEndTime,
-                    } = row;
-                    const selectedUser = selected.indexOf(id) !== -1;
-                    return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        {/* <TableCell padding="checkbox">
-                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
-                        </TableCell> */}
+          <Grid item xs={12} sm={6} md={4}>
+            <AppWidgetSummary
+              title="Total"
+              total={cycleIncomeData?.levelIncome + cycleIncomeData?.awardOrReward}
+              color="info"
+              icon={'mdi:loyalty'}
+            />
+          </Grid>
 
-                        <TableCell align="left">
-                          <Typography variant="subtitle2" noWrap>
-                            {linkName}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="left">
-                          <Label
-                            color={!checkActiveState(row) ? 'error' : checkActiveState(row) ? 'success' : 'error'}
-                            className={clsx(!checkActiveState(row) ? classes.pointerCss : null)}
-                          >
-                            {checkActiveState(row) ? 'Active' : 'Activate'}
-                          </Label>
-                        </TableCell>
-                        <TableCell align="left">
-                          <Label
-                            className={clsx(!is_help_send ? classes.pointerCss : null)}
-                            color={!is_help_send ? 'error' : is_help_send ? 'success' : 'error'}
-                          >
-                            {!is_help_send ? 'Send Help' : is_help_send ? 'Active' : 'Send Help'}
-                          </Label>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Not found
-                          </Typography>
-
-                          <Typography variant="body2">
-                            No results found for &nbsp;
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Try checking for typos or using complete words.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
-          </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={tokenRequests.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Card>
+          {/* <Grid item xs={12} sm={6} md={3}>
+            <AppWidgetSummary title="Withdrawn Balance" total={20} color="warning" icon={'bx:money-withdraw'} />
+          </Grid> */}
+        </Grid>
       </Container>
       <CommonSnackBar
         openSnackBar={openSnackBar}

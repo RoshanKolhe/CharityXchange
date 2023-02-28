@@ -223,7 +223,9 @@ export default function TokenRequestsAdminPage() {
   };
 
   const handleDeclineClick = (userData) => {
+    userData = omit(userData, 'user');
     const inputData = {
+      ...userData,
       status: 2,
     };
     axiosInstance

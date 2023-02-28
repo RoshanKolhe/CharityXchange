@@ -1,4 +1,5 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, hasMany} from '@loopback/repository';
+import {CyclePayments} from './cycle-payments.model';
 
 @model()
 export class Cycles extends Entity {
@@ -36,6 +37,9 @@ export class Cycles extends Entity {
     type: 'date',
   })
   updatedAt?: Date;
+
+  @hasMany(() => CyclePayments)
+  cyclePayments: CyclePayments[];
 
   constructor(data?: Partial<Cycles>) {
     super(data);

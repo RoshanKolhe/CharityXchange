@@ -1,4 +1,4 @@
-import { authenticate } from '@loopback/authentication';
+import {authenticate} from '@loopback/authentication';
 import {inject} from '@loopback/core';
 import {
   get,
@@ -118,10 +118,11 @@ export class FileUploadController {
     @param.path.string('filename') fileName: string,
     @inject(RestBindings.Http.RESPONSE) response: Response,
   ) {
-    const file = this.validateFileName(fileName);
+    const file = this.validateFileName(fileName)
     fs.readFile(file, function (err, data) {
-      if (err) throw err; // Fail if the file can't be read.
-      else {
+      if (err) {
+        throw new HttpErrors.NotFound('File Not Found'); // Fail if the file can't be read.
+      } else {
         response.writeHead(200);
         response.end(data); // Send the file data to the browser.
       }

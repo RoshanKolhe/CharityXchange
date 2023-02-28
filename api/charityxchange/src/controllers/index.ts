@@ -15,3 +15,4 @@ export * from './user-user-links.controller';
 export * from './user-links-admin-received-links.controller';
 export * from './user-links-admin-received-links.controller';
 export * from './cycle.controller';
+export * from './cycles-cycle-payments.controller';

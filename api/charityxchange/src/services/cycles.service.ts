@@ -19,7 +19,7 @@ import {
 } from '../repositories';
 import generateCongratulationsTemplate from '../templates/congratulations.template';
 import SITE_SETTINGS from '../utils/config';
-import {LEVEL_PRICES, PER_LINK_HELP_AMOUNT} from '../utils/constants';
+import {ADMIN_ID, LEVEL_PRICES, PER_LINK_HELP_AMOUNT} from '../utils/constants';
 import {Credentials, UserRepository} from './../repositories/user.repository';
 import {EmailManager} from './email.service';
 import {BcryptHasher} from './hash.password.bcrypt';
@@ -41,14 +41,12 @@ export class CyclesService {
     public userService: MyUserService,
   ) {}
 
-  async updateCycleAndSendEmailToUser(participatedUseres: any) {
-    if (participatedUseres.length > 0) {
-      for (const element of participatedUseres) {
-        const userData = await this.userRepository.findById(element);
-        await this.userRepository.updateById(element, {
-          ...userData,
-          cycles_participated: userData.cycles_participated + 1,
-        });
+  async sendCongratulationEmailToAllParticipatedUser(allUserRecords: any) {
+    if (allUserRecords.length > 0) {
+      allUserRecords = allUserRecords.filter(
+        (record: User) => !record.permissions.includes('super_admin'),
+      );
+      for (const userData of allUserRecords) {
         const template = generateCongratulationsTemplate();
 
         const mailOptions = {
@@ -59,12 +57,7 @@ export class CyclesService {
         };
         const data = await this.emailManager
           .sendMail(mailOptions)
-          .then(function (res: any) {
-            return Promise.resolve({
-              success: true,
-              message: `Credentials created and Successfully sent  mail to ${userData.email}`,
-            });
-          })
+          .then(function (res: any) {})
           .catch(function (err: any) {
             console.log(err);
             //   throw new HttpErrors.UnprocessableEntity(err);
@@ -72,51 +65,6 @@ export class CyclesService {
       }
     } else {
       throw new HttpErrors.NotFound('No Participated Users Found');
-    }
-  }
-
-  async sendLevelIncomeAndEndCycle(participatedUseres: any) {
-    if (participatedUseres.length > 0) {
-      const adminBalance = await this.userRepository.adminBalances(5).get();
-      for (const element of participatedUseres) {
-        const userData = await this.userRepository.findOne({
-          where: {
-            id: element,
-          },
-          include: ['userProfile', 'balance_user', 'adminBalances'],
-        });
-        const userLevel = await this.userService.calculateUserLevel(userData);
-        const createdAtDate = userData?.createdAt
-          ? new Date(userData.createdAt)
-          : new Date();
-        const diffInMs = Date.now() - createdAtDate.getTime();
-        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-
-        if (diffInDays <= 7) {
-          await this.userRepository.balance_user(element).patch({
-            is_first_level_price_taken: true,
-            current_balance: userData?.balance_user.current_balance || 0 + 20,
-            total_earnings: userData?.balance_user.total_earnings || 0 + 20,
-          });
-
-          await this.userRepository.adminBalances(5).patch({
-            activation_help: adminBalance.activation_help - 20,
-          });
-        }
-        console.log(userLevel);
-        if (userLevel.level) {
-          const price =
-            LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
-          await this.userRepository.balance_user(element).patch({
-            total_earnings:
-              userData?.balance_user.total_earnings ||
-              0 + price.levelIncome + price.awardOrReward,
-            current_balance:
-              userData?.balance_user.current_balance ||
-              0 + price.levelIncome + price.awardOrReward,
-          });
-        }
-      }
     }
   }
 }
