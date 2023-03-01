@@ -158,7 +158,7 @@ export class TokenRequestsController {
             await this.userRepository.balance_user(tokenRequests.userId).get()
           ).current_balance) || 0;
         const amountToBeAdded = tokenRequests.amount || 0;
-
+        console.log(amountToBeAdded);
         //Add Token to users account
         const inputData = {
           current_balance: current_balance + amountToBeAdded,
@@ -167,17 +167,17 @@ export class TokenRequestsController {
           .balance_user(tokenRequests.userId)
           .patch(inputData);
         //subtract token from admins account
-        const admin_total_supply =
-          (await (
-            await this.userRepository.adminBalances(ADMIN_ID).get()
-          ).total_supply) || 0;
+        const admin_total_supply = await (
+          await this.userRepository.adminBalances(ADMIN_ID).get()
+        ).total_supply;
+        console.log(admin_total_supply);
         const dataToSubtract = {
           total_supply: admin_total_supply - amountToBeAdded,
         };
         const transactionDetails: any = {
           transaction_id: generateTransactionId(),
           remark: 'Token Request Completed',
-          amount:  amountToBeAdded,
+          amount: amountToBeAdded,
           type: 'Deposited',
           status: true,
           transaction_fees: 0,

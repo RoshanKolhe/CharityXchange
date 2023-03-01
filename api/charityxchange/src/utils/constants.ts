@@ -15,7 +15,7 @@ export const USERLINKACTIVEANDHELPSEND = {
 
 export const PER_LINK_HELP_AMOUNT = 40.0;
 
-export const FIRST_LEVEL_AWARD = 20.0;
+export const FIRST_LEVEL_AWARD = 25.0;
 
 export const ADMIN_ID = 1;
 

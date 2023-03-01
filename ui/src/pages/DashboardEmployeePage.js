@@ -107,12 +107,12 @@ export default function DashboardEmployeePage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Incentives Earned" total={10} color="info" icon={'mdi:loyalty'} />
+            <AppWidgetSummary title="CHXT Token" total={10} color="info" icon={'mdi:loyalty'} />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
-              title="Withdrawn Balance"
+              title="Withdrawable Balance"
               total={`${userProfile?.balance_user?.withdrawn_amount}`}
               color="warning"
               icon={'bx:money-withdraw'}
@@ -162,9 +162,9 @@ export default function DashboardEmployeePage() {
           <Grid item xs={12} md={6} lg={4}>
             <AppLevelCard title="Current Level" subheader={LEVEL_DATA[userProfile?.userLevel?.level] || 'No Level'} />
           </Grid>
-          <Grid item xs={12} md={12} lg={12}>
+          {/* <Grid item xs={12} md={12} lg={12}>
             <TransactionsEmployeePage />
-          </Grid>
+          </Grid> */}
         </Grid>
         <Modal
           open={openModal}

@@ -347,7 +347,7 @@ const ProfileForm = ({ initialValues }) => {
           </Grid>
           <Grid item xs={12} lg={5} margin={2}>
             <PhoneInput
-              country={'in'}
+              country={'my'}
               value={formik.values.userProfile.contact}
               onChange={(phone) => {
                 onPhoneValueChange(phone);

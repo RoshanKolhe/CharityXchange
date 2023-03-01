@@ -213,107 +213,102 @@ export class CycleController {
 
   @post('/cycles/endCycle')
   async endPayoutCycle(@requestBody() cycles: Cycles): Promise<any> {
-    try {
-      let participatedUserIds: any = [];
+    let participatedUserIds: any = [];
 
-      const allUserRecords = await this.userRepository.find({
+    const allUserRecords = await this.userRepository.find({
+      where: {
+        is_active: true,
+      },
+    });
+    participatedUserIds = allUserRecords
+      .filter(record => !record.permissions.includes('super_admin'))
+      .map(x => x.id);
+
+    let totalAwardOrReward = 0;
+    let totalLevelIncome = 0;
+    for (const id of participatedUserIds) {
+      let awardOrReward = 0;
+      let levelIncome = 0;
+      let isFirstLevel = false;
+      const userData = await this.userRepository.findOne({
         where: {
-          is_active: true,
+          id: id,
         },
       });
-      participatedUserIds = allUserRecords
-        .filter(record => !record.permissions.includes('super_admin'))
-        .map(x => x.id);
-      const adminBalance = await this.userRepository
-        .adminBalances(ADMIN_ID)
-        .get();
-      let totalAwardOrReward = 0;
-      let totalLevelIncome = 0;
-      for (const id of participatedUserIds) {
-        let awardOrReward = 0;
-        let levelIncome = 0;
-        let isFirstLevel = false;
-        const userData = await this.userRepository.findOne({
-          where: {
-            id: id,
-          },
-        });
-        if (userData) {
-          const userBalance = await this.userRepository
-            .balance_user(userData.id)
-            .get();
+      if (userData) {
+        const userBalance = await this.userRepository
+          .balance_user(userData.id)
+          .get();
+        const adminBalance = await this.userRepository
+          .adminBalances(ADMIN_ID)
+          .get();
+        console.log(adminBalance);
+        const userLevel = await this.userService.calculateUserLevel(userData);
+        const createdAtDate = userData.createdAt
+          ? new Date(userData.createdAt)
+          : new Date();
+        const diffInMs = Date.now() - createdAtDate.getTime();
+        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 
-          const userLevel = await this.userService.calculateUserLevel(userData);
-          const createdAtDate = userData.createdAt
-            ? new Date(userData.createdAt)
-            : new Date();
-          const diffInMs = Date.now() - createdAtDate.getTime();
-          const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-
-          if (
-            diffInDays <= 7 &&
-            userLevel.level === 'LEVEL_1' &&
-            !userBalance.is_first_level_price_taken
-          ) {
-            isFirstLevel = true;
-            awardOrReward = awardOrReward + FIRST_LEVEL_AWARD;
-            totalAwardOrReward = totalAwardOrReward + FIRST_LEVEL_AWARD;
-          }
-          if (userLevel.level !== null) {
-            const price =
-              LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
-            if (userLevel.level === 'LEVEL_1') {
-              levelIncome = levelIncome + price.levelIncome;
-              totalLevelIncome = totalLevelIncome + price.levelIncome;
-            } else {
-              awardOrReward = awardOrReward + price.awardOrReward;
-              levelIncome = levelIncome + price.levelIncome;
-              totalLevelIncome = totalLevelIncome + price.levelIncome;
-              totalAwardOrReward = totalAwardOrReward + price.awardOrReward;
-            }
-          }
-          await this.userRepository.balance_user(id).patch({
-            total_earnings:
-              userBalance.total_earnings + awardOrReward + levelIncome,
-            current_balance:
-              userBalance.current_balance + awardOrReward + levelIncome,
-            is_first_level_price_taken: isFirstLevel ? true : false,
-          });
-          const total = awardOrReward + levelIncome;
-          const inputData = {
-            total_earnings: adminBalance.total_earnings - total,
-            total_supply: adminBalance.total_supply - total,
-            activation_help: adminBalance.activation_help - total,
-          };
-          await this.userRepository.adminBalances(ADMIN_ID).patch(inputData);
-          await this.userRepository.updateById(id, {
-            cycles_participated: userData.cycles_participated + 1,
-          });
+        if (
+          diffInDays <= 7 &&
+          userLevel.level === 'LEVEL_1' &&
+          !userBalance.is_first_level_price_taken
+        ) {
+          isFirstLevel = true;
+          awardOrReward = awardOrReward + FIRST_LEVEL_AWARD;
+          totalAwardOrReward = totalAwardOrReward + FIRST_LEVEL_AWARD;
         }
+        if (userLevel.level !== null) {
+          const price =
+            LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
+          if (userLevel.level === 'LEVEL_1') {
+            levelIncome = levelIncome + price.levelIncome;
+            totalLevelIncome = totalLevelIncome + price.levelIncome;
+          } else {
+            awardOrReward = awardOrReward + price.awardOrReward;
+            levelIncome = levelIncome + price.levelIncome;
+            totalLevelIncome = totalLevelIncome + price.levelIncome;
+            totalAwardOrReward = totalAwardOrReward + price.awardOrReward;
+          }
+        }
+        await this.userRepository.balance_user(id).patch({
+          total_earnings:
+            userBalance.total_earnings + awardOrReward + levelIncome,
+          current_balance:
+            userBalance.current_balance + awardOrReward + levelIncome,
+          is_first_level_price_taken: isFirstLevel ? true : false,
+        });
+        const total = awardOrReward + levelIncome;
+        const inputData = {
+          total_earnings: adminBalance.total_earnings - total,
+          total_supply: adminBalance.total_supply - total,
+          activation_help: adminBalance.activation_help - total,
+        };
+        await this.userRepository.adminBalances(ADMIN_ID).patch(inputData);
+        await this.userRepository.updateById(id, {
+          cycles_participated: userData.cycles_participated + 1,
+        });
       }
-      const cyclePaymentsInputData = {
-        levelIncome: totalLevelIncome,
-        awardOrReward: totalAwardOrReward,
-      };
-      await this.cyclesRepository
-        .cyclePayments(cycles.id)
-        .create(cyclePaymentsInputData);
-      await this.cyclesRepository.updateById(cycles.id, {
-        is_active: false,
-      });
-      this.cycleService.sendCongratulationEmailToAllParticipatedUser(
-        allUserRecords,
-      );
-      return Promise.resolve({
-        success: true,
-        message: `Successfully Closed the Cycle`,
-      });
-    } catch (err) {
-      return Promise.resolve({
-        success: false,
-        message: err,
-      });
     }
+    const cyclePaymentsInputData = {
+      levelIncome: totalLevelIncome,
+      awardOrReward: totalAwardOrReward,
+      participatedUsers: participatedUserIds.length,
+    };
+    await this.cyclesRepository
+      .cyclePayments(cycles.id)
+      .create(cyclePaymentsInputData);
+    await this.cyclesRepository.updateById(cycles.id, {
+      is_active: false,
+    });
+    this.cycleService.sendCongratulationEmailToAllParticipatedUser(
+      allUserRecords,
+    );
+    return Promise.resolve({
+      success: true,
+      message: `Successfully Closed the Cycle`,
+    });
   }
 
   @authenticate('jwt')
@@ -356,7 +351,7 @@ export class CycleController {
           userData.balance_user &&
           !userData.balance_user.is_first_level_price_taken
         ) {
-          awardOrReward = awardOrReward + 20;
+          awardOrReward = awardOrReward + FIRST_LEVEL_AWARD;
         }
         if (userLevel.level) {
           const price =

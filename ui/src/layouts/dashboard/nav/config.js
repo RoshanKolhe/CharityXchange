@@ -15,7 +15,7 @@ const navConfig = (userData) => {
           icon: icon('ic_analytics'),
         },
         {
-          title: 'members',
+          title: 'Investors',
           path: '/members',
           icon: icon('ic_user'),
         },
@@ -57,7 +57,7 @@ const navConfig = (userData) => {
           icon: icon('ic_analytics'),
         },
         {
-          title: 'members',
+          title: 'Investors',
           path: '/members',
           icon: icon('ic_user'),
         },

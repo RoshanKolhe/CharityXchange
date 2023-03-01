@@ -182,18 +182,23 @@ export class UserLinksAdminReceivedLinksController {
               .get();
             await this.userRepository.adminBalances(ADMIN_ID).patch(
               {
-                total_supply: adminBalances.total_supply - PER_LINK_HELP_AMOUNT,
+                total_help_received:
+                  adminBalances.total_help_received -
+                  parseFloat(adminReceivedLinkIds.perLinkPayment),
                 total_help_send:
-                  adminBalances.total_help_send + PER_LINK_HELP_AMOUNT,
+                  adminBalances.total_help_send +
+                  parseFloat(adminReceivedLinkIds.perLinkPayment),
               },
               {transaction: tx},
             );
             await this.userRepository.balance_user(userLinkData.userId).patch(
               {
                 total_earnings:
-                  userBalance.total_earnings + PER_LINK_HELP_AMOUNT,
+                  userBalance.total_earnings +
+                  parseFloat(adminReceivedLinkIds.perLinkPayment),
                 current_balance:
-                  userBalance.current_balance + PER_LINK_HELP_AMOUNT,
+                  userBalance.current_balance +
+                  parseFloat(adminReceivedLinkIds.perLinkPayment),
               },
               {transaction: tx},
             );
@@ -217,7 +222,7 @@ export class UserLinksAdminReceivedLinksController {
           const transactionDetails: any = {
             transaction_id: generateTransactionId(),
             remark: `Help to link #${userLinkData.linkName} received`,
-            amount: PER_LINK_HELP_AMOUNT,
+            amount: parseFloat(adminReceivedLinkIds.perLinkPayment),
             type: 'Credited',
             status: true,
             transaction_fees: 0,

@@ -27,7 +27,7 @@ import {MyUserService} from '../services/user-service';
 import {CharityxchangeSqlDataSource} from '../datasources';
 import {omit} from 'lodash';
 import {TransactionService} from '../services/transaction.service';
-import {generateTransactionId} from '../utils/constants';
+import {ADMIN_ID, generateTransactionId} from '../utils/constants';
 
 export class UserUserLinksController {
   constructor(
@@ -187,9 +187,19 @@ export class UserUserLinksController {
         const currentUserbalance = await this.userRepository
           .balance_user(currnetUser.id)
           .get();
+        const adminBalance = await this.userRepository
+          .adminBalances(ADMIN_ID)
+          .get();
         await this.userRepository.balance_user(currnetUser.id).patch(
           {
             current_balance: currentUserbalance.current_balance - 10,
+          },
+          {transaction: tx},
+        );
+        await this.userRepository.adminBalances(ADMIN_ID).patch(
+          {
+            current_balance: adminBalance.current_balance + 10,
+            activation_help: adminBalance.activation_help + 10,
           },
           {transaction: tx},
         );
@@ -253,9 +263,19 @@ export class UserUserLinksController {
         const currentUserbalance = await this.userRepository
           .balance_user(currnetUser.id)
           .get();
+        const adminBalance = await this.userRepository
+          .adminBalances(ADMIN_ID)
+          .get();
         await this.userRepository.balance_user(currnetUser.id).patch(
           {
             current_balance: currentUserbalance.current_balance - 20,
+          },
+          {transaction: tx},
+        );
+        await this.userRepository.adminBalances(ADMIN_ID).patch(
+          {
+            current_balance: adminBalance.current_balance + 20,
+            total_help_received: adminBalance.total_help_received + 20,
           },
           {transaction: tx},
         );

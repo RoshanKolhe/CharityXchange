@@ -37,6 +37,8 @@ import {
 // components
 import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
+import CustomBox from '../common/CustomBox';
+import TextFieldPopup from '../common/TextFieldPopup';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -123,6 +125,17 @@ export default function AdminReceivedLInks() {
   const params = useParams();
   const [open, setOpen] = useState(null);
   const [timer, setTimer] = useState(null);
+  const [openModal, setOpenMdal] = useState(false);
+
+  const [openAproveAllModal, setOpenAproveAllModal] = useState(false);
+
+  const [helpToSendMember, setHelpToSendMember] = useState(0.0);
+
+  const handleOpen = () => setOpenMdal(true);
+  const handleClose = () => setOpenMdal(false);
+
+  const handleAllOpen = () => setOpenAproveAllModal(true);
+  const handleAllClose = () => setOpenAproveAllModal(false);
 
   const [tokenRequests, setTokenRequests] = useState([]);
 
@@ -254,26 +267,33 @@ export default function AdminReceivedLInks() {
     return getCountdown();
   };
 
-  const handleApproveLinkHelpSend = () => {
+  const handleApproveLinkHelpSend = (perLinkPayment) => {
+    if (parseFloat(perLinkPayment) < 0) {
+      setErrorMessage('Per Link Amount should not be less than 0');
+      handleOpenSnackBar();
+      return;
+    }
     const inputData = {
       linkIds: [editUserData.id],
+      perLinkPayment: parseFloat(perLinkPayment),
     };
-    axiosInstance
-      .patch(`sendHelpToLink`, inputData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Help sent Successfully');
-        handleOpenSnackBar();
-        handleCloseMenu();
-        fetchData();
-      })
-      .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        handleCloseMenu();
-        fetchData();
-      });
+
+    // axiosInstance
+    //   .patch(`sendHelpToLink`, inputData)
+    //   .then((res) => {
+    //     setErrorMessage('');
+    //     setSuccessMessage('Help sent Successfully');
+    //     handleOpenSnackBar();
+    //     handleCloseMenu();
+    //     fetchData();
+    //   })
+    //   .catch((err) => {
+    //     setErrorMessage(err.response.data.error.message);
+    //     setSuccessMessage('');
+    //     handleOpenSnackBar();
+    //     handleCloseMenu();
+    //     fetchData();
+    //   });
   };
 
   const checkActiveState = (row) => {
@@ -293,9 +313,15 @@ export default function AdminReceivedLInks() {
     return false;
   };
 
-  const onApproveSelected = () => {
+  const onApproveSelected = (perLinkPayment) => {
+    if (parseFloat(perLinkPayment) < 0) {
+      setErrorMessage('Per Link Amount should not be less than 0');
+      handleOpenSnackBar();
+      return;
+    }
     const inputData = {
       linkIds: selected,
+      perLinkPayment: parseFloat(perLinkPayment),
     };
     axiosInstance
       .patch(`sendHelpToLink`, inputData)
@@ -305,6 +331,7 @@ export default function AdminReceivedLInks() {
         handleOpenSnackBar();
         handleCloseMenu();
         fetchData();
+        setSelected([]);
       })
       .catch((err) => {
         setErrorMessage(err.response.data.error.message);
@@ -342,7 +369,7 @@ export default function AdminReceivedLInks() {
             filterName={filterName}
             onFilterName={handleFilterByName}
             onReload={fetchData}
-            onApproveSelected={onApproveSelected}
+            onApproveSelected={handleAllOpen}
             isFilter
             onFilterDateSelected={fetchData}
           />
@@ -488,19 +515,59 @@ export default function AdminReceivedLInks() {
           },
         }}
       >
-        <MenuItem sx={{ color: 'seagreen' }} onClick={handleApproveLinkHelpSend}>
+        <MenuItem
+          sx={{ color: 'seagreen' }}
+          onClick={() => {
+            handleOpen();
+          }}
+        >
           <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
           Approve
         </MenuItem>
-        {/* <MenuItem
-          sx={{ color: 'error.main' }}
-          onClick={() => {
-          }}
-        >
-          <Iconify icon={'system-uicons:cross'} sx={{ mr: 2 }} />
-          Decline
-        </MenuItem> */}
       </Popover>
+
+      <Modal
+        open={openModal}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <CustomBox>
+          <TextFieldPopup
+            handleClose={handleClose}
+            onDataSubmit={(helpToSendMember) => {
+              handleApproveLinkHelpSend(helpToSendMember);
+              handleClose();
+              fetchData();
+              setMsg('Help Sent Successfully');
+              handleOpenSnackBar();
+            }}
+            title="Per Link Amount"
+            textFieldType="number"
+            textFieldLabel="Enter Per Link Amount"
+          />
+        </CustomBox>
+      </Modal>
+
+      <Modal
+        open={openAproveAllModal}
+        onClose={handleAllClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <CustomBox>
+          <TextFieldPopup
+            handleClose={handleAllClose}
+            onDataSubmit={(helpToSendMember) => {
+              onApproveSelected(helpToSendMember);
+              handleAllClose();
+            }}
+            title="Per Link Amount"
+            textFieldType="number"
+            textFieldLabel="Enter Per Link Amount"
+          />
+        </CustomBox>
+      </Modal>
     </>
   );
 }

@@ -33,10 +33,12 @@ import {
   Avatar,
   IconButton,
   Paper,
+  Grid,
 } from '@mui/material';
 // components
 import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
+import { WarningPopup } from '../common/WarningPopup';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -51,8 +53,8 @@ import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 const TABLE_HEAD = [
   { id: 'linkName', label: 'Link', alignRight: false },
   { id: 'is_active', label: 'Active', alignRight: false },
-  { id: 'is_help_send', label: 'Send Help', alignRight: false },
-  { id: 'is_help_received', label: 'Help Received', alignRight: false },
+  { id: 'is_help_send', label: 'Charity', alignRight: false },
+  { id: 'is_help_received', label: 'Reward Received', alignRight: false },
   { id: 'activationStartTime', label: 'Time Remaining', alignRight: false },
 ];
 
@@ -124,7 +126,7 @@ export default function MemberLinks() {
   const params = useParams();
   const [open, setOpen] = useState(null);
   const [timer, setTimer] = useState(null);
-
+  const [openWarningPopup, setOpenWarningPopup] = useState(false);
   const [tokenRequests, setTokenRequests] = useState([]);
 
   const [page, setPage] = useState(0);
@@ -145,7 +147,7 @@ export default function MemberLinks() {
   const [openSnackBar, setOpenSnackBar] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-
+  const [popupData, setPopupData] = useState({});
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
 
@@ -160,6 +162,26 @@ export default function MemberLinks() {
 
   const handleCloseMenu = () => {
     setOpen(null);
+  };
+
+  const handleOpenWarningPopup = (row, type) => {
+    setEditUserData(row);
+    if (type === 'active') {
+      setPopupData({
+        type: 'Activation',
+        amount: '$10',
+      });
+    } else if (type === 'help') {
+      setPopupData({
+        type: 'Investment',
+        amount: '$20',
+      });
+    }
+    setOpenWarningPopup(true);
+  };
+
+  const handleCloseWarningPopup = () => {
+    setOpenWarningPopup(false);
   };
 
   const handleRequestSort = (event, property) => {
@@ -344,8 +366,8 @@ export default function MemberLinks() {
           </Typography>
         </Stack>
         <Typography variant="caption" gutterBottom>
-          Note*: Activating a link will result in a $10 deduction from your wallet, and sending help will result in a
-          $20 deduction. After activating the link, help must be sent within 24 hours or the link will deactivate and
+          Note*: Activating a link will result in a $10 deduction from your wallet, and Investing will result in a $20
+          deduction. After activating the link, Investment must be sent within 24 hours or the link will deactivate and
           need to be reactivated.
         </Typography>
         <Card>
@@ -401,7 +423,7 @@ export default function MemberLinks() {
                             className={clsx(!checkActiveState(row) ? classes.pointerCss : null)}
                             onClick={() => {
                               if (!checkActiveState(row)) {
-                                handleLinkActivate(row);
+                                handleOpenWarningPopup(row, 'active');
                               }
                             }}
                           >
@@ -417,11 +439,11 @@ export default function MemberLinks() {
                                 new Date() <= new Date(activationEndTime) &&
                                 new Date() >= new Date(activationStartTime)
                               ) {
-                                handleSendHelp(row);
+                                handleOpenWarningPopup(row, 'help');
                               }
                             }}
                           >
-                            {!is_help_send ? 'Send Help' : is_help_send ? 'Active' : 'Send Help'}
+                            {!is_help_send ? 'Invest Now' : is_help_send ? 'Active' : 'Invest Now'}
                           </Label>
                         </TableCell>
                         <TableCell align="left">
@@ -492,6 +514,19 @@ export default function MemberLinks() {
           />
         </Card>
       </Container>
+      <WarningPopup
+        open={openWarningPopup}
+        handleClose={handleCloseWarningPopup}
+        handleSubmit={() => {
+          if (popupData.type === 'Activation') {
+            handleLinkActivate(editUserData);
+          } else if (popupData.type === 'Investment') {
+            handleSendHelp(editUserData);
+          }
+          handleCloseWarningPopup();
+        }}
+        data={popupData}
+      />
       <CommonSnackBar
         openSnackBar={openSnackBar}
         handleCloseSnackBar={handleCloseSnackBar}

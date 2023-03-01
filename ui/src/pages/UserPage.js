@@ -275,13 +275,13 @@ export default function UserPage() {
   return (
     <>
       <Helmet>
-        <title> Members | CharityXchange </title>
+        <title> Investors | CharityXchange </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Members
+            Investors
           </Typography>
 
           <Button
@@ -291,7 +291,7 @@ export default function UserPage() {
             startIcon={<Icon icon={plusFill} />}
             onClick={handleOpen}
           >
-            New Member
+            New Investor
           </Button>
         </Stack>
         <Stack direction="row" alignItems="end" justifyContent="end" mb={0}>

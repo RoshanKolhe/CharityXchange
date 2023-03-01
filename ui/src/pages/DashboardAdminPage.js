@@ -58,7 +58,7 @@ export default function DashboardAdminPage() {
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
               title="Total Help Received"
-              total={`${userProfile?.adminBalances?.total_earnings}`}
+              total={`${userProfile?.adminBalances?.total_help_received}`}
               color="info"
               icon={'ant-design:apple-filled'}
             />
@@ -67,18 +67,23 @@ export default function DashboardAdminPage() {
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
               title="Total Help Send"
-              total={`${userProfile?.adminBalances?.withdrawn_amount}`}
+              total={`${userProfile?.adminBalances?.total_help_send}`}
               color="warning"
               icon={'ant-design:windows-filled'}
             />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Bug Reports" total={234} color="error" icon={'ant-design:bug-filled'} />
+            <AppWidgetSummary
+              title="Link Active Wallet"
+              total={`${userProfile?.adminBalances?.activation_help}`}
+              color="error"
+              icon={'ant-design:bug-filled'}
+            />
           </Grid>
-          <Grid item xs={12} sm={12} md={12}>
+          {/* <Grid item xs={12} sm={12} md={12}>
             <TransactionsAdminPage />
-          </Grid>
+          </Grid> */}
         </Grid>
       </Container>
     </>

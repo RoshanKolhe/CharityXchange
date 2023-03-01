@@ -378,8 +378,6 @@ export class UserController {
       const currentBalanceOfUser = await this.userRepository
         .balance_user(currnetUser.id)
         .get();
-      console.log('currentBalanceOfUser', currentBalanceOfUser.current_balance);
-      console.log('currentBalanceOfUser', pricingPlan.price);
       if (
         currentBalanceOfUser &&
         currentBalanceOfUser.current_balance < pricingPlan.price
@@ -430,7 +428,6 @@ export class UserController {
             adminBalance.activation_help + plansDistibution.active,
           total_help_received:
             adminBalance.total_help_received + plansDistibution.sendHelp,
-          total_supply: adminBalance.total_supply + pricingPlan.price,
           total_earnings: adminBalance.total_earnings + pricingPlan.price,
         },
         {transaction: tx},
