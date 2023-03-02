@@ -86,7 +86,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.transaction_id.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -118,7 +118,7 @@ export default function TransactionsEmployeePage() {
 
   const [editUserData, setEditUserData] = useState({});
 
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('transaction_id');
 
   const [filterName, setFilterName] = useState('');
 
@@ -163,12 +163,12 @@ export default function TransactionsEmployeePage() {
     setSelected([]);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
+  const handleClick = (event, transaction_id) => {
+    const selectedIndex = selected.indexOf(transaction_id);
 
     let newSelected = [];
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, transaction_id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -201,7 +201,7 @@ export default function TransactionsEmployeePage() {
 
   const fetchData = () => {
     axiosInstance.get('users/me').then((res) => {
-      setTransactionsList(res?.data?.transactions);
+      setTransactionsList(res?.data?.transactions || []);
     });
   };
 

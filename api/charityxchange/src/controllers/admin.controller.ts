@@ -15,6 +15,7 @@ import {UserRepository} from '../repositories';
 import {BcryptHasher} from '../services/hash.password.bcrypt';
 import {validateCredentials} from '../services/validator';
 import {PermissionKeys} from '../authorization/permission-keys';
+import {ADMIN_TOTAL_SUPPLY} from '../utils/constants';
 
 // import {inject} from '@loopback/core';
 
@@ -69,6 +70,7 @@ export class AdminController {
     };
     const adminBalancesData: any = {
       adminId: savedUserData.id,
+      total_supply: ADMIN_TOTAL_SUPPLY,
     };
     await this.userRepository
       .userProfile(savedUserData.id)

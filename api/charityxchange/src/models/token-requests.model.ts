@@ -14,9 +14,9 @@ export class TokenRequests extends Entity {
     type: 'number',
     required: true,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   amount?: number;

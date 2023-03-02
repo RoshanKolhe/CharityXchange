@@ -17,6 +17,8 @@ export const PER_LINK_HELP_AMOUNT = 40.0;
 
 export const FIRST_LEVEL_AWARD = 25.0;
 
+export const ADMIN_TOTAL_SUPPLY = 1000000000;
+
 export const ADMIN_ID = 1;
 
 export function getUserLevel(direct: any, links: any) {
@@ -77,4 +79,7 @@ export function generateTransactionId() {
   return transactionId;
 }
 
-
+export const TRANSACTION_TYPES = {
+  TOKEN_REQUEST: 'tokenRequest',
+  PRICING_PlAN:'planBought'
+};

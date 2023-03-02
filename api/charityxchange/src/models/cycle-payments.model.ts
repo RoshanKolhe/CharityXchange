@@ -13,9 +13,9 @@ export class CyclePayments extends Entity {
     type: 'number',
     required: true,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   levelIncome: number;
@@ -24,9 +24,9 @@ export class CyclePayments extends Entity {
     type: 'number',
     required: true,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   awardOrReward: number;
@@ -35,9 +35,9 @@ export class CyclePayments extends Entity {
     type: 'number',
     required: true,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   participatedUsers: number;

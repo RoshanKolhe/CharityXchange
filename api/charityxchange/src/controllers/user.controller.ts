@@ -16,7 +16,12 @@ import {
   response,
 } from '@loopback/rest';
 import SITE_SETTINGS from '../utils/config';
-import {ADMIN_ID, USERLINKACTIVEANDHELPSEND} from '../utils/constants';
+import {
+  ADMIN_ID,
+  generateTransactionId,
+  TRANSACTION_TYPES,
+  USERLINKACTIVEANDHELPSEND,
+} from '../utils/constants';
 
 import {
   PricingPlan,
@@ -49,6 +54,7 @@ import generateOtpTemplate from '../templates/otp.template';
 import generateEmailAndPasswordTemplate from '../templates/email-and-password.template';
 import {CharityxchangeSqlDataSource} from '../datasources';
 import {omit} from 'lodash';
+import { TransactionService } from '../services/transaction.service';
 
 const UserLoginSchema = {
   type: 'object',
@@ -73,6 +79,8 @@ export class UserController {
     public userService: MyUserService,
     @inject('service.jwt.service')
     public jwtService: JWTService,
+    @inject('service.transaction.service')
+    public transactionService: TransactionService,
     @inject(EmailManagerBindings.SEND_MAIL)
     public emailManager: EmailManager,
     @repository(UserPricingPlanRepository)
@@ -493,6 +501,19 @@ export class UserController {
             );
         }
       }
+      const transactionDetails: any = {
+        transaction_id: generateTransactionId(),
+        remark: 'Plan Activation',
+        amount: pricingPlan.price,
+        type: 'Debited',
+        status: true,
+        transaction_fees: 0,
+        transaction_type: TRANSACTION_TYPES.PRICING_PlAN,
+      };
+      await this.transactionService.createTransaction(
+        transactionDetails,
+        currnetUser.id,
+      );
       tx.commit();
       return Promise.resolve({
         success: true,

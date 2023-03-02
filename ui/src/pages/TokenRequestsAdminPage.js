@@ -213,11 +213,11 @@ export default function TokenRequestsAdminPage() {
     axiosInstance
       .patch(`/token-requests/${userData.id}`, inputData)
       .then((res) => {
+        setLoading(false);
         setErrorMessage('');
         setSuccessMessage('Token Request Approved Successfully');
         handleOpenSnackBar();
         handleCloseMenu();
-        setLoading(false);
         fetchData();
       })
       .catch((err) => {

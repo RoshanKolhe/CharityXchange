@@ -25,15 +25,21 @@ export class Transactions extends Entity {
     type: 'string',
     required: true,
   })
+  transaction_type: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
   remark: string;
 
   @property({
     type: 'number',
     required: true,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   amount: number;
@@ -42,9 +48,9 @@ export class Transactions extends Entity {
     type: 'number',
     required: true,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   transaction_fees: number;

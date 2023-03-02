@@ -81,9 +81,9 @@ export default function DashboardAdminPage() {
               icon={'ant-design:bug-filled'}
             />
           </Grid>
-          {/* <Grid item xs={12} sm={12} md={12}>
+          <Grid item xs={12} sm={12} md={12}>
             <TransactionsAdminPage />
-          </Grid> */}
+          </Grid>
         </Grid>
       </Container>
     </>

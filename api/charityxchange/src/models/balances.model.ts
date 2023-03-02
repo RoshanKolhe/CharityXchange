@@ -14,10 +14,10 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-    mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+     mysql: {
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   total_earnings: number;
@@ -25,10 +25,10 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-    mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+     mysql: {
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   chxtToken: number;
@@ -36,10 +36,10 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-    mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+     mysql: {
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   withdrawn_amount: number;
@@ -47,10 +47,10 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-    mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+     mysql: {
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   current_balance: number;

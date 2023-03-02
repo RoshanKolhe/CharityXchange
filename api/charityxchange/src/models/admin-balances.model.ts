@@ -13,9 +13,9 @@ export class AdminBalances extends Entity {
     type: 'number',
     default: 0,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   total_earnings: number;
@@ -24,9 +24,9 @@ export class AdminBalances extends Entity {
     type: 'number',
     default: 0,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   withdrawn_amount: number;
@@ -35,9 +35,9 @@ export class AdminBalances extends Entity {
     type: 'number',
     default: 0,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   current_balance: number;
@@ -46,9 +46,9 @@ export class AdminBalances extends Entity {
     type: 'number',
     default: 0,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   total_help_send: number;
@@ -57,9 +57,9 @@ export class AdminBalances extends Entity {
     type: 'number',
     default: 0,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   activation_help: number;
@@ -68,12 +68,13 @@ export class AdminBalances extends Entity {
     type: 'number',
     default: 0,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   total_help_received: number;
+
 
   @property({
     type: 'object',
@@ -84,9 +85,9 @@ export class AdminBalances extends Entity {
     type: 'number',
     default: 0,
     mysql: {
-      dataType: 'float',
-      dataPrecision: 10,
-      dataScale: 2,
+      dataType: 'decimal',
+      precision: 10,
+      scale: 2,
     },
   })
   total_supply: number;

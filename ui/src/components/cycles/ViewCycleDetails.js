@@ -299,7 +299,7 @@ export default function ViewCycleDetails() {
           <Grid item xs={12} sm={6} md={4}>
             <AppWidgetSummary
               title="Total"
-              total={cycleIncomeData?.levelIncome + cycleIncomeData?.awardOrReward}
+              total={`${cycleIncomeData?.levelIncome + cycleIncomeData?.awardOrReward}`}
               color="info"
               icon={'mdi:loyalty'}
             />

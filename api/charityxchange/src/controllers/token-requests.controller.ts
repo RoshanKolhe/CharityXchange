@@ -25,7 +25,11 @@ import {PermissionKeys} from '../authorization/permission-keys';
 import {TokenRequests, Transactions, UserProfile} from '../models';
 import {TokenRequestsRepository, UserRepository} from '../repositories';
 import {TransactionService} from '../services/transaction.service';
-import {ADMIN_ID, generateTransactionId} from '../utils/constants';
+import {
+  ADMIN_ID,
+  generateTransactionId,
+  TRANSACTION_TYPES,
+} from '../utils/constants';
 
 export class TokenRequestsController {
   constructor(
@@ -147,53 +151,53 @@ export class TokenRequestsController {
     })
     tokenRequests: TokenRequests,
   ): Promise<any> {
-    try {
-      const data = await this.tokenRequestsRepository.updateById(
-        id,
-        tokenRequests,
+    // try {
+    const data = await this.tokenRequestsRepository.updateById(
+      id,
+      tokenRequests,
+    );
+    if (tokenRequests.status === 1) {
+      const current_balance =
+        (await (
+          await this.userRepository.balance_user(tokenRequests.userId).get()
+        ).current_balance) || 0;
+      const amountToBeAdded = tokenRequests.amount || 0;
+      console.log(amountToBeAdded);
+      //Add Token to users account
+      const inputData = {
+        current_balance: current_balance + amountToBeAdded,
+      };
+      await this.userRepository
+        .balance_user(tokenRequests.userId)
+        .patch(inputData);
+      //subtract token from admins account
+      const admin_total_supply = await (
+        await this.userRepository.adminBalances(ADMIN_ID).get()
+      ).total_supply;
+      const dataToSubtract = {
+        total_supply: admin_total_supply - amountToBeAdded,
+      };
+      const transactionDetails: any = {
+        transaction_id: generateTransactionId(),
+        remark: 'Token Request Completed',
+        amount: amountToBeAdded,
+        type: 'Deposited',
+        status: true,
+        transaction_fees: 0,
+        transaction_type: TRANSACTION_TYPES.TOKEN_REQUEST,
+      };
+      await this.transactionService.createTransaction(
+        transactionDetails,
+        tokenRequests.userId,
       );
-      if (tokenRequests.status === 1) {
-        const current_balance =
-          (await (
-            await this.userRepository.balance_user(tokenRequests.userId).get()
-          ).current_balance) || 0;
-        const amountToBeAdded = tokenRequests.amount || 0;
-        console.log(amountToBeAdded);
-        //Add Token to users account
-        const inputData = {
-          current_balance: current_balance + amountToBeAdded,
-        };
-        await this.userRepository
-          .balance_user(tokenRequests.userId)
-          .patch(inputData);
-        //subtract token from admins account
-        const admin_total_supply = await (
-          await this.userRepository.adminBalances(ADMIN_ID).get()
-        ).total_supply;
-        console.log(admin_total_supply);
-        const dataToSubtract = {
-          total_supply: admin_total_supply - amountToBeAdded,
-        };
-        const transactionDetails: any = {
-          transaction_id: generateTransactionId(),
-          remark: 'Token Request Completed',
-          amount: amountToBeAdded,
-          type: 'Deposited',
-          status: true,
-          transaction_fees: 0,
-        };
-        await this.transactionService.createTransaction(
-          transactionDetails,
-          tokenRequests.userId,
-        );
-        return await this.userRepository
-          .adminBalances(ADMIN_ID)
-          .patch(dataToSubtract);
-      }
-      return data;
-    } catch (err) {
-      throw new HttpErrors[400](err);
+      return await this.userRepository
+        .adminBalances(ADMIN_ID)
+        .patch(dataToSubtract);
     }
+    return data;
+    // } catch (err) {
+    //   throw new HttpErrors[400](err);
+    // }
   }
 
   @put('/token-requests/{id}')

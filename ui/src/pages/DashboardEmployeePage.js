@@ -168,9 +168,9 @@ export default function DashboardEmployeePage() {
           <Grid item xs={12} md={6} lg={4}>
             <AppLevelCard title="Current Level" subheader={LEVEL_DATA[userProfile?.userLevel?.level] || 'No Level'} />
           </Grid>
-          {/* <Grid item xs={12} md={12} lg={12}>
+          <Grid item xs={12} md={12} lg={12}>
             <TransactionsEmployeePage />
-          </Grid> */}
+          </Grid>
         </Grid>
         <Modal
           open={openModal}
