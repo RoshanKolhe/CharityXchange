@@ -36,6 +36,7 @@ import {
 } from '@mui/material';
 // components
 import moment from 'moment';
+import LoadingScreen from '../common/LoadingScreen';
 import NewCycle from '../components/cycles/NewCycle';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -111,6 +112,8 @@ export default function TransactionsAdminPage() {
   const [transactionsList, setTransactionsList] = useState([]);
 
   const [page, setPage] = useState(0);
+
+  const [loading, setLoading] = useState(false);
 
   const [order, setOrder] = useState('asc');
 
@@ -200,9 +203,16 @@ export default function TransactionsAdminPage() {
   const isNotFound = !filteredUsers.length && !!filterName;
 
   const fetchData = () => {
-    axiosInstance.get('transactions').then((res) => {
-      setTransactionsList(res?.data);
-    });
+    setLoading(true);
+    axiosInstance
+      .get('transactions')
+      .then((res) => {
+        setLoading(false);
+        setTransactionsList(res?.data);
+      })
+      .catch((err) => {
+        setLoading(false);
+      });
   };
 
   const handleReloadData = (event) => {
@@ -215,6 +225,7 @@ export default function TransactionsAdminPage() {
 
   return (
     <>
+      {loading ? <LoadingScreen /> : null}
       <Helmet>
         <title> Cycles | CharityXchange </title>
       </Helmet>

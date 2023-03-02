@@ -35,6 +35,7 @@ import {
   Paper,
 } from '@mui/material';
 // components
+import TextFieldPopup from '../common/TextFieldPopup';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
@@ -231,11 +232,13 @@ export default function PendingKycPage() {
       });
   };
 
-  const handleDeclineClick = (userData) => {
+  const handleDeclineClick = (userData, declineReason) => {
     userData = {
       ...userData,
       is_kyc_completed: 3,
+      decline_reason: declineReason,
     };
+    // console.log('userData', userData);
     axiosInstance
       .patch(`/approveDisapproveKyc`, userData)
       .then((res) => {
@@ -243,6 +246,7 @@ export default function PendingKycPage() {
         setErrorMessage('');
         setSuccessMessage('KYC Declined Successfully');
         handleCloseMenu();
+        handleClose();
         fetchData();
       })
       .catch((err) => {
@@ -411,25 +415,6 @@ export default function PendingKycPage() {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </Card>
-        <Modal
-          open={openModal}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <CustomBox>
-            <NewMember
-              handleClose={handleClose}
-              onDataSubmit={() => {
-                handleClose();
-                fetchData();
-                setErrorMessage('');
-                setSuccessMessage('Successfully Created New Member');
-                handleOpenSnackBar();
-              }}
-            />
-          </CustomBox>
-        </Modal>
       </Container>
       <CommonSnackBar
         openSnackBar={openSnackBar}
@@ -467,7 +452,7 @@ export default function PendingKycPage() {
         <MenuItem
           sx={{ color: 'error.main' }}
           onClick={() => {
-            handleDeclineClick(editUserData);
+            handleOpen();
           }}
         >
           <Iconify icon={'system-uicons:cross'} sx={{ mr: 2 }} />
@@ -483,6 +468,25 @@ export default function PendingKycPage() {
           View
         </MenuItem>
       </Popover>
+
+      <Modal
+        open={openModal}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <CustomBox>
+          <TextFieldPopup
+            handleClose={handleClose}
+            onDataSubmit={(kycDeclineReason) => {
+              handleDeclineClick(editUserData, kycDeclineReason);
+            }}
+            title="KYC Decline"
+            textFieldType="text"
+            textFieldLabel="Enter Decline Reason"
+          />
+        </CustomBox>
+      </Modal>
     </>
   );
 }

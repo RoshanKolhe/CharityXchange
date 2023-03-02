@@ -14,21 +14,44 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
-  total_earnings:number ;
+  total_earnings: number;
 
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
+  })
+  chxtToken: number;
+
+  @property({
+    type: 'number',
+    default: 0,
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   withdrawn_amount: number;
 
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   current_balance: number;
 

@@ -13,7 +13,11 @@ export class TokenRequests extends Entity {
   @property({
     type: 'number',
     required: true,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   amount?: number;
 

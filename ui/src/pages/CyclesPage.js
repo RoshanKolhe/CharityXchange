@@ -36,6 +36,7 @@ import {
 } from '@mui/material';
 // components
 import moment from 'moment';
+import LoadingScreen from '../common/LoadingScreen';
 import NewCycle from '../components/cycles/NewCycle';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -124,7 +125,7 @@ export default function CyclesPage() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [openModal, setOpenMdal] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [openSnackBar, setOpenSnackBar] = useState(false);
 
@@ -199,9 +200,16 @@ export default function CyclesPage() {
   const isNotFound = !filteredUsers.length && !!filterName;
 
   const fetchData = () => {
-    axiosInstance.get('cycles').then((res) => {
-      setCyclesList(res.data);
-    });
+    setLoading(true);
+    axiosInstance
+      .get('cycles')
+      .then((res) => {
+        setLoading(false);
+        setCyclesList(res.data);
+      })
+      .catch((err) => {
+        setLoading(false);
+      });
   };
 
   const handleReloadData = (event) => {
@@ -214,6 +222,7 @@ export default function CyclesPage() {
 
   return (
     <>
+      {loading ? <LoadingScreen /> : null}
       <Helmet>
         <title> Cycles | CharityXchange </title>
       </Helmet>

@@ -36,6 +36,7 @@ import {
 } from '@mui/material';
 // components
 import { TreeItem } from '@mui/lab';
+import LoadingScreen from '../common/LoadingScreen';
 import { convertData, tableIcons } from '../utils/constants';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
@@ -96,7 +97,7 @@ export default function UserPage() {
   };
   const navigate = useNavigate();
   const [open, setOpen] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   const [isTreeView, setIsTreeView] = useState(false);
 
   const [memberList, setMemberList] = useState([]);
@@ -243,20 +244,40 @@ export default function UserPage() {
 
   const isNotFound = !filteredUsers.length && !!filterName;
   const fetchCurrentUserData = () => {
-    axiosInstance.get('users/me').then((res) => {
-      setUserProfile(res.data);
-    });
+    setLoading(true);
+    axiosInstance
+      .get('users/me')
+      .then((res) => {
+        setLoading(false);
+        setUserProfile(res.data);
+      })
+      .catch((err) => {
+        setLoading(false);
+      });
   };
 
   const fetchData = () => {
+    setLoading(true);
     if (permissions && permissions.includes('super_admin')) {
-      axiosInstance.get('users?filter[include][]=userProfile').then((res) => {
-        setMemberList(res.data);
-      });
+      axiosInstance
+        .get('users?filter[include][]=userProfile')
+        .then((res) => {
+          setLoading(false);
+          setMemberList(res.data);
+        })
+        .catch((err) => {
+          setLoading(false);
+        });
     } else {
-      axiosInstance.get(`getAllDescendantsOfUser`).then((res) => {
-        setMemberList(res.data);
-      });
+      axiosInstance
+        .get(`getAllDescendantsOfUser`)
+        .then((res) => {
+          setMemberList(res.data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setLoading(false);
+        });
     }
   };
 
@@ -274,6 +295,7 @@ export default function UserPage() {
 
   return (
     <>
+      {loading ? <LoadingScreen /> : null}
       <Helmet>
         <title> Investors | CharityXchange </title>
       </Helmet>

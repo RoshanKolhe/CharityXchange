@@ -17,14 +17,22 @@ export class PricingPlan extends Entity {
   @property({
     type: 'number',
     required: true,
-    dataType: 'FLOAT'
+   mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   price: number;
 
   @property({
     type: 'number',
     required: true,
-    dataType: 'FLOAT'
+   mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   discounted_price: number;
 

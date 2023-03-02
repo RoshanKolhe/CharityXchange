@@ -12,45 +12,68 @@ export class AdminBalances extends Entity {
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   total_earnings: number;
 
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   withdrawn_amount: number;
 
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   current_balance: number;
 
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   total_help_send: number;
 
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   activation_help: number;
 
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   total_help_received: number;
-
 
   @property({
     type: 'object',
@@ -60,7 +83,11 @@ export class AdminBalances extends Entity {
   @property({
     type: 'number',
     default: 0,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   total_supply: number;
 

@@ -44,6 +44,7 @@ import Scrollbar from '../components/scrollbar';
 import axiosInstance from '../helpers/axios';
 import CommonSnackBar from '../common/CommonSnackBar';
 import { ListHead, ListToolbar } from '../sections/@dashboard/table';
+import LoadingScreen from '../common/LoadingScreen';
 
 // ----------------------------------------------------------------------
 
@@ -115,6 +116,8 @@ export default function TokenRequestsAdminPage() {
 
   const navigate = useNavigate();
   const [open, setOpen] = useState(null);
+
+  const [loading, setLoading] = useState(false);
 
   const [tokenRequests, setTokenRequests] = useState([]);
 
@@ -200,6 +203,7 @@ export default function TokenRequestsAdminPage() {
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleApproveClick = (userData) => {
+    setLoading(true);
     userData = omit(userData, 'user');
     const inputData = {
       ...userData,
@@ -209,20 +213,23 @@ export default function TokenRequestsAdminPage() {
     axiosInstance
       .patch(`/token-requests/${userData.id}`, inputData)
       .then((res) => {
-        handleOpenSnackBar();
         setErrorMessage('');
         setSuccessMessage('Token Request Approved Successfully');
+        handleOpenSnackBar();
         handleCloseMenu();
+        setLoading(false);
         fetchData();
       })
       .catch((err) => {
-        handleOpenSnackBar();
+        setSuccessMessage('');
         setErrorMessage(err.response.data.error.message);
+        setLoading(false);
         handleOpenSnackBar();
       });
   };
 
   const handleDeclineClick = (userData) => {
+    setLoading(true);
     userData = omit(userData, 'user');
     const inputData = {
       ...userData,
@@ -231,16 +238,18 @@ export default function TokenRequestsAdminPage() {
     axiosInstance
       .patch(`/token-requests/${userData.id}`, inputData)
       .then((res) => {
-        handleOpenSnackBar();
         setErrorMessage('');
         setSuccessMessage('Token Request Declined Successfully');
+        handleOpenSnackBar();
         handleCloseMenu();
+        setLoading(false);
         fetchData();
       })
       .catch((err) => {
-        handleOpenSnackBar();
+        setSuccessMessage('');
         setErrorMessage(err.response.data.error.message);
         handleOpenSnackBar();
+        setLoading(false);
       });
   };
 
@@ -251,12 +260,15 @@ export default function TokenRequestsAdminPage() {
   const isNotFound = !filteredUsers.length;
 
   const fetchData = () => {
+    setLoading(true);
     axiosInstance
       .get(`token-requests?filter[include][]=user&filter[order]=createdAt%20DESC`)
       .then((res) => {
         setTokenRequests(res.data);
+        setLoading(false);
       })
       .catch((err) => {
+        setLoading(false);
         setTokenRequests([]);
       });
   };
@@ -271,6 +283,7 @@ export default function TokenRequestsAdminPage() {
 
   return (
     <>
+      {loading ? <LoadingScreen /> : null}
       <Helmet>
         <title> Token Requests | CharityXchange </title>
       </Helmet>
@@ -330,7 +343,8 @@ export default function TokenRequestsAdminPage() {
                             className={classes.textContainer}
                             onClick={() => {
                               navigator.clipboard.writeText(transaction_id);
-                              setMsg('Copied');
+                              setErrorMessage('');
+                              setSuccessMessage('Copied');
                               handleOpenSnackBar();
                             }}
                           >
@@ -440,6 +454,7 @@ export default function TokenRequestsAdminPage() {
         <MenuItem
           sx={{ color: 'seagreen' }}
           onClick={() => {
+            handleCloseMenu();
             handleApproveClick(editUserData);
           }}
         >
@@ -449,6 +464,7 @@ export default function TokenRequestsAdminPage() {
         <MenuItem
           sx={{ color: 'error.main' }}
           onClick={() => {
+            handleCloseMenu();
             handleDeclineClick(editUserData);
           }}
         >

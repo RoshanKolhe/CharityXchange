@@ -28,6 +28,7 @@ import {
 import { omit } from 'lodash';
 import { makeStyles } from '@mui/styles';
 import { useLocation, useNavigate } from 'react-router-dom';
+import LoadingScreen from '../../common/LoadingScreen';
 import CustomBox from '../../common/CustomBox';
 import axiosInstance from '../../helpers/axios';
 import account from '../../_mock/account';
@@ -113,7 +114,7 @@ const ProfileForm = ({ initialValues }) => {
   const [idProof, setIdProof] = useState(null);
   const [addressProof, setAddressProof] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleOpenSnackBar = () => setOpenSnackBar(true);
@@ -186,6 +187,7 @@ const ProfileForm = ({ initialValues }) => {
     enableReinitialize: true,
     validationSchema: profileFormValidationSchema,
     onSubmit: async (values) => {
+      setLoading(true);
       if (values.userProfile.id === undefined || values.userProfile.id === '') {
         values = omit(values, 'userProfile.id');
       }
@@ -209,6 +211,7 @@ const ProfileForm = ({ initialValues }) => {
       axiosInstance
         .patch(`/users/${values.id}/user-profile`, values)
         .then((res) => {
+          setLoading(false);
           setErrorMessage('');
           if (location.pathname === '/kyc') {
             setSuccessMessage('KYC data submitted successfully you will be notified by email once the kyc is approved');
@@ -223,6 +226,7 @@ const ProfileForm = ({ initialValues }) => {
           }
         })
         .catch((err) => {
+          setLoading(false);
           setErrorMessage(err.response.data.error.message);
           handleOpenSnackBar();
         });
@@ -257,7 +261,6 @@ const ProfileForm = ({ initialValues }) => {
   };
 
   const handleFileUpload = (event, fileType) => {
-    console.log('here');
     const reader = new FileReader();
     const file = event.target.files[0];
     if (file) {
@@ -289,6 +292,7 @@ const ProfileForm = ({ initialValues }) => {
 
   return (
     <div>
+      {loading ? <LoadingScreen /> : null}
       <form onSubmit={formik.handleSubmit} id="profileForm">
         {location.pathname === '/kyc' ? null : (
           <Grid container sx={{ height: 150 }}>

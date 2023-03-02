@@ -12,21 +12,33 @@ export class CyclePayments extends Entity {
   @property({
     type: 'number',
     required: true,
-     dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   levelIncome: number;
 
   @property({
     type: 'number',
     required: true,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   awardOrReward: number;
 
   @property({
     type: 'number',
     required: true,
-    dataType: 'FLOAT'
+    mysql: {
+      dataType: 'float',
+      dataPrecision: 10,
+      dataScale: 2,
+    },
   })
   participatedUsers: number;
 

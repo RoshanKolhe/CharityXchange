@@ -107,7 +107,13 @@ export default function DashboardEmployeePage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="CHXT Token" total={10} color="info" icon={'mdi:loyalty'} />
+            <AppWidgetSummary
+              title="CHXT Token"
+              total={`${userProfile?.balance_user?.chxtToken}`}
+              color="info"
+              isText
+              icon={'material-symbols:token'}
+            />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>

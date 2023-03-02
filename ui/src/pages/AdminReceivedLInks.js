@@ -37,6 +37,7 @@ import {
 // components
 import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
+import LoadingScreen from '../common/LoadingScreen';
 import CustomBox from '../common/CustomBox';
 import TextFieldPopup from '../common/TextFieldPopup';
 import Label from '../components/label';
@@ -152,7 +153,7 @@ export default function AdminReceivedLInks() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
+  const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [openSnackBar, setOpenSnackBar] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -227,6 +228,7 @@ export default function AdminReceivedLInks() {
   const isNotFound = !filteredUsers.length;
 
   const fetchData = (startDate, endDate) => {
+    setLoading(true);
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     let filterString = `/user-links/admin-received-links?filter[where][createdAt][lt]=${sevenDaysAgo}&filter[where][is_help_send_to_user]=false`;
@@ -236,9 +238,11 @@ export default function AdminReceivedLInks() {
     axiosInstance
       .get(filterString)
       .then((res) => {
+        setLoading(false);
         setTokenRequests(res.data);
       })
       .catch((err) => {
+        setLoading(false);
         setTokenRequests([]);
       });
   };
@@ -273,27 +277,30 @@ export default function AdminReceivedLInks() {
       handleOpenSnackBar();
       return;
     }
+    setLoading(true);
     const inputData = {
       linkIds: [editUserData.id],
       perLinkPayment: parseFloat(perLinkPayment),
     };
 
-    // axiosInstance
-    //   .patch(`sendHelpToLink`, inputData)
-    //   .then((res) => {
-    //     setErrorMessage('');
-    //     setSuccessMessage('Help sent Successfully');
-    //     handleOpenSnackBar();
-    //     handleCloseMenu();
-    //     fetchData();
-    //   })
-    //   .catch((err) => {
-    //     setErrorMessage(err.response.data.error.message);
-    //     setSuccessMessage('');
-    //     handleOpenSnackBar();
-    //     handleCloseMenu();
-    //     fetchData();
-    //   });
+    axiosInstance
+      .patch(`sendHelpToLink`, inputData)
+      .then((res) => {
+        setLoading(false);
+        setErrorMessage('');
+        setSuccessMessage('Help sent Successfully');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        setLoading(false);
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      });
   };
 
   const checkActiveState = (row) => {
@@ -319,6 +326,7 @@ export default function AdminReceivedLInks() {
       handleOpenSnackBar();
       return;
     }
+    setLoading(true);
     const inputData = {
       linkIds: selected,
       perLinkPayment: parseFloat(perLinkPayment),
@@ -326,6 +334,7 @@ export default function AdminReceivedLInks() {
     axiosInstance
       .patch(`sendHelpToLink`, inputData)
       .then((res) => {
+        setLoading(false);
         setErrorMessage('');
         setSuccessMessage('Help sent Successfully');
         handleOpenSnackBar();
@@ -334,11 +343,13 @@ export default function AdminReceivedLInks() {
         setSelected([]);
       })
       .catch((err) => {
+        setLoading(false);
         setErrorMessage(err.response.data.error.message);
         setSuccessMessage('');
         handleOpenSnackBar();
         handleCloseMenu();
         fetchData();
+        setSelected([]);
       });
   };
 
@@ -348,6 +359,7 @@ export default function AdminReceivedLInks() {
 
   return (
     <>
+      {loading ? <LoadingScreen /> : null}
       <Helmet>
         <title> Links | CharityXchange </title>
       </Helmet>

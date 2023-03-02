@@ -269,6 +269,7 @@ export class UserUserLinksController {
         await this.userRepository.balance_user(currnetUser.id).patch(
           {
             current_balance: currentUserbalance.current_balance - 20,
+            chxtToken: currentUserbalance.chxtToken + 200,
           },
           {transaction: tx},
         );

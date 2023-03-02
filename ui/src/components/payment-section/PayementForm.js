@@ -1,4 +1,14 @@
-import { Box, Button, Grid, IconButton, InputAdornment, Modal, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  FormHelperText,
+  Grid,
+  IconButton,
+  InputAdornment,
+  Modal,
+  TextField,
+  Typography,
+} from '@mui/material';
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import * as yup from 'yup';
@@ -151,6 +161,8 @@ const PaymentForm = ({
               error={formik?.touched?.amount && Boolean(formik?.errors?.amount)}
               helperText={formik?.touched?.amount && formik?.errors?.amount}
             />
+          </Grid>
+          <Grid item xs={12} lg={11} sx={{ marginTop: '5px' }}>
             <TextField
               InputProps={{ disableUnderline: true }}
               fullWidth
@@ -163,6 +175,8 @@ const PaymentForm = ({
               error={formik?.touched?.transaction_id && Boolean(formik?.errors?.transaction_id)}
               helperText={formik?.touched?.transaction_id && formik?.errors?.transaction_id}
             />
+          </Grid>
+          <Grid item xs={12} lg={11} sx={{ marginTop: '5px' }}>
             <input
               type="file"
               accept="image/*"
@@ -172,6 +186,9 @@ const PaymentForm = ({
               }}
               style={{ marginTop: '10px' }}
             />
+            <FormHelperText error>
+              {formik?.touched?.payment_screen_shot && formik?.errors?.payment_screen_shot}
+            </FormHelperText>
           </Grid>
         </Grid>
 

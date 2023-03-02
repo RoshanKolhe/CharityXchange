@@ -134,7 +134,7 @@ const PricingPlan = () => {
   const [userDetails, setUserDetails] = useState();
   const [open, setOpen] = useState(false);
   const [packageConfirmationData, setPackageConfirmationData] = useState();
-
+  const navigate = useNavigate();
   const handleOpen = () => {
     setOpen(true);
   };
@@ -156,6 +156,12 @@ const PricingPlan = () => {
       setUserDetails(res.data);
     });
   };
+
+  useEffect(() => {
+    if (userDetails?.activePayment) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [userDetails]);
   useEffect(() => {
     fetchUserDetails();
     fetchPlans();
@@ -183,6 +189,7 @@ const PricingPlan = () => {
                       setPackageConfirmationData(res);
                       handleOpen();
                     }}
+                    disabled={userDetails?.activePayment}
                   >
                     Subscribe
                   </Button>
