@@ -151,7 +151,7 @@ export class TokenRequestsController {
     })
     tokenRequests: TokenRequests,
   ): Promise<any> {
-    // try {
+    try {
     const data = await this.tokenRequestsRepository.updateById(
       id,
       tokenRequests,
@@ -162,7 +162,7 @@ export class TokenRequestsController {
           await this.userRepository.balance_user(tokenRequests.userId).get()
         ).current_balance) || 0;
       const amountToBeAdded = tokenRequests.amount || 0;
-      console.log(amountToBeAdded);
+
       //Add Token to users account
       const inputData = {
         current_balance: current_balance + amountToBeAdded,
@@ -195,9 +195,9 @@ export class TokenRequestsController {
         .patch(dataToSubtract);
     }
     return data;
-    // } catch (err) {
-    //   throw new HttpErrors[400](err);
-    // }
+    } catch (err) {
+      throw new HttpErrors[400](err);
+    }
   }
 
   @put('/token-requests/{id}')

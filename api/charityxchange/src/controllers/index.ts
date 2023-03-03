@@ -17,3 +17,4 @@ export * from './user-links-admin-received-links.controller';
 export * from './cycle.controller';
 export * from './cycles-cycle-payments.controller';
 export * from './user-transactions.controller';
+export * from './user-withdraws.controller';

@@ -33,6 +33,7 @@ import {
   ADMIN_ID,
   generateTransactionId,
   PER_LINK_HELP_AMOUNT,
+  TRANSACTION_TYPES,
 } from '../utils/constants';
 import {TransactionService} from '../services/transaction.service';
 
@@ -218,19 +219,19 @@ export class UserLinksAdminReceivedLinksController {
             );
           }
 
-          tx.commit();
           const transactionDetails: any = {
             transaction_id: generateTransactionId(),
             remark: `Help to link #${userLinkData.linkName} received`,
             amount: parseFloat(adminReceivedLinkIds.perLinkPayment),
             type: 'Credited',
+            transaction_type: TRANSACTION_TYPES.NON_WORKING,
             status: true,
             transaction_fees: 0,
           };
-          await this.transactionService.createTransaction(
-            transactionDetails,
-            userLinkData.userId,
-          );
+          await this.userRepository
+            .transactions(userLinkData.userId)
+            .create(transactionDetails, {transaction: tx});
+          tx.commit();
         } catch (err) {
           tx.rollback();
           throw new HttpErrors[400](err);

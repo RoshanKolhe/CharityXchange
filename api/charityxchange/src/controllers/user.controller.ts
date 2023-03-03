@@ -18,6 +18,7 @@ import {
 import SITE_SETTINGS from '../utils/config';
 import {
   ADMIN_ID,
+  CHXT_COUNT,
   generateTransactionId,
   TRANSACTION_TYPES,
   USERLINKACTIVEANDHELPSEND,
@@ -420,6 +421,8 @@ export class UserController {
         {
           current_balance:
             currentBalanceOfUser.current_balance - pricingPlan.price,
+          chxtToken:
+            CHXT_COUNT[pricingPlan.total_links as keyof typeof CHXT_COUNT],
         },
         {transaction: tx},
       );

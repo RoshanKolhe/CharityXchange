@@ -142,7 +142,7 @@ const MyNodeComponent = ({ node }) => {
             Total Earning:{' '}
             {typeof node?.balance_user === 'string'
               ? JSON.parse(node?.balance_user).total_earnings
-              : node.balance_user.total_earnings}
+              : node?.balance_user?.total_earnings || 0}
           </Typography>
         </div>
       </Popover>

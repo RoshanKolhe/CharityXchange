@@ -45,9 +45,17 @@ export default function DashboardEmployeePage() {
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
 
+  const getWithdrawableAmount = (userData) => {
+    let withdrawableAmount = 0;
+    if (userData && userData?.balance_user && userData?.level_cycles_participated) {
+      if (userData.level_cycles_participated > 4) {
+        withdrawableAmount = userData.balance_user ;
+      }
+    }
+  };
+
   useEffect(() => {
     axiosInstance.get('users/me').then((res) => {
-      console.log(res.data);
       setUserProfile(res.data);
     });
   }, []);
@@ -109,7 +117,7 @@ export default function DashboardEmployeePage() {
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
               title="CHXT Token"
-              total={`${userProfile?.balance_user?.chxtToken}`}
+              total={`${userProfile?.balance_user?.chxtToken === undefined ? 0 : userProfile?.balance_user?.chxtToken}`}
               color="info"
               isText
               icon={'material-symbols:token'}
@@ -119,7 +127,7 @@ export default function DashboardEmployeePage() {
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
               title="Withdrawable Balance"
-              total={`${userProfile?.balance_user?.withdrawn_amount}`}
+              total={getWithdrawableAmount()}
               color="warning"
               icon={'bx:money-withdraw'}
             />

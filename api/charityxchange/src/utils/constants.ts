@@ -91,4 +91,13 @@ export const TRANSACTION_TYPES = {
   TOKEN_REQUEST: 'tokenRequest',
   PRICING_PlAN: 'planBought',
   LEVEL_INCOME: 'levelIncome',
+  NON_WORKING: 'nonWorking',
+  LINK_ACTIVATION: 'linkactivation',
+  LINK_HELP: 'linkHelp',
+};
+
+export const CHXT_COUNT = {
+  11: 2200,
+  5: 1000,
+  3: 600,
 };

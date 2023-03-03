@@ -27,7 +27,12 @@ import {MyUserService} from '../services/user-service';
 import {CharityxchangeSqlDataSource} from '../datasources';
 import {omit} from 'lodash';
 import {TransactionService} from '../services/transaction.service';
-import {ADMIN_ID, generateTransactionId} from '../utils/constants';
+import {
+  ADMIN_ID,
+  generateTransactionId,
+  TRANSACTION_TYPES,
+} from '../utils/constants';
+import {throws} from 'should';
 
 export class UserUserLinksController {
   constructor(
@@ -65,6 +70,10 @@ export class UserUserLinksController {
         .userLinks(currnetUser.id)
         .find(filter);
 
+      const currentUserData = await this.userRepository.findById(
+        currnetUser.id,
+      );
+
       const linksNotSent = userLinks.filter(res => {
         return !res.is_send_to_admin;
       });
@@ -75,13 +84,18 @@ export class UserUserLinksController {
       if (linkSendToAdminButHelpNotRceived.length === 0) {
         const currentUserActivePlan =
           await this.userService.getCurrentUserActivePack(currnetUser);
-
         if (linksNotSent.length < currentUserActivePlan.total_links) {
           const linksToAddCount =
             currentUserActivePlan.total_links - linksNotSent.length;
           const previousLinkCount = await (
             await this.userRepository.userLinks(currnetUser.id).find()
           ).length;
+
+          await this.userRepository.updateById(currnetUser.id, {
+            level_cycles_participated:
+              currentUserData.level_cycles_participated || 0 + 1,
+          });
+
           for (let i = 0; i < linksToAddCount; i++) {
             const userLinkData = {
               linkName: currnetUser.name
@@ -208,7 +222,6 @@ export class UserUserLinksController {
       await this.userRepository
         .userLinks(currnetUser.id)
         .patch(userLinks, where, {transaction: tx});
-      tx.commit();
       const transactionDetails: any = {
         transaction_id: generateTransactionId(),
         remark: `Activated Link #${userLinks.linkName}`,
@@ -216,21 +229,20 @@ export class UserUserLinksController {
         type: 'Debited',
         status: true,
         transaction_fees: 0,
+        transaction_type: TRANSACTION_TYPES.LINK_ACTIVATION,
       };
-      await this.transactionService.createTransaction(
-        transactionDetails,
-        currnetUser.id,
-      );
+      await this.userRepository
+        .transactions(currnetUser.id)
+        .create(transactionDetails, {transaction: tx});
+      tx.commit();
+
       return Promise.resolve({
         success: true,
         message: 'Successfully Activated The link',
       });
     } catch (err) {
       tx.rollback();
-      return Promise.resolve({
-        success: false,
-        message: err,
-      });
+      throw new HttpErrors[400](err);
     }
   }
 
@@ -332,7 +344,6 @@ export class UserUserLinksController {
         }
       }
 
-      tx.commit();
       const transactionDetails: any = {
         transaction_id: generateTransactionId(),
         remark: `Help sent to link #${userLinks.linkName}`,
@@ -340,11 +351,12 @@ export class UserUserLinksController {
         type: 'Debited',
         status: true,
         transaction_fees: 0,
+        transaction_type: TRANSACTION_TYPES.LINK_HELP,
       };
-      await this.transactionService.createTransaction(
-        transactionDetails,
-        currnetUser.id,
-      );
+      await this.userRepository
+        .transactions(currnetUser.id)
+        .create(transactionDetails, {transaction: tx});
+      tx.commit();
       return Promise.resolve({
         success: true,
         message: 'Successfully Activated The link',

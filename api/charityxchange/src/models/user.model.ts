@@ -5,6 +5,7 @@ import {AdminBalances} from './admin-balances.model';
 import {TokenRequests} from './token-requests.model';
 import {UserLinks} from './user-links.model';
 import {Transactions} from './transactions.model';
+import {Withdraws} from './withdraws.model';
 
 @model()
 export class User extends Entity {
@@ -78,6 +79,12 @@ export class User extends Entity {
   cycles_participated: number;
 
   @property({
+    type: 'number',
+    default: 0,
+  })
+  level_cycles_participated: number;
+
+  @property({
     type: 'string',
   })
   decline_reason?: string;
@@ -120,6 +127,9 @@ export class User extends Entity {
 
   @hasMany(() => Transactions)
   transactions: Transactions[];
+
+  @hasMany(() => Withdraws)
+  withdraws: Withdraws[];
 
   constructor(data?: Partial<User>) {
     super(data);
