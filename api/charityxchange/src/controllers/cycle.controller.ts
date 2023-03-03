@@ -7,6 +7,7 @@ import {
   Filter,
   FilterBuilder,
   FilterExcludingWhere,
+  InclusionFilter,
   IsolationLevel,
   repository,
   Where,
@@ -34,12 +35,16 @@ import {
   UserRepository,
 } from '../repositories';
 import {CyclesService} from '../services/cycles.service';
+import {TransactionService} from '../services/transaction.service';
 import {MyUserService} from '../services/user-service';
 import {
   ADMIN_ID,
   FIRST_LEVEL_AWARD,
+  generateTransactionId,
+  LEVEL_INCOME_AWARD,
   LEVEL_PRICES,
   PER_LINK_HELP_AMOUNT,
+  TRANSACTION_TYPES,
 } from '../utils/constants';
 
 export class CycleController {
@@ -58,6 +63,8 @@ export class CycleController {
     public cycleService: CyclesService,
     @inject('service.user.service')
     public userService: MyUserService,
+    @inject('service.transaction.service')
+    public transactionService: TransactionService,
   ) {}
 
   @authenticate({
@@ -159,6 +166,12 @@ export class CycleController {
     @param.filter(Cycles, {exclude: 'where'})
     filter?: FilterExcludingWhere<Cycles>,
   ): Promise<Cycles> {
+    const include: InclusionFilter[] = [
+      {
+        relation: 'cyclePayments',
+      },
+    ];
+    filter = {...filter, include};
     return this.cyclesRepository.findById(id, filter);
   }
 
@@ -242,7 +255,6 @@ export class CycleController {
         const adminBalance = await this.userRepository
           .adminBalances(ADMIN_ID)
           .get();
-        console.log(adminBalance);
         const userLevel = await this.userService.calculateUserLevel(userData);
         const createdAtDate = userData.createdAt
           ? new Date(userData.createdAt)
@@ -262,13 +274,17 @@ export class CycleController {
         if (userLevel.level !== null) {
           const price =
             LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
+          let userTotalLevleIncome = 0;
           if (userLevel.level === 'LEVEL_1') {
-            levelIncome = levelIncome + price.levelIncome;
-            totalLevelIncome = totalLevelIncome + price.levelIncome;
+            userTotalLevleIncome =
+              LEVEL_INCOME_AWARD * userLevel.teamActiveLinkCount;
+            levelIncome = levelIncome + userTotalLevleIncome;
+            totalLevelIncome = totalLevelIncome + levelIncome;
           } else {
             awardOrReward = awardOrReward + price.awardOrReward;
-            levelIncome = levelIncome + price.levelIncome;
-            totalLevelIncome = totalLevelIncome + price.levelIncome;
+            userTotalLevleIncome = LEVEL_INCOME_AWARD * price.links;
+            levelIncome = levelIncome + userTotalLevleIncome;
+            totalLevelIncome = totalLevelIncome + levelIncome;
             totalAwardOrReward = totalAwardOrReward + price.awardOrReward;
           }
         }
@@ -279,6 +295,23 @@ export class CycleController {
             userBalance.current_balance + awardOrReward + levelIncome,
           is_first_level_price_taken: isFirstLevel ? true : false,
         });
+
+        if (awardOrReward + levelIncome !== 0) {
+          const transactionDetails: any = {
+            transaction_id: generateTransactionId(),
+            remark: 'Level Income',
+            amount: awardOrReward + levelIncome,
+            type: 'Deposited',
+            status: true,
+            transaction_fees: 0,
+            transaction_type: TRANSACTION_TYPES.LEVEL_INCOME,
+          };
+          await this.transactionService.createTransaction(
+            transactionDetails,
+            id,
+          );
+        }
+
         const total = awardOrReward + levelIncome;
         const inputData = {
           total_earnings: adminBalance.total_earnings - total,
@@ -338,7 +371,6 @@ export class CycleController {
           userData,
           cycle,
         );
-
         const createdAtDate = userData?.createdAt
           ? new Date(userData.createdAt)
           : new Date();
@@ -356,11 +388,15 @@ export class CycleController {
         if (userLevel.level) {
           const price =
             LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
-          if (userLevel.level != 'LEVEL_1') {
-            levelIncome = levelIncome + price.levelIncome;
+          let userTotalLevleIncome = 0;
+          if (userLevel.level !== 'LEVEL_1') {
+            userTotalLevleIncome = LEVEL_INCOME_AWARD * price.links;
+            levelIncome = levelIncome + userTotalLevleIncome;
             awardOrReward = awardOrReward + price.awardOrReward;
-          } else {
-            levelIncome = levelIncome + price.levelIncome;
+          } else if (userLevel.level === 'LEVEL_1') {
+            userTotalLevleIncome =
+              LEVEL_INCOME_AWARD * userLevel.teamActiveLinkCount;
+            levelIncome = levelIncome + userTotalLevleIncome;
           }
         }
       }

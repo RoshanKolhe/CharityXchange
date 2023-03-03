@@ -94,7 +94,7 @@ export class MyUserService implements UserService<User, Credentials> {
 
   async calculateUserLevel(currnetUser: any, cycle?: Cycles): Promise<any> {
     try {
-      const descendantsOfuser: any = await this.userRepository
+      let descendantsOfuser: any = await this.userRepository
         .execute(`WITH RECURSIVE descendants AS (
         SELECT *
         FROM user
@@ -105,6 +105,7 @@ export class MyUserService implements UserService<User, Credentials> {
         JOIN descendants ON user.parent_id = descendants.id
       )
       SELECT * FROM descendants;`);
+
       let currentCycle;
       if (!cycle) {
         const allCycles = await this.cyclesRepository.find();
@@ -124,40 +125,42 @@ export class MyUserService implements UserService<User, Credentials> {
       let teamActiveLinkCount = 0;
       let directUserCount = 0;
       for (const descendant of descendantsOfuser) {
-        const descendantUserWithLinks = await this.userRepository.findOne({
-          where: {
-            id: descendant.id,
-          },
-          include: ['userProfile', 'balance_user', 'userLinks'],
-        });
-
-        if (
-          descendantUserWithLinks &&
-          descendantUserWithLinks.userLinks &&
-          descendantUserWithLinks.userLinks.length > 0
-        ) {
-          let filteredDescendantUserWithLinks = [];
-          for (const link of descendantUserWithLinks.userLinks) {
-            if (
-              link.is_active ||
-              (!link.is_active &&
-                link.activationEndTime &&
-                link.activationStartTime &&
-                new Date() <= new Date(link.activationEndTime) &&
-                new Date() >= new Date(link.activationStartTime))
-            ) {
+        if (descendant.id !== parseInt(currnetUser.id)) {
+          const descendantUserWithLinks = await this.userRepository.findOne({
+            where: {
+              id: descendant.id,
+            },
+            include: ['userProfile', 'balance_user', 'userLinks'],
+          });
+          if (
+            descendantUserWithLinks &&
+            descendantUserWithLinks.userLinks &&
+            descendantUserWithLinks.userLinks.length > 0
+          ) {
+            let filteredDescendantUserWithLinks = [];
+            for (const link of descendantUserWithLinks.userLinks) {
               if (
-                link.createdAt &&
-                currentCycle &&
-                new Date(link.createdAt) >= new Date(currentCycle.startDate) &&
-                new Date(link.createdAt) <= new Date(currentCycle.endDate)
+                link.is_active ||
+                (!link.is_active &&
+                  link.activationEndTime &&
+                  link.activationStartTime &&
+                  new Date() <= new Date(link.activationEndTime) &&
+                  new Date() >= new Date(link.activationStartTime))
               ) {
-                filteredDescendantUserWithLinks.push(link);
+                if (
+                  link.createdAt &&
+                  currentCycle &&
+                  new Date(link.createdAt) >=
+                    new Date(currentCycle.startDate) &&
+                  new Date(link.createdAt) <= new Date(currentCycle.endDate)
+                ) {
+                  filteredDescendantUserWithLinks.push(link);
+                }
               }
             }
+            teamActiveLinkCount =
+              teamActiveLinkCount + filteredDescendantUserWithLinks.length;
           }
-          teamActiveLinkCount =
-            teamActiveLinkCount + filteredDescendantUserWithLinks.length;
         }
       }
       const userDirectUsers = await this.userRepository.find({
@@ -173,7 +176,6 @@ export class MyUserService implements UserService<User, Credentials> {
           directUserCount = directUserCount + 1;
         }
       }
-
       return {
         level: getUserLevel(directUserCount, teamActiveLinkCount),
         directUserCount: directUserCount,

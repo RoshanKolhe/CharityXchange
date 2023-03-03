@@ -86,7 +86,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.transaction_id.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.id.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -112,13 +112,13 @@ export default function TransactionsEmployeePage() {
 
   const [page, setPage] = useState(0);
 
-  const [order, setOrder] = useState('asc');
+  const [order, setOrder] = useState('desc');
 
   const [selected, setSelected] = useState([]);
 
   const [editUserData, setEditUserData] = useState({});
 
-  const [orderBy, setOrderBy] = useState('transaction_id');
+  const [orderBy, setOrderBy] = useState('id');
 
   const [filterName, setFilterName] = useState('');
 
@@ -163,12 +163,12 @@ export default function TransactionsEmployeePage() {
     setSelected([]);
   };
 
-  const handleClick = (event, transaction_id) => {
-    const selectedIndex = selected.indexOf(transaction_id);
+  const handleClick = (event, id) => {
+    const selectedIndex = selected.indexOf(id);
 
     let newSelected = [];
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, transaction_id);
+      newSelected = newSelected.concat(selected, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {

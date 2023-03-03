@@ -131,6 +131,8 @@ export default function ViewCycleDetails() {
 
   const [currentCycleData, setCurrentCycleData] = useState();
 
+  const [cyclePaymentsData, setCyclePaymentsData] = useState(null);
+
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
@@ -199,7 +201,7 @@ export default function ViewCycleDetails() {
 
   const fetchData = () => {
     axiosInstance
-      .post(`/cycles/getCycleData`, currentCycleData)
+      .post(`/cycles/getCycleData`, omit(currentCycleData, 'cyclePayments'))
       .then((res) => {
         setCycleIncomeData(res.data);
       })
@@ -212,6 +214,9 @@ export default function ViewCycleDetails() {
     axiosInstance
       .get(`/cycles/${params.id}`)
       .then((res) => {
+        if (res.data?.cyclePayments) {
+          setCyclePaymentsData(res.data?.cyclePayments);
+        }
         setCurrentCycleData(res.data);
       })
       .catch((err) => {
@@ -223,22 +228,24 @@ export default function ViewCycleDetails() {
   };
 
   const handleEndCycle = () => {
-    axiosInstance
-      .post(`/cycles/endCycle`, currentCycleData)
-      .then((res) => {
-        setErrorMessage('');
-        setSuccessMessage('Cycle Ended Successfully');
-        handleOpenSnackBar();
-        setTimeout(() => {
-          navigate(-1);
-        }, 2000);
-      })
-      .catch((err) => {
-        setErrorMessage(err.response.data.error.message);
-        setSuccessMessage('');
-        handleOpenSnackBar();
-        fetchData();
-      });
+    if (currentCycleData.is_active) {
+      axiosInstance
+        .post(`/cycles/endCycle`, currentCycleData)
+        .then((res) => {
+          setErrorMessage('');
+          setSuccessMessage('Cycle Ended Successfully');
+          handleOpenSnackBar();
+          setTimeout(() => {
+            navigate(-1);
+          }, 2000);
+        })
+        .catch((err) => {
+          setErrorMessage(err.response.data.error.message);
+          setSuccessMessage('');
+          handleOpenSnackBar();
+          fetchData();
+        });
+    }
   };
 
   useEffect(() => {
@@ -248,13 +255,13 @@ export default function ViewCycleDetails() {
   useEffect(() => {
     if (currentCycleData) {
       const endDate = new Date(currentCycleData.endDate);
-      if (endDate <= new Date()) {
+      if (endDate <= new Date() || !currentCycleData.is_active) {
         setCheckEndCycle(true);
       }
       fetchData();
     }
   }, [currentCycleData]);
-
+  console.log('cyclePaymentsData', cyclePaymentsData);
   return (
     <>
       <Helmet>
@@ -281,8 +288,8 @@ export default function ViewCycleDetails() {
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={4}>
             <AppWidgetSummary
-              title="Total LevelIncome "
-              total={`${cycleIncomeData?.levelIncome}`}
+              title="Total LevelIncome"
+              total={cyclePaymentsData ? `${cyclePaymentsData[0]?.levelIncome}` : `${cycleIncomeData?.levelIncome}`}
               icon={'ic:twotone-attach-money'}
             />
           </Grid>
@@ -290,7 +297,7 @@ export default function ViewCycleDetails() {
           <Grid item xs={12} sm={6} md={4}>
             <AppWidgetSummary
               title="Total Award Or Rewards"
-              total={`${cycleIncomeData?.awardOrReward}`}
+              total={cyclePaymentsData ? cyclePaymentsData[0]?.awardOrReward : `${cycleIncomeData?.awardOrReward}`}
               color="info"
               icon={'ic:twotone-attach-money'}
             />
@@ -299,7 +306,11 @@ export default function ViewCycleDetails() {
           <Grid item xs={12} sm={6} md={4}>
             <AppWidgetSummary
               title="Total"
-              total={`${cycleIncomeData?.levelIncome + cycleIncomeData?.awardOrReward}`}
+              total={
+                cyclePaymentsData
+                  ? cyclePaymentsData[0]?.levelIncome + cyclePaymentsData[0]?.awardOrReward
+                  : `${cycleIncomeData?.levelIncome + cycleIncomeData?.awardOrReward}`
+              }
               color="info"
               icon={'mdi:loyalty'}
             />

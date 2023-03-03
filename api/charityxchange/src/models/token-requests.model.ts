@@ -15,7 +15,7 @@ export class TokenRequests extends Entity {
     required: true,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })

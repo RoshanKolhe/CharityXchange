@@ -21,6 +21,8 @@ export const ADMIN_TOTAL_SUPPLY = 1000000000;
 
 export const ADMIN_ID = 1;
 
+export const LEVEL_INCOME_AWARD = 0.5;
+
 export function getUserLevel(direct: any, links: any) {
   if (direct >= 32 && links >= 5000) {
     return 'LEVEL_6';
@@ -43,26 +45,32 @@ export const LEVEL_PRICES = {
   LEVEL_1: {
     levelIncome: 0.5,
     awardOrReward: 20,
+    links: 0,
   },
   LEVEL_2: {
     levelIncome: 1,
     awardOrReward: 100,
+    links: 200,
   },
   LEVEL_3: {
     levelIncome: 1.5,
     awardOrReward: 200,
+    links: 400,
   },
   LEVEL_4: {
     levelIncome: 2,
     awardOrReward: 500,
+    links: 1000,
   },
   LEVEL_5: {
     levelIncome: 2.5,
     awardOrReward: 1250,
+    links: 2500,
   },
   LEVEL_6: {
     levelIncome: 3,
     awardOrReward: 2500,
+    links: 5000,
   },
 };
 
@@ -81,5 +89,6 @@ export function generateTransactionId() {
 
 export const TRANSACTION_TYPES = {
   TOKEN_REQUEST: 'tokenRequest',
-  PRICING_PlAN:'planBought'
+  PRICING_PlAN: 'planBought',
+  LEVEL_INCOME: 'levelIncome',
 };

@@ -260,7 +260,7 @@ export default function UserPage() {
     setLoading(true);
     if (permissions && permissions.includes('super_admin')) {
       axiosInstance
-        .get('users?filter[include][]=userProfile')
+        .get('users?filter[include][0]=userProfile&filter[include][1]=balance_user')
         .then((res) => {
           setLoading(false);
           setMemberList(res.data);

@@ -14,9 +14,9 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-     mysql: {
+    mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -25,9 +25,9 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-     mysql: {
+    mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -36,9 +36,9 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-     mysql: {
+    mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -47,9 +47,9 @@ export class Balances extends Entity {
   @property({
     type: 'number',
     default: 0,
-     mysql: {
+    mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })

@@ -14,7 +14,7 @@ export class AdminBalances extends Entity {
     default: 0,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -25,7 +25,7 @@ export class AdminBalances extends Entity {
     default: 0,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -36,7 +36,7 @@ export class AdminBalances extends Entity {
     default: 0,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -47,7 +47,7 @@ export class AdminBalances extends Entity {
     default: 0,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -58,7 +58,7 @@ export class AdminBalances extends Entity {
     default: 0,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -69,12 +69,11 @@ export class AdminBalances extends Entity {
     default: 0,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
   total_help_received: number;
-
 
   @property({
     type: 'object',
@@ -86,7 +85,7 @@ export class AdminBalances extends Entity {
     default: 0,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })

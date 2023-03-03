@@ -38,7 +38,7 @@ export class Transactions extends Entity {
     required: true,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })
@@ -49,7 +49,7 @@ export class Transactions extends Entity {
     required: true,
     mysql: {
       dataType: 'decimal',
-      precision: 10,
+      precision: 30,
       scale: 2,
     },
   })

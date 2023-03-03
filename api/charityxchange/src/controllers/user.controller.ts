@@ -54,7 +54,7 @@ import generateOtpTemplate from '../templates/otp.template';
 import generateEmailAndPasswordTemplate from '../templates/email-and-password.template';
 import {CharityxchangeSqlDataSource} from '../datasources';
 import {omit} from 'lodash';
-import { TransactionService } from '../services/transaction.service';
+import {TransactionService} from '../services/transaction.service';
 
 const UserLoginSchema = {
   type: 'object',
@@ -561,14 +561,41 @@ export class UserController {
     @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
   ): Promise<any> {
     return this.userRepository.execute(`WITH RECURSIVE descendants AS (
-      SELECT *
-      FROM user
-      WHERE id = ${currnetUser.id}
+      SELECT u.id , u.name, u.email, u.is_active, u.createdAt, u.cycles_participated,u.parent_id,u.permissions,
+             json_object(
+               'id',b.id,
+               'total_earnings', b.total_earnings,
+               'withdrawn_amount', b.withdrawn_amount, 
+               'current_balance', b.current_balance, 
+               'createdAt', b.createdAt,
+               'updated_at', b.updatedAt,
+               'user_id', b.userId,
+               'payment_info', b.payment_info,
+               'is_first_level_price_taken', b.is_first_level_price_taken,
+               'chxtToken', b.chxtToken
+             ) AS balance_user
+      FROM user u
+      JOIN balances b ON u.id = b.userId
+      WHERE u.id = 2
       UNION ALL
-      SELECT user.*
-      FROM user
-      JOIN descendants ON user.parent_id = descendants.id
+      SELECT u.id, u.name, u.email, u.is_active, u.createdAt,u.cycles_participated,u.parent_id,u.permissions,
+             json_object(
+               'id', b.id,
+               'total_earnings', b.total_earnings,
+               'withdrawn_amount', b.withdrawn_amount, 
+               'current_balance', b.current_balance, 
+               'createdAt', b.createdAt,
+               'updated_at', b.updatedAt,
+               'user_id', b.userId,
+               'payment_info', b.payment_info,
+               'is_first_level_price_taken', b.is_first_level_price_taken,
+               'chxtToken', b.chxtToken
+             ) AS balance_user
+      FROM user u
+      JOIN descendants d ON u.parent_id = d.id
+      JOIN balances b ON u.id = b.userId
     )
-    SELECT * FROM descendants;`);
+    SELECT *
+    FROM descendants;`);
   }
 }

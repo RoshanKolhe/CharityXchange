@@ -1,12 +1,15 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import { Avatar, Button, Grid, Paper, Popover, Stack, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { Avatar, Button, Grid, IconButton, Paper, Popover, Stack, Typography } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
 import OrgChart from 'react-orgchart';
+import { Close as CloseIcon } from '@material-ui/icons';
 import 'react-orgchart/index.css';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import ScrollContainer from 'react-indiana-drag-scroll';
 import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
+import moment from 'moment';
 import CustomBox from '../../common/CustomBox';
 import account from '../../_mock/account';
 import './MemberTree.css';
@@ -44,19 +47,19 @@ const useStyles = makeStyles((theme) => ({
 
 const MyNodeComponent = ({ node }) => {
   const classes = useStyles();
-
-  const [open, setOpen] = useState(null);
-
-  const handleOpenMenu = (event) => {
-    setOpen(event.currentTarget);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const handlePopoverOpen = (event) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const handleCloseMenu = () => {
-    setOpen(null);
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
   };
+
+  const open = Boolean(anchorEl);
   return (
     <>
-      <div className={clsx(classes.nodeComponentContainer)}>
+      <div className={clsx(classes.nodeComponentContainer)} onClick={handlePopoverOpen}>
         <Paper style={{ marginRight: 10, marginLeft: 10, width: '100%', maxWidth: 400, minHeight: 80 }} elevation={5}>
           <div style={{ display: 'flex', minHeight: 80 }}>
             <div
@@ -97,85 +100,52 @@ const MyNodeComponent = ({ node }) => {
                 >
                   {node.name}
                 </span>
-                <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {/* <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {node.email}
-                </span>
+                </span> */}
               </div>
             </div>
           </div>
         </Paper>
       </div>
-      {/* <Popover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handlePopoverClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
         }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        disablePortal
       >
-        <div>
-          <h2>Payment Confirmation</h2>
-          <Grid container direction="column">
-            <Grid item xs={12}>
-              <Grid container direction="row">
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2" gutterBottom sx={{ color: '#36CD71' }}>
-                    Type
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    {node?.title}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <Grid container direction="row">
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2" gutterBottom sx={{ color: '#36CD71' }}>
-                    Links
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    {node?.title === 'SILVER' ? '3 Links' : node?.title === 'GOLD' ? '5 Links' : '11 Links'}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <Grid container direction="row">
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2" gutterBottom sx={{ color: '#36CD71' }}>
-                    Amount
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    {`${node?.discounted_price}`}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="caption" gutterBottom>
-                Note*: Once payment is completed, it cannot be undone.
-              </Typography>
-            </Grid>
-          </Grid>
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton onClick={handlePopoverClose} style={{ position: 'absolute', top: '8px', right: '8px' }}>
+              <CloseIcon />
+            </IconButton>
+          </div>
+          <Avatar
+            src={node.userProfile?.avatar?.originalname ? node.userProfile?.avatar?.originalname : account.photoURL}
+            style={{ margin: 'auto', marginBottom: '16px' }}
+          />
+          <Typography variant="body1">Name: {node.name}</Typography>
+          <Typography variant="body1">Email: {node.email}</Typography>
+          <Typography variant="body1">
+            Joining Date: {`${moment(new Date(node?.createdAt)).format('YYYY-MM-DD HH:mm:ss')}`}
+          </Typography>
+          <Typography variant="body1">Direct: {node?.children?.length || 0}</Typography>
+          <Typography variant="body1">
+            Total Earning:{' '}
+            {typeof node?.balance_user === 'string'
+              ? JSON.parse(node?.balance_user).total_earnings
+              : node.balance_user.total_earnings}
+          </Typography>
         </div>
-      </Popover> */}
+      </Popover>
     </>
   );
 };
