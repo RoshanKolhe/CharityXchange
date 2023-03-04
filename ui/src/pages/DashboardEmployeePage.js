@@ -6,7 +6,8 @@ import { useTheme } from '@mui/material/styles';
 import { Grid, Container, Typography, Button, Modal } from '@mui/material';
 // components
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
-import { LEVEL_DATA } from '../utils/constants';
+import WithdrawForm from '../components/withdraw-section/WithdrawForm';
+import { LEVEL_DATA, LOCK_PRICE } from '../utils/constants';
 import PaymentNotificationStrip from '../components/payment-section/Payment-Notification';
 import CommonSnackBar from '../common/CommonSnackBar';
 import PaymentForm from '../components/payment-section/PayementForm';
@@ -34,6 +35,7 @@ export default function DashboardEmployeePage() {
   const theme = useTheme();
   const [userProfile, setUserProfile] = useState();
   const [openModal, setOpenMdal] = useState(false);
+  const [openWithdrawModal, setOpenWithdrawModal] = useState(false);
   const [adminBalancesData, setAdminBalancesData] = useState(false);
   const [openSnackBar, setOpenSnackBar] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -42,22 +44,38 @@ export default function DashboardEmployeePage() {
   const handleOpen = () => setOpenMdal(true);
   const handleClose = () => setOpenMdal(false);
 
+  const handleOpenWithdrawModal = () => setOpenWithdrawModal(true);
+  const handleCloseWithdrawModal = () => setOpenWithdrawModal(false);
+
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
 
   const getWithdrawableAmount = (userData) => {
+    console.log('userData', userData);
     let withdrawableAmount = 0;
-    if (userData && userData?.balance_user && userData?.level_cycles_participated) {
+    if (
+      userData &&
+      userData?.balance_user &&
+      Object.prototype.hasOwnProperty.call(userData, 'level_cycles_participated')
+    ) {
       if (userData.level_cycles_participated > 4) {
-        withdrawableAmount = userData.balance_user ;
+        withdrawableAmount = userData.balance_user.current_balance - LOCK_PRICE[userData?.activePayment?.total_links];
+      } else {
+        withdrawableAmount = userData.balance_user.current_balance;
       }
     }
+    console.log('withdrawableAmount', withdrawableAmount);
+    return `${withdrawableAmount}`;
   };
 
-  useEffect(() => {
+  const handleFetchProfile = () => {
     axiosInstance.get('users/me').then((res) => {
       setUserProfile(res.data);
     });
+  };
+
+  useEffect(() => {
+    handleFetchProfile();
   }, []);
 
   const handleModalDetailsOpen = () => {
@@ -127,10 +145,21 @@ export default function DashboardEmployeePage() {
           <Grid item xs={12} sm={6} md={3}>
             <AppWidgetSummary
               title="Withdrawable Balance"
-              total={getWithdrawableAmount()}
+              total={getWithdrawableAmount(userProfile)}
               color="warning"
               icon={'bx:money-withdraw'}
             />
+            <Button
+              color="primary"
+              variant="contained"
+              fullWidth
+              onClick={() => {
+                handleOpenWithdrawModal();
+              }}
+              sx={{ marginTop: '20px' }}
+            >
+              Withdraw
+            </Button>
           </Grid>
 
           <Grid item xs={12} md={6} lg={8}>
@@ -194,6 +223,24 @@ export default function DashboardEmployeePage() {
               setErrorMessage={setErrorMessage}
               handleOpenSnackBar={handleOpenSnackBar}
               handleClose={handleClose}
+            />
+          </CustomBox>
+        </Modal>
+
+        <Modal
+          open={openWithdrawModal}
+          onClose={handleCloseWithdrawModal}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <CustomBox>
+            <WithdrawForm
+              userProfile={userProfile}
+              setSuccessMessage={setSuccessMessage}
+              setErrorMessage={setErrorMessage}
+              handleOpenSnackBar={handleOpenSnackBar}
+              handleClose={handleCloseWithdrawModal}
+              handleReload={handleFetchProfile}
             />
           </CustomBox>
         </Modal>

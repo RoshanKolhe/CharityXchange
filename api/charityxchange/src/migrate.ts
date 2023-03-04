@@ -21,6 +21,7 @@ export async function migrate(args: string[]) {
       'Cycles',
       'CyclePayments',
       'Transactions',
+      'Withdraws'
     ],
   });
 

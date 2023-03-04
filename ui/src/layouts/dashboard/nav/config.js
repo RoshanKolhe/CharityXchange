@@ -76,6 +76,11 @@ const navConfig = (userData) => {
           path: `/employeeTransactions`,
           icon: icon('ic_transaction'),
         },
+        {
+          title: 'Withdrawls',
+          path: `/investorWithdrawls`,
+          icon: icon('ic_transaction'),
+        },
         // {
         //   title: 'product',
         //   path: '/products',

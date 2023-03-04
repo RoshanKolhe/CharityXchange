@@ -101,3 +101,10 @@ export const CHXT_COUNT = {
   5: 1000,
   3: 600,
 };
+
+export const LOCK_PRICE = {
+  3: 30,
+  5: 60,
+  11: 150,
+};
+

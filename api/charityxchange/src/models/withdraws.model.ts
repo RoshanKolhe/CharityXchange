@@ -16,27 +16,38 @@ export class Withdraws extends Entity {
   amount: number;
 
   @property({
-    type: 'string',
+    type: 'boolean',
     required: true,
+    default: false,
   })
-  status: string;
-
-  @property({
-    type: 'object',
-    required: true,
-  })
-  details: object;
+  status?: boolean;
 
   @property({
     type: 'string',
     required: true,
   })
-  note: string;
+  details: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  note?: string;
 
   @property({
     type: 'number',
   })
   userId?: number;
+
+  @property({
+    type: 'date',
+  })
+  createdAt?: Date;
+
+  @property({
+    type: 'date',
+  })
+  updatedAt?: Date;
 
   constructor(data?: Partial<Withdraws>) {
     super(data);

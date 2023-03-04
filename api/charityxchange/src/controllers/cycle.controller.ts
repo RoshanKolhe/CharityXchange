@@ -296,7 +296,7 @@ export class CycleController {
           is_first_level_price_taken: isFirstLevel ? true : false,
         });
 
-        if (awardOrReward + levelIncome !== 0) {
+        if (awardOrReward + levelIncome > 0) {
           const transactionDetails: any = {
             transaction_id: generateTransactionId(),
             remark: 'Level Income',

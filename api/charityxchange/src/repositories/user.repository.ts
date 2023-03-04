@@ -13,7 +13,11 @@ import {
   UserProfile,
   Balances,
   AdminBalances,
-  TokenRequests, UserLinks, Transactions, Withdraws} from '../models';
+  TokenRequests,
+  UserLinks,
+  Transactions,
+  Withdraws,
+} from '../models';
 import {UserProfileRepository} from './user-profile.repository';
 import {BalancesRepository} from './balances.repository';
 import {AdminBalancesRepository} from './admin-balances.repository';
@@ -54,11 +58,20 @@ export class UserRepository extends TimeStampRepositoryMixin<
     typeof User.prototype.id
   >;
 
-  public readonly userLinks: HasManyRepositoryFactory<UserLinks, typeof User.prototype.id>;
+  public readonly userLinks: HasManyRepositoryFactory<
+    UserLinks,
+    typeof User.prototype.id
+  >;
 
-  public readonly transactions: HasManyRepositoryFactory<Transactions, typeof User.prototype.id>;
+  public readonly transactions: HasManyRepositoryFactory<
+    Transactions,
+    typeof User.prototype.id
+  >;
 
-  public readonly withdraws: HasManyRepositoryFactory<Withdraws, typeof User.prototype.id>;
+  public readonly withdraws: HasManyRepositoryFactory<
+    Withdraws,
+    typeof User.prototype.id
+  >;
 
   constructor(
     @inject('datasources.charityxchangeSql')
@@ -70,15 +83,39 @@ export class UserRepository extends TimeStampRepositoryMixin<
     @repository.getter('AdminBalancesRepository')
     protected adminBalancesRepositoryGetter: Getter<AdminBalancesRepository>,
     @repository.getter('TokenRequestsRepository')
-    protected tokenRequestsRepositoryGetter: Getter<TokenRequestsRepository>, @repository.getter('UserLinksRepository') protected userLinksRepositoryGetter: Getter<UserLinksRepository>, @repository.getter('TransactionsRepository') protected transactionsRepositoryGetter: Getter<TransactionsRepository>, @repository.getter('WithdrawsRepository') protected withdrawsRepositoryGetter: Getter<WithdrawsRepository>,
+    protected tokenRequestsRepositoryGetter: Getter<TokenRequestsRepository>,
+    @repository.getter('UserLinksRepository')
+    protected userLinksRepositoryGetter: Getter<UserLinksRepository>,
+    @repository.getter('TransactionsRepository')
+    protected transactionsRepositoryGetter: Getter<TransactionsRepository>,
+    @repository.getter('WithdrawsRepository')
+    protected withdrawsRepositoryGetter: Getter<WithdrawsRepository>,
   ) {
     super(User, dataSource);
-    this.withdraws = this.createHasManyRepositoryFactoryFor('withdraws', withdrawsRepositoryGetter,);
-    this.registerInclusionResolver('withdraws', this.withdraws.inclusionResolver);
-    this.transactions = this.createHasManyRepositoryFactoryFor('transactions', transactionsRepositoryGetter,);
-    this.registerInclusionResolver('transactions', this.transactions.inclusionResolver);
-    this.userLinks = this.createHasManyRepositoryFactoryFor('userLinks', userLinksRepositoryGetter,);
-    this.registerInclusionResolver('userLinks', this.userLinks.inclusionResolver);
+    this.withdraws = this.createHasManyRepositoryFactoryFor(
+      'withdraws',
+      withdrawsRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'withdraws',
+      this.withdraws.inclusionResolver,
+    );
+    this.transactions = this.createHasManyRepositoryFactoryFor(
+      'transactions',
+      transactionsRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'transactions',
+      this.transactions.inclusionResolver,
+    );
+    this.userLinks = this.createHasManyRepositoryFactoryFor(
+      'userLinks',
+      userLinksRepositoryGetter,
+    );
+    this.registerInclusionResolver(
+      'userLinks',
+      this.userLinks.inclusionResolver,
+    );
     this.tokenRequests = this.createHasManyRepositoryFactoryFor(
       'tokenRequests',
       tokenRequestsRepositoryGetter,

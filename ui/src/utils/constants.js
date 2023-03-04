@@ -80,3 +80,11 @@ export const LEVEL_DATA = {
   LEVEL_5: 'Crown Executive',
   LEVEL_6: 'Global Executive',
 };
+
+export const LOCK_PRICE = {
+  3: 30,
+  5: 60,
+  11: 150,
+};
+
+export const TASKS_FOR_EACH_LEVEL = {};

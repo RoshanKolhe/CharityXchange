@@ -579,7 +579,7 @@ export class UserController {
              ) AS balance_user
       FROM user u
       JOIN balances b ON u.id = b.userId
-      WHERE u.id = 2
+      WHERE u.id = ${currnetUser.id}
       UNION ALL
       SELECT u.id, u.name, u.email, u.is_active, u.createdAt,u.cycles_participated,u.parent_id,u.permissions,
              json_object(

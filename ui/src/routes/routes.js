@@ -1,6 +1,7 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import WithdrawlsPage from '../pages/WithdrawlsPage';
 import TransactionsAdminPage from '../pages/TransactionsAdminPage';
 import TransactionsEmployeePage from '../pages/TransactionsEmployeePage';
 import CyclesPage from '../pages/CyclesPage';
@@ -104,6 +105,11 @@ export default function Router({ role }) {
               name: 'transactionsEmployee',
               path: 'employeeTransactions',
               element: <TransactionsEmployeePage />,
+            },
+            {
+              name: 'investorWithdrawls',
+              path: 'investorWithdrawls',
+              element: <WithdrawlsPage />,
             },
             {
               name: 'Links',

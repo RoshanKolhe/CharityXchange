@@ -54,7 +54,6 @@ ListToolbar.propTypes = {
   onApproveSelected: PropTypes.func,
   showSearch: PropTypes.bool,
   isFilter: PropTypes.bool,
-  onFilterDateSelected: PropTypes.func,
 };
 
 export default function ListToolbar({
@@ -65,17 +64,20 @@ export default function ListToolbar({
   onReload,
   showSearch = true,
   isFilter = false,
-  onFilterDateSelected,
+  setStartDate,
+  startDate,
+  endDate,
+  setEndDate,
 }) {
-  const [startDate, setStartDate] = useState();
-  const [endDate, setEndDate] = useState();
+  // const [startDate, setStartDateData] = useState();
+  // const [endDate, setEndDateData] = useState();
   const [isFilterClicked, setIsFilterClicked] = useState(false);
 
-  useEffect(() => {
-    if (startDate && endDate) {
-      onFilterDateSelected(new Date(startDate).toISOString(), new Date(endDate).toISOString());
-    }
-  }, [startDate, endDate]);
+  // useEffect(() => {
+  //   if (startDate && endDate) {
+  //     onFilterDateSelected(new Date(startDate).toISOString(), new Date(endDate).toISOString());
+  //   }
+  // }, [startDate, endDate]);
 
   return (
     <StyledRoot
