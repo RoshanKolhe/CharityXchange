@@ -47,6 +47,16 @@ export class User extends Entity {
   @property({
     type: 'string',
   })
+  resetKey: string;
+
+  @property({
+    type: 'string',
+  })
+  resetKey_expire_at: string;
+
+  @property({
+    type: 'string',
+  })
   remember_token?: string;
 
   @property({

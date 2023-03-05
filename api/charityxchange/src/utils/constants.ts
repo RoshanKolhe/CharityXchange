@@ -94,6 +94,7 @@ export const TRANSACTION_TYPES = {
   NON_WORKING: 'nonWorking',
   LINK_ACTIVATION: 'linkactivation',
   LINK_HELP: 'linkHelp',
+  WITHDRAWL: 'withdrawl',
 };
 
 export const CHXT_COUNT = {
@@ -107,4 +108,3 @@ export const LOCK_PRICE = {
   5: 60,
   11: 150,
 };
-

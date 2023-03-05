@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
+import { filter, omit } from 'lodash';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink, Navigate, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import plusFill from '@iconify/icons-eva/plus-fill';
 
@@ -35,30 +35,29 @@ import {
   Paper,
 } from '@mui/material';
 // components
+import { makeStyles } from '@mui/styles';
+import clsx from 'clsx';
 import moment from 'moment';
 import LoadingScreen from '../common/LoadingScreen';
-import NewCycle from '../components/cycles/NewCycle';
+import CustomBox from '../common/CustomBox';
+import TextFieldPopup from '../common/TextFieldPopup';
 import Label from '../components/label';
 import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
 // mock
 import axiosInstance from '../helpers/axios';
-import account from '../_mock/account';
-import NewMember from '../components/members/NewMember';
-import CustomBox from '../common/CustomBox';
 import CommonSnackBar from '../common/CommonSnackBar';
 import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'transaction_id', label: 'Transaction Id', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
-  { id: 'type', label: 'Type', alignRight: false },
-  { id: 'remark', label: 'Remark', alignRight: false },
+  { id: 'note', label: 'Note', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
-  { id: 'createdAt', label: 'Date', alignRight: false },
+  { id: 'createdAt', label: 'Received Date', alignRight: false },
+  { id: '' },
 ];
 
 // ----------------------------------------------------------------------
@@ -87,12 +86,29 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.id.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => `${_user.amount}`.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function TransactionsAdminPage() {
+const useStyles = makeStyles((theme) => ({
+  textContainer: {
+    display: 'block',
+    width: '250px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  rowColor: {
+    background: '#DFDFDF',
+  },
+
+  pointerCss: {
+    cursor: 'pointer',
+  },
+}));
+
+export default function AdminWithdrawlsPage() {
   const style = {
     position: 'absolute',
     top: '50%',
@@ -106,16 +122,30 @@ export default function TransactionsAdminPage() {
     px: 4,
     pb: 3,
   };
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(null);
+  const classes = useStyles();
 
-  const [transactionsList, setTransactionsList] = useState([]);
+  const navigate = useNavigate();
+  const params = useParams();
+  const [open, setOpen] = useState(null);
+  const [timer, setTimer] = useState(null);
+  const [openModal, setOpenMdal] = useState(false);
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
+  const [openAproveAllModal, setOpenAproveAllModal] = useState(false);
+
+  const [helpToSendMember, setHelpToSendMember] = useState(0.0);
+
+  const handleOpen = () => setOpenMdal(true);
+  const handleClose = () => setOpenMdal(false);
+
+  const handleAllOpen = () => setOpenAproveAllModal(true);
+  const handleAllClose = () => setOpenAproveAllModal(false);
+
+  const [tokenRequests, setTokenRequests] = useState([]);
 
   const [page, setPage] = useState(0);
 
-  const [loading, setLoading] = useState(false);
-
-  const [order, setOrder] = useState('desc');
+  const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
 
@@ -126,20 +156,17 @@ export default function TransactionsAdminPage() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const [openModal, setOpenMdal] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [openSnackBar, setOpenSnackBar] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleOpenSnackBar = () => setOpenSnackBar(true);
   const handleCloseSnackBar = () => setOpenSnackBar(false);
 
-  const handleOpen = () => setOpenMdal(true);
-  const handleClose = () => setOpenMdal(false);
-
   const handleNavigate = (url) => {
-    navigate(url);
+    navigate(url, { replace: true });
   };
 
   const handleOpenMenu = (event, row) => {
@@ -159,19 +186,19 @@ export default function TransactionsAdminPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = transactionsList.map((n) => n.id);
+      const newSelecteds = tokenRequests.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
 
-  const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
+  const handleClick = (event, name) => {
+    const selectedIndex = selected.indexOf(name);
 
     let newSelected = [];
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
+      newSelected = newSelected.concat(selected, name);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -196,86 +223,144 @@ export default function TransactionsAdminPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - transactionsList.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - tokenRequests.length) : 0;
 
-  const filteredUsers = applySortFilter(transactionsList, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(tokenRequests, getComparator(order, orderBy), filterName);
 
-  const isNotFound = !filteredUsers.length && !!filterName;
+  const isNotFound = !filteredUsers.length;
 
   const fetchData = () => {
     setLoading(true);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    let filterString = `allWithdrawlRequests`;
+    if (startDate && endDate) {
+      filterString = `allWithdrawlRequests?filter[where][createdAt][between][0]=${new Date(
+        startDate
+      )}&filter[where][createdAt][between][1]=${new Date(endDate)}`;
+    }
     axiosInstance
-      .get('transactions')
+      .get(filterString)
       .then((res) => {
         setLoading(false);
-        setTransactionsList(res?.data);
+        setTokenRequests(res.data);
       })
       .catch((err) => {
         setLoading(false);
+        setTokenRequests([]);
       });
   };
 
-  const handleReloadData = (event) => {
-    fetchData();
+  const handleApproveClick = (withdraw) => {
+    console.log(withdraw);
+    setLoading(true);
+    axiosInstance
+      .patch(`approveWithdrawRequest`, withdraw)
+      .then((res) => {
+        setLoading(false);
+        setErrorMessage('');
+        setSuccessMessage('Withdraw request approved successfully');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      })
+      .catch((err) => {
+        setLoading(false);
+        setErrorMessage(err.response.data.error.message);
+        setSuccessMessage('');
+        handleOpenSnackBar();
+        handleCloseMenu();
+        fetchData();
+      });
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (startDate && endDate) {
+      fetchData();
+    }
+  }, [startDate, endDate]);
   return (
     <>
       {loading ? <LoadingScreen /> : null}
       <Helmet>
-        <title> Cycles | CharityXchange </title>
+        <title> Withdrawls | CharityXchange </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Transactions
+            Withdrawls
           </Typography>
         </Stack>
-
         <Card>
           <ListToolbar
             numSelected={selected.length}
             filterName={filterName}
             onFilterName={handleFilterByName}
-            onReload={handleReloadData}
-            showSearch
+            onReload={fetchData}
+            onApproveSelected={handleAllOpen}
+            isFilter
+            onFilterDateSelected={fetchData}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
+            startDate={startDate}
+            endDate={endDate}
           />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
               <Table>
                 <ListHead
-                  isCheckbox={false}
                   order={order}
+                  isCheckbox={false}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={transactionsList.length}
+                  rowCount={tokenRequests.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, transaction_id, type, remark, status, transaction_fees, updatedAt, createdAt, amount } =
-                      row;
+                    const { id, amount, note, status, createdAt } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell align="left">{transaction_id}</TableCell>
-                        <TableCell align="left">{amount}</TableCell>
-                        <TableCell align="left">{type}</TableCell>
-                        <TableCell align="left">{remark}</TableCell>
+                        {/* <TableCell padding="checkbox">
+                          <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
+                        </TableCell> */}
+
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {amount}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {note}
+                          </Typography>
+                        </TableCell>
                         <TableCell align="left">
                           <Label color={(status === false && 'error') || 'success'}>
                             {status === false ? 'In Progress' : 'Completed'}
                           </Label>
                         </TableCell>
                         <TableCell align="left">{moment(createdAt).format('DD-MM-YYYY hh:mm:ss')}</TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            size="large"
+                            color="inherit"
+                            onClick={(event) => {
+                              handleOpenMenu(event, row);
+                            }}
+                          >
+                            <Iconify icon={'eva:more-vertical-fill'} />
+                          </IconButton>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -316,7 +401,7 @@ export default function TransactionsAdminPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={transactionsList.length}
+            count={tokenRequests.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -327,9 +412,37 @@ export default function TransactionsAdminPage() {
       <CommonSnackBar
         openSnackBar={openSnackBar}
         handleCloseSnackBar={handleCloseSnackBar}
-        msg={msg}
-        severity="success"
+        msg={errorMessage !== '' ? errorMessage : successMessage}
+        severity={errorMessage !== '' ? 'error' : 'success'}
       />
+      <Popover
+        open={Boolean(open)}
+        anchorEl={open}
+        onClose={handleCloseMenu}
+        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{
+          sx: {
+            p: 1,
+            width: 140,
+            '& .MuiMenuItem-root': {
+              px: 1,
+              typography: 'body2',
+              borderRadius: 0.75,
+            },
+          },
+        }}
+      >
+        <MenuItem
+          sx={{ color: 'seagreen' }}
+          onClick={() => {
+            handleApproveClick(editUserData);
+          }}
+        >
+          <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
+          Approve
+        </MenuItem>
+      </Popover>
     </>
   );
 }

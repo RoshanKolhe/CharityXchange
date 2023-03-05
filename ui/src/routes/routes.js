@@ -1,6 +1,8 @@
 import { useNavigate, useRoutes } from 'react-router-dom';
 // layouts
 import React, { useEffect } from 'react';
+import ChangePasswordPage from '../pages/ChangePasswordPage';
+import AdminWithdrawlsPage from '../pages/AdminWithdrawlsPage';
 import WithdrawlsPage from '../pages/WithdrawlsPage';
 import TransactionsAdminPage from '../pages/TransactionsAdminPage';
 import TransactionsEmployeePage from '../pages/TransactionsEmployeePage';
@@ -26,6 +28,7 @@ import { RolesAuthRoute } from './RolesAuthRoute';
 import KycPage from '../pages/KycPage';
 import MemberLinks from '../pages/MemberLInks';
 import ViewCycleDetails from '../components/cycles/ViewCycleDetails';
+import ForgetPasswordPage from '../pages/ForgetPasswordPage';
 
 // ----------------------------------------------------------------------
 
@@ -112,6 +115,15 @@ export default function Router({ role }) {
               element: <WithdrawlsPage />,
             },
             {
+              name: 'adminWithdrawls',
+              path: '/adminWithdrawlRequests',
+              element: (
+                <RolesAuthRoute roles={['super_admin']}>
+                  <AdminWithdrawlsPage />
+                </RolesAuthRoute>
+              ),
+            },
+            {
               name: 'Links',
               path: '/userLinks',
               element: <MemberLinks />,
@@ -162,6 +174,8 @@ export default function Router({ role }) {
       ],
     },
     { path: '/login', element: <LoginPage /> },
+    { path: '/forgetPassword', element: <ForgetPasswordPage /> },
+    { path: '/changePassword', element: <ChangePasswordPage /> },
     {
       path: '*',
       element: <Page404 />,

@@ -2,9 +2,19 @@
 import eyeFill from '@iconify/icons-eva/eye-fill';
 import eyeOffFill from '@iconify/icons-eva/eye-off-fill';
 import { Icon } from '@iconify/react';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import { LoadingButton } from '@mui/lab';
 // material
-import { Checkbox, Container, FormControlLabel, IconButton, InputAdornment, Stack, TextField } from '@mui/material';
+import {
+  Checkbox,
+  Container,
+  FormControlLabel,
+  IconButton,
+  InputAdornment,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { Form, FormikProvider, useFormik } from 'formik';
 import { useState } from 'react';
 import { Link as RouterLink, Link, useNavigate } from 'react-router-dom';
@@ -48,7 +58,8 @@ export default function LoginForm() {
     validationSchema: LoginSchema,
     onSubmit: async (values) => {
       const { email, password } = values;
-      const isVerified = verifyOtp(values);
+      const isVerified = await verifyOtp(values);
+      console.log('isVerified', isVerified);
       if (isVerified) {
         axiosInstance
           .post(`users/login`, { email, password })
@@ -73,7 +84,7 @@ export default function LoginForm() {
                 authService.logout();
               } else if (data?.user?.is_kyc_completed === 2) {
                 navigate('/dashboard', { replace: true });
-              }else if (data?.user?.is_kyc_completed === 3) {
+              } else if (data?.user?.is_kyc_completed === 3) {
                 setErrorMessage('Your KYC is declined please contact admin');
                 handleOpenSnackBar();
                 authService.logout();
@@ -132,10 +143,8 @@ export default function LoginForm() {
       setIsOtpSend(false);
       data = false;
     }
-    if (data) {
-      return true;
-    }
-    return false;
+
+    return data;
   };
 
   return (
@@ -144,6 +153,18 @@ export default function LoginForm() {
         <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
           {isOtpSend ? (
             <Stack spacing={3}>
+              <IconButton
+                sx={{ padding: 0, display: 'flex', justifyContent: 'start', backgroundColor: 'transparent' }}
+                disableRipple
+                onClick={() => {
+                  setIsOtpSend(false);
+                }}
+              >
+                <KeyboardBackspaceIcon />
+                <Typography variant="h6" marginLeft={1}>
+                  back
+                </Typography>
+              </IconButton>
               <TextField
                 InputProps={{ disableUnderline: true }}
                 fullWidth
@@ -195,16 +216,16 @@ export default function LoginForm() {
             </Stack>
           )}
 
-          {/* <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-            <FormControlLabel
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
+            {/* <FormControlLabel
               control={<Checkbox {...getFieldProps('remember')}  />}
               label="Remember me"
-            />
+            /> */}
 
-            <Link component={RouterLink} variant="subtitle2" to="#">
+            <Link component={RouterLink} variant="subtitle2" to="/forgetPassword">
               Forgot password?
             </Link>
-          </Stack> */}
+          </Stack>
           {isOtpSend ? (
             <LoadingButton
               fullWidth

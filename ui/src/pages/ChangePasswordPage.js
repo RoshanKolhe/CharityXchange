@@ -4,12 +4,13 @@ import { styled } from '@mui/material/styles';
 import { Container, Typography } from '@mui/material';
 // hooks
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import useResponsive from '../hooks/useResponsive';
 // components
 import Logo from '../components/logo';
 // sections
 import { LoginForm } from '../sections/auth/login';
+import ChangePasswordForm from '../sections/auth/login/ChangePasswordForm';
 
 // ----------------------------------------------------------------------
 
@@ -41,7 +42,7 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function LoginPage() {
+export default function ChangePasswordPage() {
   const mdUp = useResponsive('up', 'md');
   const location = useLocation();
   const navigate = useNavigate();
@@ -60,10 +61,11 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, location, navigate]);
 
+
   return (
     <>
       <Helmet>
-        <title> Login | CharityXchange </title>
+        <title> Change Password | CharityXchange </title>
       </Helmet>
 
       <StyledRoot>
@@ -87,10 +89,10 @@ export default function LoginPage() {
         <Container maxWidth="sm">
           <StyledContent>
             <Typography variant="h4" gutterBottom textAlign="center">
-              Sign in
+              Change Password
             </Typography>
 
-            <LoginForm />
+            <ChangePasswordForm  />
             {/* <Typography variant="body2" sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
               Forgot Password?
               <Link variant="subtitle2">Get started</Link>

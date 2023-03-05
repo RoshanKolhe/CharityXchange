@@ -87,4 +87,60 @@ export const LOCK_PRICE = {
   11: 150,
 };
 
-export const TASKS_FOR_EACH_LEVEL = {};
+export const IMAGES_FOR_EACH_LEVEL = {
+  LEVEL_1: {
+    image: '/assets/levelImages/1.png',
+  },
+  LEVEL_2: {
+    image: '/assets/levelImages/2.png',
+  },
+  LEVEL_3: {
+    image: '/assets/levelImages/3.png',
+  },
+  LEVEL_4: {
+    image: '/assets/levelImages/4.png',
+  },
+  LEVEL_5: {
+    image: '/assets/levelImages/5.png',
+  },
+  LEVEL_6: {
+    image: '/assets/levelImages/6.png',
+  },
+};
+
+export const instructionsForEachLevel = (userLevel) => {
+  if (userLevel?.level === 'LEVEL_1') {
+    return {
+      task1: `Achieve Direct Users ${userLevel?.directUserCount}/4`,
+      task2: `Activate Team Links ${userLevel?.teamActiveLinkCount}/200`,
+    };
+  }
+  if (userLevel?.level === 'LEVEL_2') {
+    return {
+      task1: `Achieve Direct Users ${userLevel?.directUserCount}/6`,
+      task2: `Team Link Activated ${userLevel?.teamActiveLinkCount}/400`,
+    };
+  }
+  if (userLevel?.level === 'LEVEL_3') {
+    return {
+      task1: `Achieve Direct Users ${userLevel?.directUserCount}/8`,
+      task2: `Team Link Activated ${userLevel?.teamActiveLinkCount}/1000`,
+    };
+  }
+  if (userLevel?.level === 'LEVEL_4') {
+    return {
+      task1: `Achieve Direct Users ${userLevel?.directUserCount}/6`,
+      task2: `Team Link Activated ${userLevel?.teamActiveLinkCount}/400`,
+    };
+  }
+  if (userLevel?.level === 'LEVEL_5') {
+    return {
+      task1: `Achieve Direct Users ${userLevel?.directUserCount}/16`,
+      task2: `Team Link Activated ${userLevel?.teamActiveLinkCount}/2500`,
+    };
+  }
+  return {
+    task1: `Achieve Direct Users ${userLevel?.directUserCount}/3`,
+    task2: `Team Link Activated ${userLevel?.teamActiveLinkCount}`,
+  };
+};

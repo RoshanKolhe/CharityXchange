@@ -4,6 +4,7 @@ import ReactApexChart from 'react-apexcharts';
 import { useTheme, styled } from '@mui/material/styles';
 import { Card, CardContent, CardHeader, Typography } from '@mui/material';
 // utils
+import { IMAGES_FOR_EACH_LEVEL, instructionsForEachLevel } from '../../../utils/constants';
 import { fNumber } from '../../../utils/formatNumber';
 // components
 import { useChart } from '../../../components/chart';
@@ -27,27 +28,27 @@ const Instructions = styled('div')({
   marginTop: 20,
 });
 
-export default function AppLevelCard({ title, subheader, chartColors, chartData, ...other }) {
+export default function AppLevelCard({ title, subheader, levelData, ...other }) {
+  console.log('levelData', levelData);
+  const instructions = instructionsForEachLevel(levelData);
+  console.log('instructions', instructions);
   return (
     <Card {...other}>
       <CardHeader title={title} subheader={subheader} />
       <CardContent>
-        <CircleImage src="https://via.placeholder.com/150x150.png" alt="Profile" />
+        <CircleImage src={IMAGES_FOR_EACH_LEVEL[levelData?.level]?.image} alt="Profile" />
         <Instructions>
           <Typography variant="h6" align="left">
             Instructions
           </Typography>
           <Typography variant="body1" align="left">
-            Complete the following tasks to progress to Next Level:
+            To advance to the next level and earn a reward, you must complete the following tasks:
           </Typography>
           <Typography variant="body1" align="left">
-            1. Task 1
+            1. {instructions?.task1}
           </Typography>
           <Typography variant="body1" align="left">
-            2. Task 2
-          </Typography>
-          <Typography variant="body1" align="left">
-            3. Task 3
+            2. {instructions?.task2}
           </Typography>
         </Instructions>
       </CardContent>

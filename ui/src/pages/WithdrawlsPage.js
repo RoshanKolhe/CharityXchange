@@ -57,7 +57,6 @@ const TABLE_HEAD = [
   { id: 'note', label: 'Note', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: 'createdAt', label: 'Received Date', alignRight: false },
-  { id: '' },
 ];
 
 // ----------------------------------------------------------------------
@@ -126,6 +125,7 @@ export default function WithdrawlsPage() {
 
   const navigate = useNavigate();
   const params = useParams();
+  const location = useLocation();
   const [open, setOpen] = useState(null);
   const [timer, setTimer] = useState(null);
   const [openModal, setOpenMdal] = useState(false);
@@ -287,20 +287,18 @@ export default function WithdrawlsPage() {
     <>
       {loading ? <LoadingScreen /> : null}
       <Helmet>
-        <title> Links | CharityXchange </title>
+        <title> Withdrawls | CharityXchange </title>
       </Helmet>
 
       <Container>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
-            Links
-          </Typography>
-        </Stack>
-        <Typography variant="caption" gutterBottom>
-          Note*: Activating a link will result in a $10 deduction from your wallet, and sending help will result in a
-          $20 deduction. After activating the link, help must be sent within 24 hours or the link will deactivate and
-          need to be reactivated.
-        </Typography>
+        {location.pathname === '/dashboard' ? null : (
+          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+            <Typography variant="h4" gutterBottom>
+              Withdrawls
+            </Typography>
+          </Stack>
+        )}
+
         <Card>
           <ListToolbar
             numSelected={selected.length}
@@ -321,7 +319,7 @@ export default function WithdrawlsPage() {
               <Table>
                 <ListHead
                   order={order}
-                  isCheckbox
+                  isCheckbox={false}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
                   rowCount={tokenRequests.length}
@@ -335,9 +333,9 @@ export default function WithdrawlsPage() {
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
-                        <TableCell padding="checkbox">
+                        {/* <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
-                        </TableCell>
+                        </TableCell> */}
 
                         <TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
@@ -355,17 +353,6 @@ export default function WithdrawlsPage() {
                           </Label>
                         </TableCell>
                         <TableCell align="left">{moment(createdAt).format('DD-MM-YYYY hh:mm:ss')}</TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            size="large"
-                            color="inherit"
-                            onClick={(event) => {
-                              handleOpenMenu(event, row);
-                            }}
-                          >
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
-                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -420,34 +407,6 @@ export default function WithdrawlsPage() {
         msg={errorMessage !== '' ? errorMessage : successMessage}
         severity={errorMessage !== '' ? 'error' : 'success'}
       />
-      <Popover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
-        }}
-      >
-        <MenuItem
-          sx={{ color: 'seagreen' }}
-          onClick={() => {
-            handleApproveClick();
-          }}
-        >
-          <Iconify icon={'mdi:tick'} sx={{ mr: 2 }} />
-          Approve
-        </MenuItem>
-      </Popover>
     </>
   );
 }

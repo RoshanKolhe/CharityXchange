@@ -23,21 +23,35 @@ import {
 } from '@loopback/rest';
 import {UserProfile} from '@loopback/security';
 import {CharityxchangeSqlDataSource} from '../datasources';
-import {User, Withdraws} from '../models';
-import {UserRepository} from '../repositories';
+import {EmailManagerBindings} from '../keys';
+import {AdminBalances, User, Withdraws} from '../models';
+import {UserRepository, WithdrawsRepository} from '../repositories';
+import {EmailManager} from '../services/email.service';
 import {TransactionService} from '../services/transaction.service';
 import {MyUserService} from '../services/user-service';
-import {LOCK_PRICE} from '../utils/constants';
+import generateWithdrawRequestSentTemplate from '../templates/withdrawrequest.template';
+import SITE_SETTINGS from '../utils/config';
+import {
+  ADMIN_ID,
+  generateTransactionId,
+  LOCK_PRICE,
+  TRANSACTION_TYPES,
+} from '../utils/constants';
 
 export class UserWithdrawsController {
   constructor(
-    @repository(UserRepository) protected userRepository: UserRepository,
+    @repository(UserRepository)
+    protected userRepository: UserRepository,
+    @repository(WithdrawsRepository)
+    protected withdrawRepository: WithdrawsRepository,
     @inject('service.user.service')
     public userService: MyUserService,
     @inject('service.transaction.service')
     public transactionService: TransactionService,
     @inject('datasources.charityxchangeSql')
     public dataSource: CharityxchangeSqlDataSource,
+    @inject(EmailManagerBindings.SEND_MAIL)
+    public emailManager: EmailManager,
   ) {}
 
   @authenticate('jwt')
@@ -130,6 +144,19 @@ export class UserWithdrawsController {
         await this.userRepository
           .withdraws(currnetUser.id)
           .create(inputdata, {transaction: tx});
+
+        const transactionDetails: any = {
+          transaction_id: generateTransactionId(),
+          remark: 'Amount Withdrawl',
+          amount: withdraws.amount,
+          type: 'Withdrawl',
+          status: true,
+          transaction_fees: 0,
+          transaction_type: TRANSACTION_TYPES.WITHDRAWL,
+        };
+        await this.userRepository
+          .transactions(currnetUser.id)
+          .create(transactionDetails, {transaction: tx});
         tx.commit();
         return Promise.resolve({
           success: true,
@@ -187,5 +214,85 @@ export class UserWithdrawsController {
     where?: Where<Withdraws>,
   ): Promise<Count> {
     return this.userRepository.withdraws(currnetUser.id).delete(where);
+  }
+
+  @authenticate('jwt')
+  @patch('/approveWithdrawRequest')
+  async approveWithdrawRequest(
+    @inject(AuthenticationBindings.CURRENT_USER) currnetUser: UserProfile,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Withdraws, {partial: true}),
+        },
+      },
+    })
+    withdraws: Withdraws,
+  ): Promise<any> {
+    const repo = new DefaultTransactionalRepository(User, this.dataSource);
+    const tx = await repo.beginTransaction(IsolationLevel.READ_COMMITTED);
+    try {
+      const adminBalance = await this.userRepository
+        .adminBalances(ADMIN_ID)
+        .get();
+      const userData = await this.userRepository.findById(withdraws.userId);
+      const withdrawnAmountInput: Partial<AdminBalances> = {
+        withdrawn_amount: adminBalance.withdrawn_amount + withdraws.amount,
+      };
+      await this.userRepository
+        .adminBalances(ADMIN_ID)
+        .patch(withdrawnAmountInput, {transaction: tx});
+      await this.userRepository.withdraws(withdraws.userId).patch(
+        {
+          status: true,
+        },
+        {
+          id: withdraws.id,
+        },
+        {transaction: tx},
+      );
+      const template = generateWithdrawRequestSentTemplate();
+
+      const mailOptions = {
+        from: SITE_SETTINGS.fromMail,
+        to: userData.email,
+        subject: template.subject,
+        html: template.html,
+      };
+      const data = await this.emailManager
+        .sendMail(mailOptions)
+        .then(function (res: any) {})
+        .catch(function (err: any) {
+          console.log(err);
+          //   throw new HttpErrors.UnprocessableEntity(err);
+        });
+      tx.commit();
+      return Promise.resolve({
+        success: true,
+        message: 'Withdraw Request Approved Successfully',
+      });
+    } catch (err) {
+      tx.rollback();
+      throw new HttpErrors[400](err);
+    }
+  }
+
+  @authenticate('jwt')
+  @get('/allWithdrawlRequests', {
+    responses: {
+      '200': {
+        description: 'Array of User has many Withdraws',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Withdraws)},
+          },
+        },
+      },
+    },
+  })
+  async allWithdrawlRequests(
+    @param.query.object('filter') filter?: Filter<Withdraws>,
+  ): Promise<Withdraws[]> {
+    return this.withdrawRepository.find(filter);
   }
 }

@@ -276,17 +276,17 @@ export class UserController {
       subject: template.subject,
       html: template.html,
     };
-    // const data = await this.emailManager
-    //   .sendMail(mailOptions)
-    //   .then(function (res: any) {
-    //     return Promise.resolve({
-    //       success: true,
-    //       message: `Successfully sent otp mail to ${userData.email}`,
-    //     });
-    //   })
-    //   .catch(function (err: any) {
-    //     throw new HttpErrors.UnprocessableEntity(err);
-    //   });
+    const data = await this.emailManager
+      .sendMail(mailOptions)
+      .then(function (res: any) {
+        return Promise.resolve({
+          success: true,
+          message: `Successfully sent otp mail to ${userData.email}`,
+        });
+      })
+      .catch(function (err: any) {
+        throw new HttpErrors.UnprocessableEntity(err);
+      });
     return Promise.resolve({
       success: true,
       message: `Successfully sent otp mail to ${userData.email}`,
@@ -600,5 +600,73 @@ export class UserController {
     )
     SELECT *
     FROM descendants;`);
+  }
+
+  @post('/updateResetKey')
+  async updateResetKey(
+    @requestBody({})
+    userData: any,
+  ): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: userData.email,
+      },
+    });
+    const chars =
+      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const length = 40;
+    let resetKey = '';
+
+    for (let i = 0; i < length; i++) {
+      resetKey += chars[Math.floor(Math.random() * chars.length)];
+    }
+    if (user) {
+      var now = new Date();
+      await this.userRepository.updateById(user.id, {
+        resetKey: `${resetKey}`,
+        resetKey_expire_at: `${this.AddMinutesToDate(now, 10)}`,
+      });
+      return Promise.resolve({
+        success: true,
+        message: `Key Reset Successfully`,
+        key: `${resetKey}`,
+      });
+    } else {
+      throw new HttpErrors.BadRequest("Email Doesn't Exists");
+    }
+  }
+
+  @post('/resetPassword/{key}')
+  async resetPassword(
+    @requestBody({})
+    @param.path.string('key')
+    key: typeof User.prototype.resetKey,
+    passwordData: any,
+  ): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: {
+        resetKey: key,
+      },
+    });
+    if (user) {
+      var now = new Date();
+      var expire_date = new Date(user.resetKey_expire_at);
+      if (now <= expire_date && key === user.resetKey) {
+        const newPassword = await this.hasher.hashPassword(
+          passwordData.password,
+        );
+        await this.userRepository.updateById(user.id, {
+          password: newPassword,
+        });
+      } else {
+        throw new HttpErrors.BadRequest('Reset key is invalid or expired');
+      }
+      return Promise.resolve({
+        success: true,
+        message: `Password Updated Successfully`,
+      });
+    } else {
+      throw new HttpErrors.BadRequest('Reset key is invalid or expired');
+    }
   }
 }

@@ -8,10 +8,10 @@ const SITE_SETTINGS = {
       rejectUnauthorized: false,
     },
     auth: {
-      user: 'crm@wolfizer.com',
-      pass: 'Wolfizer@2020',
+      user: 'system@charity-xchange.us',
+      pass: 'P2-3N96s3X(w+SE',
     },
   },
-  fromMail: 'crm@wolfizer.com',
+  fromMail: 'system@charity-xchange.us',
 };
 export default SITE_SETTINGS;

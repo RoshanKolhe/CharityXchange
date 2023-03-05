@@ -5,8 +5,8 @@ import ProfileForm from '../components/profile/profile-form';
 
 const ProfilePage = () => {
   const [userProfileData, setUserProfileData] = useState({});
+  const [loading, setLoading] = useState({});
 
-  const [loading, setLoading] = useState(false);
   useEffect(() => {
     setLoading(true);
     axiosInstance

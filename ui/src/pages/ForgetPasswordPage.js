@@ -5,6 +5,7 @@ import { Container, Typography } from '@mui/material';
 // hooks
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import ForgetPasswordForm from '../sections/auth/login/ForgetPasswordForm';
 import useResponsive from '../hooks/useResponsive';
 // components
 import Logo from '../components/logo';
@@ -41,7 +42,7 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function LoginPage() {
+export default function ForgetPasswordPage() {
   const mdUp = useResponsive('up', 'md');
   const location = useLocation();
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ export default function LoginPage() {
   return (
     <>
       <Helmet>
-        <title> Login | CharityXchange </title>
+        <title> ForgetPassword | CharityXchange </title>
       </Helmet>
 
       <StyledRoot>
@@ -87,14 +88,10 @@ export default function LoginPage() {
         <Container maxWidth="sm">
           <StyledContent>
             <Typography variant="h4" gutterBottom textAlign="center">
-              Sign in
+              ForgetPassword
             </Typography>
 
-            <LoginForm />
-            {/* <Typography variant="body2" sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
-              Forgot Password?
-              <Link variant="subtitle2">Get started</Link>
-            </Typography> */}
+            <ForgetPasswordForm />
           </StyledContent>
         </Container>
       </StyledRoot>
