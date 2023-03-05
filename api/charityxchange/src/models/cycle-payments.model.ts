@@ -12,33 +12,26 @@ export class CyclePayments extends Entity {
   @property({
     type: 'number',
     required: true,
-    mysql: {
-      dataType: 'decimal',
-       precision: 30,
-      scale: 2,
-    },
+    default: 0.0,
+    dataType: 'decimal',
+    precision: 30,
+    scale: 2,
   })
   levelIncome: number;
 
   @property({
     type: 'number',
     required: true,
-    mysql: {
-      dataType: 'decimal',
-       precision: 30,
-      scale: 2,
-    },
+    default: 0.0,
+    dataType: 'decimal',
+    precision: 30,
+    scale: 2,
   })
   awardOrReward: number;
 
   @property({
     type: 'number',
     required: true,
-    mysql: {
-      dataType: 'decimal',
-       precision: 30,
-      scale: 2,
-    },
   })
   participatedUsers: number;
 

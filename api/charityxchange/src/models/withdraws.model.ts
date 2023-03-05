@@ -12,6 +12,10 @@ export class Withdraws extends Entity {
   @property({
     type: 'number',
     required: true,
+    default: 0.0,
+    dataType: 'decimal',
+    precision: 30,
+    scale: 2,
   })
   amount: number;
 
