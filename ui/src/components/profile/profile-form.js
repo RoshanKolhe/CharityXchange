@@ -262,7 +262,7 @@ const ProfileForm = ({ initialValues }) => {
         console.log(err);
       });
 
-    return data;
+    return false;
   };
 
   const handleAccept = () => {
