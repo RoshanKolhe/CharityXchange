@@ -48,7 +48,7 @@ export default function ForgetPasswordForm() {
     validationSchema: ForgetPasswordSchema,
     onSubmit: async (values) => {
       const { email, password } = values;
-      const isVerified = verifyOtp(values);
+      const isVerified = await verifyOtp(values);
       if (isVerified) {
         axiosInstance
           .post(`updateResetKey`, { email })
