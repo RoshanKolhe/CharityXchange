@@ -215,7 +215,7 @@ export class UserUserProfileController {
   async checkIfWalletAddressExists(@requestBody() keyData: any): Promise<any> {
     console.log(keyData);
     const records = await this.balanceRepository.execute(
-      `select * from balances where payment_info like '%{"wallet_address":"${keyData.wallet_address}"}%';`,
+      `select * from Balances where payment_info like '%{"wallet_address":"${keyData.wallet_address}"}%';`,
     );
     console.log('records', records);
     if (records.length > 0) {
