@@ -1,3 +1,4 @@
+/* eslint-disable no-unneeded-ternary */
 /* eslint-disable camelcase */
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
@@ -292,7 +293,6 @@ export default function UserPage() {
   useEffect(() => {
     fetchData();
   }, [userProfile]);
-
   return (
     <>
       {loading ? <LoadingScreen /> : null}
@@ -312,11 +312,18 @@ export default function UserPage() {
             to="#"
             startIcon={<Icon icon={plusFill} />}
             onClick={handleOpen}
+            disabled={userProfile?.activePayment ? false : permissions.includes('super_admin') ? false : true}
           >
             New Investor
           </Button>
         </Stack>
-        <Stack direction="row" alignItems="end" justifyContent="end" mb={0}>
+        <Stack direction="row" alignItems="end" justifyContent="space-between" mb={0}>
+          {!userProfile?.activePayment ? (
+            <Typography variant="caption" gutterBottom>
+              Note*: Please activate the plan in order to begin referring and earning.
+            </Typography>
+          ) : null}
+
           <Typography
             variant="caption"
             gutterBottom
