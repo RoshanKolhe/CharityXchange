@@ -2,7 +2,7 @@ import axios from 'axios';
 import authService from '../services/auth.service';
 import history from './history';
 
-const baseURL = process.env.REACT_APP_API_ENDPOINT || 'http://localhost:3001/';
+const baseURL = process.env.REACT_APP_API_ENDPOINT || 'http://128.199.75.191:3001/';
 
 let headers = {};
 
