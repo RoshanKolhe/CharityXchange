@@ -577,8 +577,8 @@ export class UserController {
                'is_first_level_price_taken', b.is_first_level_price_taken,
                'chxtToken', b.chxtToken
              ) AS balance_user
-      FROM user u
-      JOIN balances b ON u.id = b.userId
+      FROM User u
+      JOIN Balances b ON u.id = b.userId
       WHERE u.id = ${currnetUser.id}
       UNION ALL
       SELECT u.id, u.name, u.email, u.is_active, u.createdAt,u.cycles_participated,u.parent_id,u.permissions,
@@ -594,9 +594,9 @@ export class UserController {
                'is_first_level_price_taken', b.is_first_level_price_taken,
                'chxtToken', b.chxtToken
              ) AS balance_user
-      FROM user u
+      FROM User u
       JOIN descendants d ON u.parent_id = d.id
-      JOIN balances b ON u.id = b.userId
+      JOIN Balances b ON u.id = b.userId
     )
     SELECT *
     FROM descendants;`);
