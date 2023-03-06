@@ -209,10 +209,12 @@ const ProfileForm = ({ initialValues }) => {
       if (location.pathname === '/kyc') {
         if (!values.terms) {
           formik.setFieldError('terms', 'Please accept the terms and condition to proceed');
+          setLoading(false);
           return;
         }
         if (await checkWalletPublicKeyExists(values.balances.payment_info.wallet_address)) {
           formik.setFieldError('balances.payment_info.wallet_address', 'This wallet address already exists');
+          setLoading(false);
           return;
         }
         values = {
@@ -251,7 +253,6 @@ const ProfileForm = ({ initialValues }) => {
         wallet_address: value,
       })
       .then((res) => {
-        console.log('data', res.data);
         if (res.data.success) {
           return true;
         }
