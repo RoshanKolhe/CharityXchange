@@ -75,25 +75,24 @@ const TermsAndConditionsModal = ({ handleAccept }) => {
           <div>
             <h2>Terms and Conditions</h2>
             <p>
-              Users must complete the KYC (Know Your Customer) verification process in order
-              to participate in the CharityXchange program. This involves providing a valid ID and wallet address that
-              will be used for payment processing. Your selected package valid for 16 cycle only after that you can
-              renew. duration of one cycle min 7 day to 30 day after completion of one cycle you will get reward on
-              50%lot rewards cycle will start after completion of reinvestment after 5th cycle investor will not allow
-              to withdraw investment amount ex 3lot 30$,5lot 60$, 11lot 150$ Minimum Withdrawal: The minimum withdrawal
-              amount on the CharityXchange platform is $40 USD. Admin Fee and Service Charges: There will be an admin
-              fee of 10% and service charges for all transactions made on the platform. KYC with One ID and Wallet
-              Address Valid: Users can only complete the KYC verification process with one ID and wallet address.
-              Multiple IDs and wallet addresses will not be accepted. Payment Processing: All payments will be processed
-              in USDT (TRC 20) only. Cut-Off Time: The cycle cut-off time for the CharityXchange platform is 10 AM
-              Indian Standard Time, 12:30 PM Malaysia Time, and other applicable times based on the user's location.
-              Payment Withdrawal Time: Payment withdrawal requests can be made between 12 PM Indian Standard Time on
-              Saturday and 12 AM Indian Standard Time on Sunday. The maximum time to receive payment is 48 hours.
-              Responsibility for Wrong KYC Details: CharityXchange is not responsible for any losses incurred due to
-              incorrect KYC details provided by the user. By using the CharityXchange platform, users agree to abide by
-              these terms and conditions. The platform reserves the right to change these terms and conditions at any
-              time without prior notice. Users are encouraged to review these terms and conditions regularly to stay
-              up-to-date on any changes.
+              Users must complete the KYC (Know Your Customer) verification process in order to participate in the
+              CharityXchange program. This involves providing a valid ID and wallet address that will be used for
+              payment processing. Your selected package valid for 16 cycle only after that you can renew. duration of
+              one cycle min 7 day to 30 day after completion of one cycle you will get reward on 50%lot rewards cycle
+              will start after completion of reinvestment after 5th cycle investor will not allow to withdraw investment
+              amount ex 3lot 30$,5lot 60$, 11lot 150$ Minimum Withdrawal: The minimum withdrawal amount on the
+              CharityXchange platform is $40 USD. Admin Fee and Service Charges: There will be an admin fee of 10% and
+              service charges for all transactions made on the platform. KYC with One ID and Wallet Address Valid: Users
+              can only complete the KYC verification process with one ID and wallet address. Multiple IDs and wallet
+              addresses will not be accepted. Payment Processing: All payments will be processed in USDT (TRC 20) only.
+              Cut-Off Time: The cycle cut-off time for the CharityXchange platform is 10 AM Indian Standard Time, 12:30
+              PM Malaysia Time, and other applicable times based on the user's location. Payment Withdrawal Time:
+              Payment withdrawal requests can be made between 12 PM Indian Standard Time on Saturday and 12 AM Indian
+              Standard Time on Sunday. The maximum time to receive payment is 48 hours. Responsibility for Wrong KYC
+              Details: CharityXchange is not responsible for any losses incurred due to incorrect KYC details provided
+              by the user. By using the CharityXchange platform, users agree to abide by these terms and conditions. The
+              platform reserves the right to change these terms and conditions at any time without prior notice. Users
+              are encouraged to review these terms and conditions regularly to stay up-to-date on any changes.
             </p>
             <Button
               onClick={() => {
@@ -260,9 +259,9 @@ const ProfileForm = ({ initialValues }) => {
       })
       .catch((err) => {
         console.log(err);
+        return false;
       });
-
-    return false;
+    return data;
   };
 
   const handleAccept = () => {
