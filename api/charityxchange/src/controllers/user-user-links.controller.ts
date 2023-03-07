@@ -377,7 +377,8 @@ export class UserUserLinksController {
     }
     return 0;
   }
-
+  
+  @authenticate('jwt')
   @del('/users/{id}/user-links', {
     responses: {
       '200': {

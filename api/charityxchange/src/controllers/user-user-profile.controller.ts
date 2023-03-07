@@ -194,6 +194,7 @@ export class UserUserProfileController {
     }
   }
 
+  @authenticate('jwt')
   @del('/users/{id}/user-profile', {
     responses: {
       '200': {
@@ -202,7 +203,6 @@ export class UserUserProfileController {
       },
     },
   })
-  @authenticate('jwt')
   async delete(
     @param.path.number('id') id: number,
     @param.query.object('where', getWhereSchemaFor(UserProfile))

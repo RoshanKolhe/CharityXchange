@@ -18,6 +18,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import { PermissionKeys } from '../authorization/permission-keys';
 import {AdminBalances} from '../models';
 import {AdminBalancesRepository} from '../repositories';
 
@@ -27,6 +28,10 @@ export class AdminBalancesController {
     public adminBalancesRepository: AdminBalancesRepository,
   ) {}
 
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.SUPER_ADMIN]},
+  })
   @get('/admin-balances/count')
   @response(200, {
     description: 'AdminBalances model count',
@@ -39,7 +44,10 @@ export class AdminBalancesController {
   }
 
   @get('/admin-balances/{id}')
-  @authenticate('jwt')
+  @authenticate({
+    strategy: 'jwt',
+    options: {required: [PermissionKeys.SUPER_ADMIN]},
+  })
   @response(200, {
     description: 'AdminBalances model instance',
     content: {
