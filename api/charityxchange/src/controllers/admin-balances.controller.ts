@@ -44,10 +44,7 @@ export class AdminBalancesController {
   }
 
   @get('/admin-balances/{id}')
-  @authenticate({
-    strategy: 'jwt',
-    options: {required: [PermissionKeys.SUPER_ADMIN]},
-  })
+  @authenticate('jwt')
   @response(200, {
     description: 'AdminBalances model instance',
     content: {
