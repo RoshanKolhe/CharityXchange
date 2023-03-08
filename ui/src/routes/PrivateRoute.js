@@ -8,7 +8,13 @@ export const PrivateRoutes = () => {
     return null; // or loading indicator/spinner/etc
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace state={{ from: location }} />;
+  return isAuthenticated && isKycCompleted === '2' ? (
+    <Outlet />
+  ) : isKycCompleted === '0' ? (
+    <Navigate to="/kyc" replace state={{ from: location }} />
+  ) : (
+    <Navigate to="/login" replace state={{ from: location }} />
+  );
 };
 
 export default PrivateRoutes;

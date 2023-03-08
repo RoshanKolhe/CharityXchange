@@ -164,14 +164,8 @@ export default function Router({ role }) {
       ],
     },
     {
-      path: '/',
-      element: <PrivateRoutes />,
-      children: [
-        {
-          path: '/kyc',
-          element: <KycPage />,
-        },
-      ],
+      path: '/kyc',
+      element: <KycPage />,
     },
     { path: '/login', element: <LoginPage /> },
     { path: '/forgetPassword', element: <ForgetPasswordPage /> },

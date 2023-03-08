@@ -28,10 +28,16 @@ import TransactionsAdminPage from './TransactionsAdminPage';
 export default function DashboardAdminPage() {
   const theme = useTheme();
   const [userProfile, setUserProfile] = useState();
+  const [isTodaysProfit, setIsTodaysProfit] = useState(false);
+  const [todaysProfit, setTodaysProfit] = useState();
 
   useEffect(() => {
     axiosInstance.get('users/me').then((res) => {
       setUserProfile(res.data);
+    });
+
+    axiosInstance.get('getTodaysBusiness').then((res) => {
+      setTodaysProfit(res.data);
     });
   }, []);
 
@@ -81,6 +87,76 @@ export default function DashboardAdminPage() {
               icon={'ant-design:bug-filled'}
             />
           </Grid>
+        </Grid>
+        <Typography
+          variant="body1"
+          sx={{ my: 5 }}
+          style={{
+            color: 'blue',
+            cursor: 'pointer',
+          }}
+          onClick={() => {
+            setIsTodaysProfit(!isTodaysProfit);
+          }}
+        >
+          Today's Profit
+        </Typography>
+        {isTodaysProfit ? (
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={3}>
+              <AppWidgetSummary
+                title="Plan Bought Count"
+                total={`${todaysProfit?.planBoughtCount}`}
+                icon={'fluent:text-word-count-20-regular'}
+                isText
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <AppWidgetSummary
+                title="Total Plan Bought"
+                total={`${todaysProfit?.planBoughtTotal}`}
+                icon={'ic:twotone-attach-money'}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <AppWidgetSummary
+                title="Link Activation Count"
+                total={`${todaysProfit?.linkActivationCount}`}
+                icon={'fluent:text-word-count-20-regular'}
+                isText
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <AppWidgetSummary
+                title="Link Activation Total"
+                total={`${todaysProfit?.linkActivationTotal}`}
+                icon={'ic:twotone-attach-money'}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <AppWidgetSummary
+                title="Link Help Count"
+                total={`${todaysProfit?.linkHelpCount}`}
+                icon={'fluent:text-word-count-20-regular'}
+                isText
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <AppWidgetSummary
+                title="Link Help Total"
+                total={`${todaysProfit?.linkHelpTotal}`}
+                icon={'ic:twotone-attach-money'}
+              />
+            </Grid>
+          </Grid>
+        ) : null}
+
+        <Grid container spacing={3} mt={3}>
           <Grid item xs={12} sm={12} md={12}>
             <TransactionsAdminPage />
           </Grid>

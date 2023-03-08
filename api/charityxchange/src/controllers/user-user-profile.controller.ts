@@ -217,7 +217,7 @@ export class UserUserProfileController {
     const records = await this.balanceRepository.execute(
       `select * from Balances where payment_info like '%{"wallet_address":"${keyData.wallet_address}"}%';`,
     );
-    console.log('records', records);
+
     if (records.length > 0) {
       return Promise.resolve({
         success: true,

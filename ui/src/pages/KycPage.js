@@ -53,8 +53,15 @@ const StyledContent = styled('div')(({ theme }) => ({
 const KycPage = () => {
   const [userProfileData, setUserProfileData] = useState({});
   const mdUp = useResponsive('up', 'md');
+  const isAuthenticated = localStorage.getItem('isAuthenticated');
+  const isKycCompleted = localStorage.getItem('is_kyc_completed');
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if(!isAuthenticated && isKycCompleted !== '0'){
+      navigate('/login', { replace: true });
+      return;
+    }
     axiosInstance.get('users/me').then((result) => {
       setUserProfileData(result.data);
     });
