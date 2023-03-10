@@ -97,12 +97,12 @@ export class MyUserService implements UserService<User, Credentials> {
       let descendantsOfuser: any = await this.userRepository
         .execute(`WITH RECURSIVE descendants AS (
         SELECT *
-        FROM user
+        FROM User
         WHERE id = ${currnetUser.id}
         UNION ALL
-        SELECT user.*
-        FROM user
-        JOIN descendants ON user.parent_id = descendants.id
+        SELECT User.*
+        FROM User
+        JOIN descendants ON User.parent_id = descendants.id
       )
       SELECT * FROM descendants;`);
 
