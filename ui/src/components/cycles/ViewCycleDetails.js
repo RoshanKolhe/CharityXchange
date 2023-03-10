@@ -255,7 +255,7 @@ export default function ViewCycleDetails() {
   useEffect(() => {
     if (currentCycleData) {
       const endDate = new Date(currentCycleData.endDate);
-      if (endDate <= new Date() || !currentCycleData.is_active) {
+      if (endDate >= new Date() || !currentCycleData.is_active) {
         setCheckEndCycle(true);
       }
       fetchData();
