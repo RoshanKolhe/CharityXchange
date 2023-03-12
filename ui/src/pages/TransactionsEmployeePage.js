@@ -56,6 +56,8 @@ const TABLE_HEAD = [
   { id: 'amount', label: 'Amount', alignRight: false },
   { id: 'type', label: 'Type', alignRight: false },
   { id: 'remark', label: 'Remark', alignRight: false },
+  { id: 'transaction_fees', label: 'Transaction Fees', alignRight: false },
+  { id: 'admin_fees', label: 'Admin Fees', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: 'createdAt', label: 'Date', alignRight: false },
 ];
@@ -259,6 +261,8 @@ export default function TransactionsEmployeePage() {
                         <TableCell align="left">{amount}</TableCell>
                         <TableCell align="left">{type}</TableCell>
                         <TableCell align="left">{remark}</TableCell>
+                        <TableCell align="left">{transaction_fees}</TableCell>
+                        <TableCell align="left">{transaction_fees}</TableCell>
                         <TableCell align="left">
                           <Label color={(status === false && 'error') || 'success'}>
                             {status === false ? 'In Progress' : 'Completed'}

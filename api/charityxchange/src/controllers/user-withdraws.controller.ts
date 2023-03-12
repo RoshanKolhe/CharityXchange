@@ -144,19 +144,20 @@ export class UserWithdrawsController {
         await this.userRepository
           .withdraws(currnetUser.id)
           .create(inputdata, {transaction: tx});
+        
 
-        const transactionDetails: any = {
-          transaction_id: generateTransactionId(),
-          remark: 'Amount Withdrawl',
-          amount: withdraws.amount,
-          type: 'Withdrawl',
-          status: true,
-          transaction_fees: 0,
-          transaction_type: TRANSACTION_TYPES.WITHDRAWL,
-        };
-        await this.userRepository
-          .transactions(currnetUser.id)
-          .create(transactionDetails, {transaction: tx});
+        // const transactionDetails: any = {
+        //   transaction_id: generateTransactionId(),
+        //   remark: 'Amount Withdrawl',
+        //   amount: withdraws.amount,
+        //   type: 'Withdrawl',
+        //   status: false,
+        //   transaction_fees: 3,
+        //   transaction_type: TRANSACTION_TYPES.WITHDRAWL,
+        // };
+        // await this.userRepository
+        //   .transactions(currnetUser.id)
+        //   .create(transactionDetails, {transaction: tx});
         tx.commit();
         return Promise.resolve({
           success: true,
