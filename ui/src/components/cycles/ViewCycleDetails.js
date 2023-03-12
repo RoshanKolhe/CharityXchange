@@ -39,6 +39,7 @@ import {
 import { makeStyles } from '@mui/styles';
 import clsx from 'clsx';
 import moment from 'moment';
+import LoadingScreen from '../../common/LoadingScreen';
 import { AppWidgetSummary } from '../../sections/@dashboard/app';
 import Label from '../label';
 import Iconify from '../iconify';
@@ -139,6 +140,8 @@ export default function ViewCycleDetails() {
 
   const [selected, setSelected] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+
   const [editUserData, setEditUserData] = useState({});
 
   const [orderBy, setOrderBy] = useState('id');
@@ -200,17 +203,21 @@ export default function ViewCycleDetails() {
   };
 
   const fetchData = () => {
+    setLoading(true);
     axiosInstance
       .post(`/cycles/getCycleData`, omit(currentCycleData, 'cyclePayments'))
       .then((res) => {
         setCycleIncomeData(res.data);
+        setLoading(false);
       })
       .catch((err) => {
+        setLoading(false);
         setCycleIncomeData([]);
       });
   };
 
   const getCurrentCycleData = () => {
+    setLoading(true);
     axiosInstance
       .get(`/cycles/${params.id}`)
       .then((res) => {
@@ -218,16 +225,19 @@ export default function ViewCycleDetails() {
           setCyclePaymentsData(res.data?.cyclePayments);
         }
         setCurrentCycleData(res.data);
+        setLoading(false);
       })
       .catch((err) => {
         setErrorMessage(err.response.data.error.message);
         setSuccessMessage('');
         handleOpenSnackBar();
         fetchData();
+        setLoading(false);
       });
   };
 
   const handleEndCycle = () => {
+    setLoading(true);
     if (currentCycleData.is_active) {
       axiosInstance
         .post(`/cycles/endCycle`, currentCycleData)
@@ -235,6 +245,7 @@ export default function ViewCycleDetails() {
           setErrorMessage('');
           setSuccessMessage('Cycle Ended Successfully');
           handleOpenSnackBar();
+          setLoading(false);
           setTimeout(() => {
             navigate(-1);
           }, 2000);
@@ -244,6 +255,7 @@ export default function ViewCycleDetails() {
           setSuccessMessage('');
           handleOpenSnackBar();
           fetchData();
+          setLoading(false);
         });
     }
   };
@@ -264,6 +276,7 @@ export default function ViewCycleDetails() {
   console.log('cyclePaymentsData', cyclePaymentsData);
   return (
     <>
+      {loading ? <LoadingScreen /> : null}
       <Helmet>
         <title> Links | CharityXchange </title>
       </Helmet>

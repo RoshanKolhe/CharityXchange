@@ -172,7 +172,12 @@ export class MyUserService implements UserService<User, Credentials> {
         const userActivePlan = await this.getCurrentUserActivePack(
           userDirectUser,
         );
-        if (userActivePlan && userActivePlan.total_links === 11) {
+        if (
+          userActivePlan &&
+          (userActivePlan.total_links === 11 ||
+            userActivePlan.total_links === 3 ||
+            userActivePlan.total_links === 5)
+        ) {
           directUserCount = directUserCount + 1;
         }
       }

@@ -255,23 +255,26 @@ export class CycleController {
         const adminBalance = await this.userRepository
           .adminBalances(ADMIN_ID)
           .get();
-        const userLevel = await this.userService.calculateUserLevel(userData);
+        const userLevel = await this.userService.calculateUserLevel(
+          userData,
+          cycles,
+        );
         const createdAtDate = userData.createdAt
           ? new Date(userData.createdAt)
           : new Date();
         const diffInMs = Date.now() - createdAtDate.getTime();
         const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 
-        if (
-          diffInDays <= 7 &&
-          userLevel.level === 'LEVEL_1' &&
-          !userBalance.is_first_level_price_taken
-        ) {
-          isFirstLevel = true;
-          awardOrReward = awardOrReward + FIRST_LEVEL_AWARD;
-          totalAwardOrReward = totalAwardOrReward + FIRST_LEVEL_AWARD;
-        }
         if (userLevel.level !== null) {
+          if (
+            diffInDays <= 7 &&
+            // userLevel.level === 'LEVEL_1' &&
+            !userBalance.is_first_level_price_taken
+          ) {
+            isFirstLevel = true;
+            awardOrReward = awardOrReward + FIRST_LEVEL_AWARD;
+            totalAwardOrReward = totalAwardOrReward + FIRST_LEVEL_AWARD;
+          }
           const price =
             LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
           let userTotalLevleIncome = 0;
@@ -295,12 +298,26 @@ export class CycleController {
             userBalance.current_balance + awardOrReward + levelIncome,
           is_first_level_price_taken: isFirstLevel ? true : false,
         });
-
-        if (awardOrReward + levelIncome > 0) {
+        if (levelIncome > 0) {
           const transactionDetails: any = {
             transaction_id: generateTransactionId(),
             remark: 'Level Income',
-            amount: awardOrReward + levelIncome,
+            amount: levelIncome,
+            type: 'Deposited',
+            status: true,
+            transaction_fees: 0,
+            transaction_type: TRANSACTION_TYPES.LEVEL_INCOME,
+          };
+          await this.transactionService.createTransaction(
+            transactionDetails,
+            id,
+          );
+        }
+        if (awardOrReward > 0) {
+          const transactionDetails: any = {
+            transaction_id: generateTransactionId(),
+            remark: `Award for achieving the ${userLevel.level}`,
+            amount: awardOrReward,
             type: 'Deposited',
             status: true,
             transaction_fees: 0,
@@ -315,7 +332,7 @@ export class CycleController {
         const total = awardOrReward + levelIncome;
         const inputData = {
           total_earnings: adminBalance.total_earnings - total,
-          total_supply: adminBalance.total_supply - total,
+          // total_supply: adminBalance.total_supply - total,
           activation_help: adminBalance.activation_help - total,
         };
         await this.userRepository.adminBalances(ADMIN_ID).patch(inputData);
@@ -376,16 +393,17 @@ export class CycleController {
           : new Date();
         const diffInMs = Date.now() - createdAtDate.getTime();
         const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-        if (
-          diffInDays <= 7 &&
-          userLevel.level == 'LEVEL_1' &&
-          userData &&
-          userData.balance_user &&
-          !userData.balance_user.is_first_level_price_taken
-        ) {
-          awardOrReward = awardOrReward + FIRST_LEVEL_AWARD;
-        }
+
         if (userLevel.level) {
+          if (
+            diffInDays <= 7 &&
+            // userLevel.level === 'LEVEL_1' &&
+            userData &&
+            userData.balance_user &&
+            !userData.balance_user.is_first_level_price_taken
+          ) {
+            awardOrReward = awardOrReward + FIRST_LEVEL_AWARD;
+          }
           const price =
             LEVEL_PRICES[userLevel.level as keyof typeof LEVEL_PRICES];
           let userTotalLevleIncome = 0;

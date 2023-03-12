@@ -91,6 +91,7 @@ export const TRANSACTION_TYPES = {
   TOKEN_REQUEST: 'tokenRequest',
   PRICING_PlAN: 'planBought',
   LEVEL_INCOME: 'levelIncome',
+  AWARD_OR_REWARD: 'awardOrReward',
   NON_WORKING: 'nonWorking',
   LINK_ACTIVATION: 'linkactivation',
   LINK_HELP: 'linkHelp',
