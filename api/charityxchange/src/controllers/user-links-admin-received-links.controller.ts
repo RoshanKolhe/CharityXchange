@@ -221,7 +221,7 @@ export class UserLinksAdminReceivedLinksController {
 
           const transactionDetails: any = {
             transaction_id: generateTransactionId(),
-            remark: `Help to link #${userLinkData.linkName} received`,
+            remark: `Reward to link #${userLinkData.linkName} received`,
             amount: parseFloat(adminReceivedLinkIds.perLinkPayment),
             type: 'Credited',
             transaction_type: TRANSACTION_TYPES.NON_WORKING,
@@ -239,7 +239,7 @@ export class UserLinksAdminReceivedLinksController {
       }
       return Promise.resolve({
         success: true,
-        message: 'Help Sent Successfully',
+        message: 'Reward Sent Successfully',
       });
     }
     throw new HttpErrors[400]('Please provide an non empty array');

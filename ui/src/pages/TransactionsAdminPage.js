@@ -57,6 +57,8 @@ const TABLE_HEAD = [
   { id: 'amount', label: 'Amount', alignRight: false },
   { id: 'type', label: 'Type', alignRight: false },
   { id: 'remark', label: 'Remark', alignRight: false },
+  { id: 'transaction_fees', label: 'Transaction Fees', alignRight: false },
+  { id: 'admin_fees', label: 'Admin Fees', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: 'createdAt', label: 'Date', alignRight: false },
 ];
@@ -87,7 +89,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_user) => _user.id.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (_user) => _user.transaction_id.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -261,8 +263,18 @@ export default function TransactionsAdminPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, transaction_id, type, remark, status, transaction_fees, updatedAt, createdAt, amount } =
-                      row;
+                    const {
+                      id,
+                      transaction_id,
+                      type,
+                      remark,
+                      status,
+                      transaction_fees,
+                      admin_fees,
+                      updatedAt,
+                      createdAt,
+                      amount,
+                    } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
@@ -270,6 +282,8 @@ export default function TransactionsAdminPage() {
                         <TableCell align="left">{amount}</TableCell>
                         <TableCell align="left">{type}</TableCell>
                         <TableCell align="left">{remark}</TableCell>
+                        <TableCell align="left">{transaction_fees}</TableCell>
+                        <TableCell align="left">{admin_fees}</TableCell>
                         <TableCell align="left">
                           <Label color={(status === false && 'error') || 'success'}>
                             {status === false ? 'In Progress' : 'Completed'}

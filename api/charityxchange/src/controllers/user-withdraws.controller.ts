@@ -144,7 +144,7 @@ export class UserWithdrawsController {
         await this.userRepository
           .withdraws(currnetUser.id)
           .create(inputdata, {transaction: tx});
-        
+
 
         // const transactionDetails: any = {
         //   transaction_id: generateTransactionId(),
@@ -236,9 +236,12 @@ export class UserWithdrawsController {
       const adminBalance = await this.userRepository
         .adminBalances(ADMIN_ID)
         .get();
+      const percentMinusAmount = withdraws.amount * 0.1;
       const userData = await this.userRepository.findById(withdraws.userId);
       const withdrawnAmountInput: Partial<AdminBalances> = {
-        withdrawn_amount: adminBalance.withdrawn_amount + withdraws.amount,
+        withdrawn_amount:
+          adminBalance.withdrawn_amount +
+          (withdraws.amount - (percentMinusAmount + 3)),
       };
       await this.userRepository
         .adminBalances(ADMIN_ID)
@@ -252,6 +255,20 @@ export class UserWithdrawsController {
         },
         {transaction: tx},
       );
+
+      const transactionDetails: any = {
+        transaction_id: generateTransactionId(),
+        remark: 'Withdraw Approved',
+        amount: withdraws.amount - (percentMinusAmount + 3),
+        type: 'Sent',
+        status: true,
+        transaction_fees: 3,
+        admin_fees:percentMinusAmount,
+        transaction_type: TRANSACTION_TYPES.WITHDRAWL_REQUEST,
+      };
+      await this.userRepository
+        .transactions(withdraws.userId)
+        .create(transactionDetails, {transaction: tx});
       const template = generateWithdrawRequestSentTemplate();
 
       const mailOptions = {

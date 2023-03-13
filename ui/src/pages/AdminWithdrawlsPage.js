@@ -252,7 +252,6 @@ export default function AdminWithdrawlsPage() {
   };
 
   const handleApproveClick = (withdraw) => {
-    console.log(withdraw);
     setLoading(true);
     axiosInstance
       .patch(`approveWithdrawRequest`, withdraw)

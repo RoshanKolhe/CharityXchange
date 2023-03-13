@@ -252,8 +252,18 @@ export default function TransactionsEmployeePage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, transaction_id, type, remark, status, transaction_fees, updatedAt, createdAt, amount } =
-                      row;
+                    const {
+                      id,
+                      transaction_id,
+                      type,
+                      remark,
+                      status,
+                      transaction_fees,
+                      admin_fees,
+                      updatedAt,
+                      createdAt,
+                      amount,
+                    } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
@@ -262,7 +272,7 @@ export default function TransactionsEmployeePage() {
                         <TableCell align="left">{type}</TableCell>
                         <TableCell align="left">{remark}</TableCell>
                         <TableCell align="left">{transaction_fees}</TableCell>
-                        <TableCell align="left">{transaction_fees}</TableCell>
+                        <TableCell align="left">{admin_fees}</TableCell>
                         <TableCell align="left">
                           <Label color={(status === false && 'error') || 'success'}>
                             {status === false ? 'In Progress' : 'Completed'}

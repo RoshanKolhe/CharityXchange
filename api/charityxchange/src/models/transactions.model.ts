@@ -54,6 +54,16 @@ export class Transactions extends Entity {
   transaction_fees: number;
 
   @property({
+    type: 'number',
+    required: true,
+    default: 0.0,
+    dataType: 'decimal',
+    precision: 30,
+    scale: 2,
+  })
+  admin_fees: number;
+
+  @property({
     type: 'boolean',
     required: true,
   })
