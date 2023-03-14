@@ -314,7 +314,7 @@ export class UserUserLinksController {
           i < this.calculateBasedOnTotalLink(currentUserActivePlan.total_links);
           i++
         ) {
-          let userLinkData = {
+          let userLinkData:any = {
             ...linksNotSent[i],
             is_send_to_admin: this.calculateBasedOnTotalLinkForSendHelp(
               currentUserActivePlan.total_links,
@@ -322,7 +322,7 @@ export class UserUserLinksController {
             ),
           };
 
-          // userLinkData = omit(userLinkData, 'userId');
+          userLinkData = omit(userLinkData, 'userId');
           await this.userRepository
             .userLinks(currnetUser.id)
             .patch(userLinkData, {id: userLinkData.id}, {transaction: tx});
