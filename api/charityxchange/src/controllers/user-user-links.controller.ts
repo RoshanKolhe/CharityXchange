@@ -278,20 +278,24 @@ export class UserUserLinksController {
         const adminBalance = await this.userRepository
           .adminBalances(ADMIN_ID)
           .get();
-        await this.userRepository.balance_user(currnetUser.id).patch(
-          {
-            current_balance: currentUserbalance.current_balance - 20,
-            chxtToken: currentUserbalance.chxtToken + 200,
-          },
-          {transaction: tx},
-        );
-        await this.userRepository.adminBalances(ADMIN_ID).patch(
-          {
-            current_balance: adminBalance.current_balance + 20,
-            total_help_received: adminBalance.total_help_received + 20,
-          },
-          {transaction: tx},
-        );
+        if (currentUserbalance.current_balance >= 20) {
+          await this.userRepository.balance_user(currnetUser.id).patch(
+            {
+              current_balance: currentUserbalance.current_balance - 20,
+              chxtToken: currentUserbalance.chxtToken + 200,
+            },
+            {transaction: tx},
+          );
+          await this.userRepository.adminBalances(ADMIN_ID).patch(
+            {
+              current_balance: adminBalance.current_balance + 20,
+              total_help_received: adminBalance.total_help_received + 20,
+            },
+            {transaction: tx},
+          );
+        } else {
+          throw new HttpErrors[400]('Not enough balance');
+        }
       }
       await this.userRepository
         .userLinks(currnetUser.id)
@@ -314,7 +318,7 @@ export class UserUserLinksController {
           i < this.calculateBasedOnTotalLink(currentUserActivePlan.total_links);
           i++
         ) {
-          let userLinkData:any = {
+          let userLinkData: any = {
             ...linksNotSent[i],
             is_send_to_admin: this.calculateBasedOnTotalLinkForSendHelp(
               currentUserActivePlan.total_links,
@@ -377,7 +381,7 @@ export class UserUserLinksController {
     }
     return 0;
   }
-  
+
   @authenticate('jwt')
   @del('/users/{id}/user-links', {
     responses: {
