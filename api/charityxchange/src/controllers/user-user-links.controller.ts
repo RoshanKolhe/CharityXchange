@@ -219,7 +219,11 @@ export class UserUserLinksController {
             {transaction: tx},
           );
         }else{
-          throw new HttpErrors[400]('Not enough balance')
+          tx.rollback()
+          return Promise.reject({
+            status:400,
+            message: 'Not enough balance',
+          });
         }
         
       }
@@ -299,7 +303,11 @@ export class UserUserLinksController {
             {transaction: tx},
           );
         } else {
-          throw new HttpErrors[400]('Not enough balance');
+          tx.rollback()
+          return Promise.reject({
+            status:400,
+            message: 'Not enough balance',
+          });
         }
       }
       await this.userRepository

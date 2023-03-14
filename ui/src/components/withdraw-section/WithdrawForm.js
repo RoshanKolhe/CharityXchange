@@ -73,9 +73,9 @@ const WithdrawForm = ({
         })
         .catch((err) => {
           setIsSubmitting(false);
-          handleOpenSnackBar();
           setSuccessMessage('');
-          setErrorMessage(err);
+          setErrorMessage(err.response.data.error.message);
+          handleOpenSnackBar();
           handleClose();
           handleReload();
         });

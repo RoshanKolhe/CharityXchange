@@ -164,10 +164,15 @@ export class UserWithdrawsController {
         });
       } else {
         tx.rollback();
-        throw new HttpErrors[400]('Not enough balance');
+        return Promise.reject({
+          status:400,
+          message: 'Not enough balance',
+        });
       }
     } catch (err) {
-      tx.rollback();
+      if (tx.isActive()) {
+        tx.rollback();
+      }
       throw new HttpErrors[400](err);
     }
   }
