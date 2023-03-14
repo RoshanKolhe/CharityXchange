@@ -53,8 +53,11 @@ import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
+  { id: 'userId', label: 'User Id', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
   { id: 'note', label: 'Note', alignRight: false },
+  { id: 'name', label: 'Name', alignRight: false },
+  { id: 'walletAddress', label: 'Wallet Address', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: 'createdAt', label: 'Received Date', alignRight: false },
   { id: '' },
@@ -325,14 +328,18 @@ export default function AdminWithdrawlsPage() {
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, amount, note, status, createdAt } = row;
+                    const { user, id, amount, note, status, createdAt } = row;
                     const selectedUser = selected.indexOf(id) !== -1;
                     return (
                       <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedUser}>
                         {/* <TableCell padding="checkbox">
                           <Checkbox checked={selectedUser} onChange={(event) => handleClick(event, id)} />
                         </TableCell> */}
-
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {user?.id}
+                          </Typography>
+                        </TableCell>
                         <TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
                             {amount}
@@ -341,6 +348,16 @@ export default function AdminWithdrawlsPage() {
                         <TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
                             {note}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {user?.name}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {user?.balance_user?.payment_info?.wallet_address}
                           </Typography>
                         </TableCell>
                         <TableCell align="left">

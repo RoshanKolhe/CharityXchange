@@ -18,3 +18,4 @@ export * from './cycle.controller';
 export * from './cycles-cycle-payments.controller';
 export * from './user-transactions.controller';
 export * from './user-withdraws.controller';
+export * from './withdraws-user.controller';

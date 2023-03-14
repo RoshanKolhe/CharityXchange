@@ -145,7 +145,6 @@ export class UserWithdrawsController {
           .withdraws(currnetUser.id)
           .create(inputdata, {transaction: tx});
 
-
         // const transactionDetails: any = {
         //   transaction_id: generateTransactionId(),
         //   remark: 'Amount Withdrawl',
@@ -263,7 +262,7 @@ export class UserWithdrawsController {
         type: 'Sent',
         status: true,
         transaction_fees: 3,
-        admin_fees:percentMinusAmount,
+        admin_fees: percentMinusAmount,
         transaction_type: TRANSACTION_TYPES.WITHDRAWL_REQUEST,
       };
       await this.userRepository
@@ -311,6 +310,22 @@ export class UserWithdrawsController {
   async allWithdrawlRequests(
     @param.query.object('filter') filter?: Filter<Withdraws>,
   ): Promise<Withdraws[]> {
+    const include: InclusionFilter[] = [
+      {
+        relation: 'user',
+        scope: {
+          include: [
+            {
+              relation: 'userProfile',
+            },
+            {
+              relation: 'balance_user',
+            },
+          ],
+        },
+      },
+    ];
+    filter = {...filter, include};
     return this.withdrawRepository.find(filter);
   }
 }
