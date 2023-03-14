@@ -346,7 +346,7 @@ export class UserUserLinksController {
 
       const transactionDetails: any = {
         transaction_id: generateTransactionId(),
-        remark: `Help sent to link #${userLinks.linkName}`,
+        remark: `Reward sent to link #${userLinks.linkName}`,
         amount: 20,
         type: 'Debited',
         status: true,
