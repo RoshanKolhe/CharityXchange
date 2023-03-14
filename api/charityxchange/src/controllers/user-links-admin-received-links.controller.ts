@@ -6,6 +6,7 @@ import {
   CountSchema,
   DefaultTransactionalRepository,
   Filter,
+  InclusionFilter,
   IsolationLevel,
   repository,
   Where,
@@ -73,6 +74,19 @@ export class UserLinksAdminReceivedLinksController {
   async find(
     @param.query.object('filter') filter?: Filter<AdminReceivedLinks>,
   ): Promise<AdminReceivedLinks[]> {
+    const include: InclusionFilter[] = [
+      {
+        relation: 'userLinks',
+        scope: {
+          include: [
+            {
+              relation: 'user',
+            },
+          ],
+        },
+      },
+    ];
+    filter = {...filter, include};
     return this.adminReceivedLinksRepository.find(filter);
   }
 

@@ -1,8 +1,10 @@
-import {inject, Constructor} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {inject, Constructor, Getter} from '@loopback/core';
+import {DefaultCrudRepository, repository, BelongsToAccessor} from '@loopback/repository';
 import {CharityxchangeSqlDataSource} from '../datasources';
 import {TimeStampRepositoryMixin} from '../mixins/timestamp-repository-mixin';
-import {AdminReceivedLinks, AdminReceivedLinksRelations} from '../models';
+import {AdminReceivedLinks, AdminReceivedLinksRelations, UserLinks} from '../models';
+import {UserLinksRepository} from './user-links.repository';
+
 export class AdminReceivedLinksRepository extends TimeStampRepositoryMixin<
   AdminReceivedLinks,
   typeof AdminReceivedLinks.prototype.id,
@@ -14,10 +16,15 @@ export class AdminReceivedLinksRepository extends TimeStampRepositoryMixin<
     >
   >
 >(DefaultCrudRepository) {
+
+  public readonly userLinks: BelongsToAccessor<UserLinks, typeof AdminReceivedLinks.prototype.id>;
+
   constructor(
     @inject('datasources.charityxchangeSql')
-    dataSource: CharityxchangeSqlDataSource,
+    dataSource: CharityxchangeSqlDataSource, @repository.getter('UserLinksRepository') protected userLinksRepositoryGetter: Getter<UserLinksRepository>,
   ) {
     super(AdminReceivedLinks, dataSource);
+    this.userLinks = this.createBelongsToAccessorFor('userLinks', userLinksRepositoryGetter,);
+    this.registerInclusionResolver('userLinks', this.userLinks.inclusionResolver);
   }
 }

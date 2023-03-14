@@ -322,7 +322,7 @@ export class UserUserLinksController {
             ),
           };
 
-          userLinkData = omit(userLinkData, 'userId');
+          // userLinkData = omit(userLinkData, 'userId');
           await this.userRepository
             .userLinks(currnetUser.id)
             .patch(userLinkData, {id: userLinkData.id}, {transaction: tx});

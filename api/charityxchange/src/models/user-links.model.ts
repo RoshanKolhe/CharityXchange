@@ -1,5 +1,6 @@
-import {Entity, model, property, hasOne, hasMany} from '@loopback/repository';
+import {Entity, model, property, hasOne, hasMany, belongsTo} from '@loopback/repository';
 import {AdminReceivedLinks} from './admin-received-links.model';
+import {User} from './user.model';
 
 @model()
 export class UserLinks extends Entity {
@@ -59,14 +60,11 @@ export class UserLinks extends Entity {
     type: 'date',
   })
   updatedAt?: Date;
-
-  @property({
-    type: 'number',
-  })
-  userId?: number;
-
   @hasMany(() => AdminReceivedLinks)
   adminReceivedLinks: AdminReceivedLinks[];
+
+  @belongsTo(() => User)
+  userId: number;
 
   constructor(data?: Partial<UserLinks>) {
     super(data);

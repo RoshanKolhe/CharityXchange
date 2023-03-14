@@ -1,4 +1,5 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {UserLinks} from './user-links.model';
 
 @model()
 export class AdminReceivedLinks extends Entity {
@@ -49,10 +50,8 @@ export class AdminReceivedLinks extends Entity {
   })
   updatedAt?: Date;
 
-  @property({
-    type: 'number',
-  })
-  userLinksId?: number;
+  @belongsTo(() => UserLinks)
+  userLinksId: number;
 
   constructor(data?: Partial<AdminReceivedLinks>) {
     super(data);

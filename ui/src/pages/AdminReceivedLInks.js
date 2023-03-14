@@ -53,6 +53,8 @@ import { ListHead, ListToolbar } from '../sections/@dashboard/table';
 
 const TABLE_HEAD = [
   { id: 'linkName', label: 'Link', alignRight: false },
+  { id: 'userName', label: 'User Name', alignRight: false },
+  { id: 'email', label: 'Email', alignRight: false },
   { id: 'is_active', label: 'Active', alignRight: false },
   { id: 'is_help_send', label: 'Help Send', alignRight: false },
   { id: '' },
@@ -406,6 +408,7 @@ export default function AdminReceivedLInks() {
                       linkName,
                       is_active,
                       is_help_send,
+                      userLinks,
                       is_send_to_admin,
                       is_help_received,
                       activationStartTime,
@@ -421,6 +424,16 @@ export default function AdminReceivedLInks() {
                         <TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
                             {linkName}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {userLinks?.user?.name}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          <Typography variant="subtitle2" noWrap>
+                            {userLinks?.user?.email}
                           </Typography>
                         </TableCell>
                         <TableCell align="left">
